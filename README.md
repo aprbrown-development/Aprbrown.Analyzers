@@ -1,4 +1,4 @@
-# DotNet.Analysers
+# Aprbrown.Analyzers
 
 Custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers and code fixes for .NET, packaged for consumption as a NuGet analyzer package.
 
@@ -10,10 +10,10 @@ Early — scaffolding only. The repository currently contains agent-skill config
 
 | Path | Purpose |
 |---|---|
-| `src/DotNet.Analysers/` | The analyzers themselves (`DiagnosticAnalyzer` implementations) |
-| `src/DotNet.Analysers.CodeFixes/` | Matching `CodeFixProvider`s |
-| `src/DotNet.Analysers.Package/` | NuGet packaging project that ships the analyzer + code fix assemblies |
-| `tests/DotNet.Analysers.Tests/` | Unit tests using `Microsoft.CodeAnalysis.Testing` verifiers |
+| `src/Aprbrown.Analyzers/` | The analyzers themselves (`DiagnosticAnalyzer` implementations) |
+| `src/Aprbrown.Analyzers.CodeFixes/` | Matching `CodeFixProvider`s |
+| `src/Aprbrown.Analyzers.Package/` | NuGet packaging project that ships the analyzer + code fix assemblies |
+| `tests/Aprbrown.Analyzers.Tests/` | Unit tests using `Microsoft.CodeAnalysis.Testing` verifiers |
 
 Analyzers target `netstandard2.0` so they load in every supported host (MSBuild, VS, Rider, `dotnet build`). Test and packaging projects can target current .NET.
 
@@ -27,8 +27,8 @@ dotnet test
 
 ## Adding an analyzer
 
-1. Add the `DiagnosticAnalyzer` under `src/DotNet.Analysers/`, with a unique diagnostic ID and a `DiagnosticDescriptor` in a shared descriptors file.
-2. Add a matching `CodeFixProvider` under `src/DotNet.Analysers.CodeFixes/` if the diagnostic is mechanically fixable.
+1. Add the `DiagnosticAnalyzer` under `src/Aprbrown.Analyzers/`, with a unique diagnostic ID and a `DiagnosticDescriptor` in a shared descriptors file.
+2. Add a matching `CodeFixProvider` under `src/Aprbrown.Analyzers.CodeFixes/` if the diagnostic is mechanically fixable.
 3. Add tests under `tests/` covering both the triggering case and at least one near-miss that must *not* report.
 4. Document the rule — ID, category, default severity, and rationale — in `docs/rules/`.
 
