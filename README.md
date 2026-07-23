@@ -38,4 +38,8 @@ dotnet test
 
 ## Licence
 
-Not yet chosen.
+[MIT](LICENSE) — `Copyright (c) 2026 Andrew P R Brown`.
+
+The package declares this as an SPDX expression
+(`<PackageLicenseExpression>MIT</PackageLicenseExpression>`) rather than shipping a licence file,
+so `LICENSE` above is not packed into the `.nupkg`.
