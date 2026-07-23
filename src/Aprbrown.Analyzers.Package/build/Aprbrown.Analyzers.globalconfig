@@ -1,0 +1,16 @@
+# Aprbrown.Analyzers shipped configuration — a sealed allowlist (ADR-0002, spec §2).
+#
+# Named Aprbrown.Analyzers.globalconfig, NOT .globalconfig: the latter is
+# ancestor-auto-discovered and would collide with a consumer's own file, unsetting
+# colliding keys. It is global only because of is_global = true below (spec §2.1), and it
+# deliberately does not set global_level, so a consumer's own config outranks this baseline.
+#
+# Later tickets enumerate the rest of the house ruleset back on beneath the blanket. At this
+# stage only APB0001 is on.
+is_global = true
+
+# The blanket: everything off, including rules that do not exist yet.
+dotnet_analyzer_diagnostic.severity = none
+
+# APB0001 — do not use primary constructors on classes or structs (spec §3.1).
+dotnet_diagnostic.APB0001.severity = warning

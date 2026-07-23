@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Packaging project (spec §4.1). Produces the Aprbrown.Analyzers .nupkg. It builds no
+    shipped code of its own — IncludeBuildOutput=false — and instead packs an explicit
+    allowlist (spec §4.2): one <None> entry per packed file, each with an explicit
+    PackagePath. No build\** glob (it silently omits dotfiles and produced a package that
+    enforced nothing in #2).
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <IncludeSymbols>false</IncludeSymbols>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <IsPackable>true</IsPackable>
+    <PackageId>Aprbrown.Analyzers</PackageId>
+    <!-- Version is supplied by the tag at release time (-p:Version=…); this is only a
+         local-pack fallback. -->
+    <Version>0.0.0-dev</Version>
+    <Authors>Andrew P R Brown</Authors>
+    <Description>One .NET coding standard, delivered as a Roslyn analyzer package: three custom analyzers and a sealed-allowlist configuration deciding which rules are on.</Description>
+    <PackageTags>roslyn;analyzers;codeanalysis;editorconfig</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
+
+    <!-- License as an SPDX expression; LICENSE is not packed (spec §4.2). -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2026 Andrew P R Brown</Copyright>
+
+    <!-- consuming.md is packed as the package README (spec §4.2). -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <PackageProjectUrl>https://github.com/aprbrown-development/Aprbrown.Analyzers</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/aprbrown-development/Aprbrown.Analyzers</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- NU5128: an analyzer package ships no lib/ref assemblies and no dependencies. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <!-- Build the analyzer first, but do not reference its assembly for compilation. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- The explicit allowlist (spec §4.2). One entry per packed file. -->
+  <ItemGroup>
+    <None Include="..\Aprbrown.Analyzers\bin\$(Configuration)\netstandard2.0\Aprbrown.Analyzers.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs/Aprbrown.Analyzers.dll" Visible="false" />
+    <None Include="build\Aprbrown.Analyzers.props"
+          Pack="true" PackagePath="build/Aprbrown.Analyzers.props" />
+    <None Include="build\Aprbrown.Analyzers.globalconfig"
+          Pack="true" PackagePath="build/Aprbrown.Analyzers.globalconfig" />
+    <None Include="..\..\docs\consuming.md"
+          Pack="true" PackagePath="README.md" Visible="false" />
+  </ItemGroup>
+
+</Project>

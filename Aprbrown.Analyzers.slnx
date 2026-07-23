@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj" />
+    <Project Path="src/Aprbrown.Analyzers/Aprbrown.Analyzers.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aprbrown.Analyzers.Tests/Aprbrown.Analyzers.Tests.csproj" />
+  </Folder>
+</Solution>
