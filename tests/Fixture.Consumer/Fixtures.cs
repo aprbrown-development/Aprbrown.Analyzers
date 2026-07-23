@@ -1,3 +1,4 @@
+// System.Threading and System.Threading.Tasks arrive via ImplicitUsings.
 namespace Fixture.Consumer;
 
 // Triggers APB0001: a primary constructor on a class. With the package's TreatWarningsAsErrors
@@ -19,4 +20,14 @@ public class Gadget
     public Gadget(int size) => _size = size;
 
     public int Size => _size;
+}
+
+// Triggers APB0002: a defaulted CancellationToken parameter. Same deal as Widget — the package's
+// TreatWarningsAsErrors default turns this into a build error, which the smoke test asserts.
+public static class Sprocket
+{
+    public static Task SpinAsync(CancellationToken ct = default) => Task.CompletedTask;
+
+    // Must stay silent: a token the caller is obliged to pass is the endorsed shape.
+    public static Task WindAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

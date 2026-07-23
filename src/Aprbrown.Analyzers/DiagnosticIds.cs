@@ -8,4 +8,7 @@ internal static class DiagnosticIds
 {
     /// <summary>APB0001 — do not use primary constructors on classes or structs.</summary>
     internal const string PrimaryConstructor = "APB0001";
+
+    /// <summary>APB0002 — do not give a CancellationToken parameter a default value.</summary>
+    internal const string CancellationTokenDefault = "APB0002";
 }

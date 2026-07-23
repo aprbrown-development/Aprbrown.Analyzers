@@ -4,12 +4,12 @@ Custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
 
 ## Status
 
-Early — the tracer bullet is in. The repository skeleton is stood up and the first analyzer,
-`APB0001` (no primary constructors on classes or structs), is proven end to end from a packed
-`.nupkg` by `scripts/verify-package.sh`. The shipped config so far carries only the blanket and
-`APB0001`; the remaining analyzers, the full ruleset, the code fix, and CI are additive work
-tracked in the issue backlog. The sections below describe the intended final shape of the
-project.
+Early — the tracer bullet is in. The repository skeleton is stood up and the first two analyzers,
+`APB0001` (no primary constructors on classes or structs) and `APB0002` (no default value on a
+`CancellationToken` parameter), are proven end to end from a packed `.nupkg` by
+`scripts/verify-package.sh`. The shipped config so far carries the blanket plus those two; the
+remaining analyzer, the full ruleset, the code fix, and CI are additive work tracked in the issue
+backlog. The sections below describe the intended final shape of the project.
 
 ## Documentation
 

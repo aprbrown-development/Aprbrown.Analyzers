@@ -23,4 +23,17 @@ internal static class Descriptors
             + "so a class's dependency surface is one legible block rather than a parameter list the "
             + "compiler scatters.",
         helpLinkUri: HelpLinkUri);
+
+    /// <summary>APB0002 — do not give a CancellationToken parameter a default value (spec §3.2).</summary>
+    public static readonly DiagnosticDescriptor CancellationTokenDefault = new(
+        id: DiagnosticIds.CancellationTokenDefault,
+        title: "Do not give a CancellationToken parameter a default value",
+        messageFormat: "Parameter '{0}' defaults its CancellationToken; make every caller pass one",
+        category: "Design",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "The caller always decides cancellation. A defaulted token lets a caller "
+            + "silently opt out, and the opting-out is invisible at the call site. CA2016, MA0032 "
+            + "and MA0040 police the call site; this rule is the declaration half.",
+        helpLinkUri: HelpLinkUri);
 }
