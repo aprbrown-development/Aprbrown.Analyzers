@@ -8,12 +8,13 @@
 # diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
 # assertion.
 #
-# At this stage the shipped config carries only APB0001, so the assertions are:
+# At this stage the shipped config carries APB0001 and APB0002, so the assertions are:
 #   - the produced .nupkg matches the §4.2 allowlist exactly;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
-#   - an APB0001 violation fires, and TreatWarningsAsErrors promotes it to a build error.
-# Later tickets add rows here as the config enumerates more rules back on.
+#   - every rule in EXPECTED_RULES fires against the fixture, and TreatWarningsAsErrors promotes
+#     them to build errors.
+# Later tickets add rows to EXPECTED_RULES as the config enumerates more rules back on.
 
 set -euo pipefail
 
@@ -103,21 +104,27 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 [ "$EIB" = "true" ]  || fail "EnforceCodeStyleInBuild did not arrive as true (got '$EIB')"
 [ "$TWAE" = "true" ] || fail "TreatWarningsAsErrors did not arrive as true (got '$TWAE')"
 
-# --- Assertion: an APB0001 violation fires and fails the build ------------------------------
+# --- Assertion: every enumerated rule fires and fails the build ------------------------------
+# One row per rule the shipped config switches on, each with a matching case in the fixture.
+EXPECTED_RULES=(APB0001 APB0002)
+
 set +e
 dotnet build "$FIXTURE" --no-restore \
   -p:AprbrownAnalyzersVersion="$VERSION" --nologo -v quiet > "$BUILD_LOG" 2>&1
 BUILD_RC=$?
 set -e
 
-if ! grep -q "APB0001" "$BUILD_LOG"; then
-  cat "$BUILD_LOG" >&2
-  fail "APB0001 did not fire in the fixture build"
-fi
+for RULE in "${EXPECTED_RULES[@]}"; do
+  if ! grep -q "$RULE" "$BUILD_LOG"; then
+    cat "$BUILD_LOG" >&2
+    fail "$RULE did not fire in the fixture build"
+  fi
+  info "$RULE fired"
+done
 if [ "$BUILD_RC" -eq 0 ]; then
   cat "$BUILD_LOG" >&2
-  fail "fixture build succeeded but should have failed on APB0001-as-error"
+  fail "fixture build succeeded but should have failed on the enumerated rules as errors"
 fi
-info "APB0001 fired and TreatWarningsAsErrors failed the build as expected"
+info "TreatWarningsAsErrors failed the build as expected"
 
 echo "SMOKE PASS"
