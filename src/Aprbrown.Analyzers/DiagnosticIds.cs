@@ -11,4 +11,7 @@ internal static class DiagnosticIds
 
     /// <summary>APB0002 — do not give a CancellationToken parameter a default value.</summary>
     internal const string CancellationTokenDefault = "APB0002";
+
+    /// <summary>APB0003 — parameter names should match the implemented interface member.</summary>
+    internal const string InterfaceParameterName = "APB0003";
 }

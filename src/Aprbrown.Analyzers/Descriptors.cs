@@ -36,4 +36,17 @@ internal static class Descriptors
             + "silently opt out, and the opting-out is invisible at the call site. CA2016, MA0032 "
             + "and MA0040 police the call site; this rule is the declaration half.",
         helpLinkUri: HelpLinkUri);
+
+    /// <summary>APB0003 — parameter names should match the implemented interface member (spec §3.3).</summary>
+    public static readonly DiagnosticDescriptor InterfaceParameterName = new(
+        id: DiagnosticIds.InterfaceParameterName,
+        title: "Parameter names should match the implemented interface member",
+        messageFormat: "Parameter '{0}' should be named '{1}' to match {2}",
+        category: "Naming",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "CA1725 requires matching parameter names for base-class overrides but is blind "
+            + "to interface implementations. This is the missing half, so an interface's parameter "
+            + "names survive into every type that implements it.",
+        helpLinkUri: HelpLinkUri);
 }
