@@ -19,7 +19,14 @@ The repository has **no CI of any kind** today (no `.github/` directory). Across
 fleet only `EveIndustryTools` has workflows, and those are project-management rather than
 build/test. Its two self-hosted homelab runners (`homelab-eit-1/2`) exist because heavy iteration
 was exhausting the GitHub Actions allowance, and are scoped to that repo. This repository is on the
-`aprbrown-development` org (free plan) and is **private**, while the package it produces is public.
+`aprbrown-development` org (free plan) and is **private at the time of writing**.
+
+[Choose a licence for the package](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/6)
+resolved in parallel with this ticket and **decided the repository goes public** (MIT), with an ordering
+constraint aimed squarely at this ADR: *review repository contents → flip public → then push*, because
+ADR-0001's first push is unrevocable and a private `RepositoryUrl` would ship a permanent 404. The
+decisions below were reached under the private assumption; where the flip changes them, that is called
+out inline.
 
 ### The property that drives every decision below
 
@@ -67,8 +74,15 @@ edit `AnalyzerReleases.Shipped.md`, tag) in which two parts can silently disagre
 ### 3. Two workflows; `release.yml` is the only privileged one
 
 `ci.yml` runs on pull requests and pushes to `main`. `release.yml` runs on `v*` tags and is the only
-file that ever holds `id-token: write`. The trusted publishing policy names `release.yml` and leaves
-the environment blank.
+file that ever holds `id-token: write`. The trusted publishing policy names `release.yml`.
+
+**Open point — environment scoping.** A trusted publishing policy can optionally be scoped to a GitHub
+Actions environment, which is how a required-reviewer approval gate is placed in front of the
+unrevocable push. That was **unavailable** when this decision was taken — *"Users with GitHub Free plans
+can only configure environments for public repositories"* — but #6's decision to go public makes it free.
+Whether `release.yml`'s publish job gains `environment: release` is left open here; it is a one-field
+policy edit on nuget.org plus two lines of YAML at implementation time, not a design fork, and the
+decisions below hold either way.
 
 The file that can mint a nuget.org key and push something unrevocable should be short enough to read
 in one screen and boring enough that it almost never changes. A single workflow with a conditional
@@ -204,19 +218,24 @@ encodes "this now catches more".
 - **A package-specific README** (`PackageReadmeFile`), not the repository README. Different audiences, and
   the repository README is where an internal URL would plausibly wander in. It carries the onboarding
   snippet, so the nuget.org page *is* the install instructions.
-- **`PackageProjectUrl`, `RepositoryUrl` and `HelpLinkUri` point at their eventual public locations.**
-  They are correct the day the repository goes public and need no package rebuild; if it stays private
-  they are a cosmetic wart on an audience of one. Omitting `HelpLinkUri` buys nothing — the IDE's fallback
-  for an unknown `APB0001` is a web search that finds nothing either.
+- **`PackageProjectUrl`, `RepositoryUrl` and `HelpLinkUri` point at their public repository locations.**
+  Taken under the private assumption this was a hedge — correct the day the repository went public, a
+  cosmetic 404 until then. #6 has since decided the flip happens **before** the first push, so they are
+  simply correct. Omitting `HelpLinkUri` would buy nothing regardless — the IDE's fallback for an unknown
+  `APB0001` is a web search that finds nothing either.
 
 ### 11. The first tag is `v1.0.0-preview.1`, and it is expected to be thrown away
 
-Four things can only be tested against production nuget.org: the trusted publishing policy actually
-matching (owner, repository and workflow filename must all line up), the rendered package contents, a
-real consumer restoring from the real feed, and — because this repository is **private** — the **7-day
-pending-activation window**. A policy created against a private repo is only temporarily active until a
-successful publish stamps the GitHub repository and owner IDs into it, guarding against resurrection
-attacks; without a publish inside 7 days it goes inactive (restartable at any time).
+Several things can only be tested against production nuget.org: the trusted publishing policy actually
+matching (owner, repository and workflow filename must all line up), the rendered package contents, and
+a real consumer restoring from the real feed.
+
+A fourth applied under the private assumption: the **7-day pending-activation window**. A policy created
+against a *private* repo is only temporarily active until a successful publish stamps the GitHub
+repository and owner IDs into it, guarding against resurrection attacks; without a publish inside 7 days
+it goes inactive (restartable at any time). Under #6's flip-before-push ordering this may not apply at
+all — but it is a reason the preview is *more* valuable if the flip is ever deferred, never a reason it
+is less.
 
 A disposable preview costs nothing — nobody references it, and burning a preview version number is what
 preview version numbers are for. It moves every first-run failure onto a version *designed* to be
@@ -228,11 +247,13 @@ consumes the preview from real nuget.org as the final validation. Only then is `
 
 ### What this forces
 
-- **Implementation prerequisites**, to be performed close to the first publish rather than in advance
-  (the 7-day window actively argues against creating the policy early): a nuget.org account; a trusted
-  publishing policy naming owner `aprbrown-development`, repository `Aprbrown.Analyzers`, workflow file
-  `release.yml`; and the nuget.org **profile name** (not email) available to `NuGet/login@v1`, stored as
-  a repository secret.
+- **Implementation prerequisites, in order.** #6 fixes the first two steps: **review repository contents,
+  then flip public** — `CLAUDE.md`, `docs/agents/` and `.claude/` become readable, as does this map's
+  issue history. Only then: a nuget.org account; a trusted publishing policy naming owner
+  `aprbrown-development`, repository `Aprbrown.Analyzers`, workflow file `release.yml`; the nuget.org
+  **profile name** (not email) available to `NuGet/login@v1`, stored as a repository secret; and finally
+  the `v1.0.0-preview.1` rehearsal. The policy is still best created close to the first publish rather
+  than in advance.
 - **`.github/workflows/ci.yml`, `.github/workflows/release.yml`, `scripts/verify-package.sh`, a fixture
   consumer project, `CHANGELOG.md`, and a package README** all become deliverables of the consumption
   spec.
@@ -245,9 +266,12 @@ consumes the preview from real nuget.org as the final validation. Only then is `
   than one tag.
 - **A few duplicated setup lines** between `ci.yml` and `release.yml`, accepted deliberately over a
   reusable-workflow indirection that could confuse the OIDC claim.
-- **No approval gate on the unrevocable push.** GitHub's docs state *"Users with GitHub Free plans can
-  only configure environments for public repositories"*, so required reviewers are unavailable while this
-  repository is private on the free org plan. The PR-time gates and the preview rehearsal carry that
-  weight instead. Noted as an input to
-  [Choose a licence for the package](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/6):
-  taking the repository public would make the gate available at zero cost.
+- **The PR-time gates and the preview rehearsal are the primary protection on the unrevocable push**,
+  by design — they run whether or not an approval gate exists. An approval gate was unavailable when this
+  decision was taken (*"Users with GitHub Free plans can only configure environments for public
+  repositories"*), which is one of the two arguments this ticket fed into
+  [#6](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/6); #6's decision to go public
+  makes it available at zero cost, and it is left as the open point under decision 3.
+- **Going public also removes the Actions allowance as a constraint here** (unlimited minutes on public
+  repositories versus 2,000/month), so the self-hosted-runner escape hatch that `EveIndustryTools` needed
+  is unlikely ever to be reached by this repository.
