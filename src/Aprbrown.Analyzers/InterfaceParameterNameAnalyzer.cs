@@ -82,9 +82,13 @@ public sealed class InterfaceParameterNameAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var count = Math.Min(implementation.Parameters.Length, interfaceMethod.Parameters.Length);
+        // An implementation always has the arity of the member it implements. The clamp is not
+        // for that: an analyzer also runs against half-typed code in the IDE, where error
+        // recovery can hand back a symbol pair that does not agree, and an out-of-range index
+        // there would take the whole analysis down.
+        var parameterCount = Math.Min(implementation.Parameters.Length, interfaceMethod.Parameters.Length);
 
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < parameterCount; i++)
         {
             var parameter = implementation.Parameters[i];
             var expected = interfaceMethod.Parameters[i].Name;
@@ -94,8 +98,12 @@ public sealed class InterfaceParameterNameAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            // No source location means the implementation came from metadata; there is nothing
-            // to fix, and nowhere to point.
+            // Spec §3.3 requires that a parameter with no source location — an implementation
+            // inherited from metadata — is never reported. The containing-type check above is
+            // what actually excludes those, since a metadata method's containing type is never
+            // the source type under analysis. This stays as the guard on the reporting itself:
+            // Diagnostic.Create needs a location, and the requirement should be enforced where
+            // it is stated rather than only as a side effect of an earlier test.
             if (parameter.Locations.FirstOrDefault(location => location.IsInSource) is not { } location)
             {
                 continue;

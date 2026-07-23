@@ -4,10 +4,15 @@ using VerifyCS = Aprbrown.Analyzers.Tests.CSharpAnalyzerVerifier<Aprbrown.Analyz
 namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
-/// Covers every required-test row for APB0003 (spec §3.3). The four silent cases each guard a
-/// distinct reason — interfaces are not implementers, accessor parameters are synthesised, an
-/// inherited implementation belongs to the base, and a metadata parameter has nothing to rename.
+/// Covers every required-test row for APB0003 (spec §3.3).
 /// </summary>
+/// <remarks>
+/// Three of the spec's four must-not-flag cases are pinned here: an interface declaration is not
+/// an implementer, accessor parameters are synthesised, and an inherited implementation is
+/// reported on the base that declares it rather than on the derived type. The fourth — a
+/// parameter with no source location — cannot be written as a test, because a metadata
+/// implementation is excluded before the guard is reached; see the analyzer's comment there.
+/// </remarks>
 public sealed class InterfaceParameterNameAnalyzerTests
 {
     [Fact]
