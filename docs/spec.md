@@ -474,7 +474,7 @@ Analyzer unit tests test the analyzer; they cannot test the package. This gate t
 | Both MSBuild properties arrive | #2's hazard H1 is a *silent* failure |
 
 The `CA` assertion supersedes ADR-0003's wording, which described it as proving "the `AnalysisMode`
-tier survives the blanket". There is no `AnalysisMode` tier — see section 9.
+tier survives the blanket". There is no `AnalysisMode` tier — see section 10.
 
 The `CA1707` row is new to this spec: it is the direct regression test for the category-re-enable
 mistake, which is the cheapest available way to break the seal and would otherwise pass every other
@@ -562,7 +562,51 @@ Only `EveIndustryTools` has config of its own, but the pattern is general:
 
 ---
 
-## 9. Corrections to earlier decisions
+## 9. Onboarding order
+
+The fleet is onboarded in this order, and the order is load-bearing rather than arbitrary. Each
+repository is a **big-bang** adoption: install, fix every violation, done — no severity ratchet, no
+baseline suppression file.
+
+| # | Repository | Why here |
+|---|---|---|
+| 1 | `Mixologist` | Already compliant, so its violation count should be **zero** |
+| 2 | `WordleHelper` | First honest read of adoption cost on a repository that never had the ruleset |
+| 3–5 | `EveEsiClient`, `FPL_Helper/web`, `WeddingSite` | Bulk adoption once the cost is known |
+| 6 | `EveIndustryTools` | The only repository with competing configuration |
+
+**`Mixologist` first, because it isolates the variable.** It is the repository the ruleset was
+extracted *from*, it builds clean today (verified 0/0), and it reads zero primary constructors in
+production. So its onboarding tests the **delivery mechanism** on its own rather than confounding it
+with a wall of violations: any diagnostic that fires is evidence the package is wrong, not that the
+code is. A repository with real violations could not distinguish those two failures. It is also the
+final validation of the `v1.0.0-preview.1` rehearsal (ADR-0003 decision 11) — it consumes the preview
+from real nuget.org before `v1.0.0` is tagged.
+
+Its 20 `APB0001` hits are all in `tests/`, which is why the `tests/**` carve-out is mandatory in the
+onboarding snippet rather than optional. Without it the canary chosen to light up at zero lights up
+with 20 on day one, and the signal is lost.
+
+**`EveIndustryTools` last, but for a narrower reason than originally assumed.** Charting sequenced it
+last as the hard repository. #5 reframed it: its **code is already fully compliant** — 1,188 class
+declarations, zero primary constructors, zero naming violations, classic constructors with
+`_camelCase` throughout. Its risk is **entirely its competing configuration** (its own severities, its
+differently-pinned `Meziantou.Analyzer`), which is a reconciliation exercise (section 8), not a
+code-fixing one. It goes last so that reconciliation happens against a ruleset already proven on five
+repositories.
+
+**`WordleHelper` second** because it is the first repository with no prior relationship to the
+ruleset. Whatever it costs to adopt is the number that predicts repositories 3–5, and it is worth
+learning that before committing to a bulk pass. Expect violations to concentrate in the `Meziantou`
+and `CA` tiers: naming and accessibility measured **zero across all six repositories**, so that axis
+costs nothing anywhere.
+
+Onboarding the repositories is **out of scope for this map** — the sequencing is spec, the work is
+downstream.
+
+---
+
+## 10. Corrections to earlier decisions
 
 Recorded so a reader of the map's history is not misled.
 
