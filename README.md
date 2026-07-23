@@ -4,7 +4,12 @@ Custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
 
 ## Status
 
-Early — scaffolding only. The repository currently contains agent-skill configuration and no analyzer code yet. The sections below describe the intended shape of the project, not what is implemented.
+Early — the tracer bullet is in. The repository skeleton is stood up and the first analyzer,
+`APB0001` (no primary constructors on classes or structs), is proven end to end from a packed
+`.nupkg` by `scripts/verify-package.sh`. The shipped config so far carries only the blanket and
+`APB0001`; the remaining analyzers, the full ruleset, the code fix, and CI are additive work
+tracked in the issue backlog. The sections below describe the intended final shape of the
+project.
 
 ## Documentation
 
@@ -30,10 +35,20 @@ Analyzers target `netstandard2.0` so they load in every supported host (MSBuild,
 ## Building
 
 ```bash
-dotnet restore
-dotnet build
-dotnet test
+dotnet build Aprbrown.Analyzers.slnx
+dotnet test  Aprbrown.Analyzers.slnx
 ```
+
+Unit tests test the analyzer; they cannot test the *package*. The pack-consume smoke test does —
+it packs to a temp feed, restores `tests/Fixture.Consumer` against it, builds, and asserts an
+exact diagnostic set. Run it on any dev machine:
+
+```bash
+./scripts/verify-package.sh
+```
+
+`tests/Fixture.Consumer` is deliberately outside the solution: it only builds once the package has
+been packed, so the smoke script drives it rather than `dotnet build`.
 
 ## Adding an analyzer
 

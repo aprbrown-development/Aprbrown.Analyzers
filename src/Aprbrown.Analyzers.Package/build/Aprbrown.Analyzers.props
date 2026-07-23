@@ -1,0 +1,21 @@
+<Project>
+  <!--
+    Imported automatically for any project that references the Aprbrown.Analyzers package
+    (NuGet build/<PackageId>.props convention). Package props run before the SDK assigns its
+    own TreatWarningsAsErrors default and before Directory.Build.props, so the Condition idiom
+    below yields genuine overridable defaults rather than a mandate (spec §4.3). A .csproj
+    <Import> would be too late — the SDK overwrites it silently.
+  -->
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)'==''">true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors Condition="'$(TreatWarningsAsErrors)'==''">true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    The shipped config is injected through GlobalAnalyzerConfigFiles — Microsoft's documented
+    extension point, which the SDK folds into EditorConfigFiles. One channel, not two.
+  -->
+  <ItemGroup>
+    <GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)Aprbrown.Analyzers.globalconfig" />
+  </ItemGroup>
+</Project>
