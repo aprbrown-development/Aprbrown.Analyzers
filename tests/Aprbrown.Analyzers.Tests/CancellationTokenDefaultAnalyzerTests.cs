@@ -57,6 +57,50 @@ public sealed class CancellationTokenDefaultAnalyzerTests
     }
 
     [Fact]
+    public async Task Record_positional_token_with_a_default_is_flagged()
+    {
+        // Records are the one primary-constructor shape APB0001 endorses, so this is the only
+        // route by which a defaulted token can reach a positional parameter list. If APB0002
+        // skipped it, no rule in the set would catch it.
+        const string source = Usings + "record R({|#0:CancellationToken Ct = default|});";
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("Ct"));
+    }
+
+    [Fact]
+    public async Task Record_struct_positional_token_with_a_default_is_flagged()
+    {
+        const string source = Usings + "record struct RS({|#0:CancellationToken Ct = default|});";
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("Ct"));
+    }
+
+    [Fact]
+    public async Task Record_positional_token_without_a_default_is_not_flagged()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(Usings + "record R(CancellationToken Ct);");
+    }
+
+    [Fact]
+    public async Task Explicit_construction_is_a_default_value_like_any_other()
+    {
+        // The rule's subject is the presence of a default clause, not the shape of the expression
+        // inside it. "= new CancellationToken()" is the third form the compiler accepts here —
+        // "= CancellationToken.None" is not among them, since a default must be a compile-time
+        // constant and None is a property (CS1736).
+        const string source = Usings
+            + "class C { Task M({|#0:CancellationToken ct = new CancellationToken()|}) => Task.CompletedTask; }";
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
     public async Task Token_without_a_default_is_not_flagged()
     {
         await VerifyCS.VerifyAnalyzerAsync(

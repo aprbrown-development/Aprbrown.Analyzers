@@ -253,7 +253,10 @@ call site; this is the **declaration** half.
 explicit default value. Report at the **parameter**, with its name as `{0}`. One diagnostic per
 offending parameter.
 
-Applies to ordinary methods, constructors and interface members alike.
+Applies to ordinary methods, constructors and interface members alike, and to a record's positional
+parameter list. Records are covered because §3.1 endorses that shape — a positional list is the only
+route by which a defaulted token can reach a record, so leaving it out would put the shape beyond
+every rule in the set.
 
 **Must not flag:**
 
@@ -261,9 +264,14 @@ Applies to ordinary methods, constructors and interface members alike.
 - A defaulted parameter of any other type.
 - Anything at all, in a compilation where `System.Threading.CancellationToken` cannot be resolved —
   the analyzer must produce no diagnostics rather than fail.
+- A parameter whose type is merely *named* `CancellationToken` in some other namespace.
 
 **Out of scope in v1, deliberately:** local functions and delegates. This is a recorded boundary, not
 an oversight — do not "fix" it without a version bump under ADR-0004.
+
+Also not covered, for a different reason: the primary constructor of a `class` or `struct`. §3.1
+rejects that shape outright, so a second diagnostic on the same construct would only be noise. If
+§3.1 is ever relaxed, this becomes a gap to close.
 
 **Required tests**
 
@@ -277,6 +285,13 @@ an oversight — do not "fix" it without a version bump under ADR-0004.
 | `void M(int x = 5)` | 0 |
 | `Task M(CancellationToken a = default, CancellationToken b = default)` | 2 diagnostics |
 | Compilation without `CancellationToken` available | 0, no crash |
+| `Task M(CancellationToken ct = new CancellationToken())` | 1 diagnostic |
+| `record R(CancellationToken Ct = default)` | 1 diagnostic |
+| `record struct RS(CancellationToken Ct = default)` | 1 diagnostic |
+| `record R(CancellationToken Ct)` | 0 |
+| A `CancellationToken` declared in a namespace other than `System.Threading` | 0 |
+| `void Local(CancellationToken ct = default)` (local function) | 0 — out of scope |
+| `delegate void D(CancellationToken ct = default)` | 0 — out of scope |
 
 ### 3.3 `APB0003` — Parameter names should match the implemented interface member
 
