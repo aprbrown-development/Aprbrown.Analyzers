@@ -8,7 +8,7 @@
 # diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
 # assertion.
 #
-# At this stage the shipped config carries APB0001 and APB0002, so the assertions are:
+# At this stage the shipped config carries APB0001, APB0002 and APB0003, so the assertions are:
 #   - the produced .nupkg matches the §4.2 allowlist exactly;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
@@ -106,7 +106,7 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 
 # --- Assertion: every enumerated rule fires and fails the build ------------------------------
 # One row per rule the shipped config switches on, each with a matching case in the fixture.
-EXPECTED_RULES=(APB0001 APB0002)
+EXPECTED_RULES=(APB0001 APB0002 APB0003)
 
 set +e
 dotnet build "$FIXTURE" --no-restore \

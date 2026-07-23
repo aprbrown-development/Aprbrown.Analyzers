@@ -6,7 +6,7 @@
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
 # Later tickets enumerate the rest of the house ruleset back on beneath the blanket. At this
-# stage APB0001 and APB0002 are on.
+# stage APB0001, APB0002 and APB0003 are on.
 is_global = true
 
 # The blanket: everything off, including rules that do not exist yet.
@@ -17,3 +17,6 @@ dotnet_diagnostic.APB0001.severity = warning
 
 # APB0002 — do not give a CancellationToken parameter a default value (spec §3.2).
 dotnet_diagnostic.APB0002.severity = warning
+
+# APB0003 — parameter names should match the implemented interface member (spec §3.3).
+dotnet_diagnostic.APB0003.severity = warning

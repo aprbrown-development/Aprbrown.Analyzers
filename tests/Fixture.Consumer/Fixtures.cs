@@ -31,3 +31,18 @@ public static class Sprocket
     // Must stay silent: a token the caller is obliged to pass is the endorsed shape.
     public static Task WindAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
+
+// Triggers APB0003: Resize implements IResizable.Resize but renames its parameter. This is the
+// package-level proof of the APB0003 config line — the unit tests exercise the analyzer, only
+// this proves the rule is enumerated back on beneath the blanket and reaches a consumer.
+public interface IResizable
+{
+    void Resize(int width);
+}
+
+public class Panel : IResizable
+{
+    public void Resize(int size)
+    {
+    }
+}
