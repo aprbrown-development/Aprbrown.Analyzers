@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Aprbrown.Analyzers.CodeFixes/Aprbrown.Analyzers.CodeFixes.csproj" />
     <Project Path="src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj" />
     <Project Path="src/Aprbrown.Analyzers/Aprbrown.Analyzers.csproj" />
   </Folder>

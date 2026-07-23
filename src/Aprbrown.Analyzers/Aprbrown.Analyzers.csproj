@@ -23,6 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The fixer must name the same diagnostic ID the analyzer reports, and ADR-0004 makes that
+         string public API. Sharing the constant keeps one definition; the assembly surface stays
+         closed. -->
+    <InternalsVisibleTo Include="Aprbrown.Analyzers.CodeFixes" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>

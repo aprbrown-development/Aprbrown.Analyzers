@@ -109,9 +109,12 @@ public sealed class InterfaceParameterNameAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
+            // The expected name travels in the property bag as well as the message, so the code
+            // fix can rename without repeating the interface walk above.
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptors.InterfaceParameterName,
                 location,
+                ImmutableDictionary<string, string?>.Empty.Add(DiagnosticProperties.ExpectedName, expected),
                 parameter.Name,
                 expected,
                 $"{interfaceMethod.ContainingType.Name}.{interfaceMethod.Name}"));

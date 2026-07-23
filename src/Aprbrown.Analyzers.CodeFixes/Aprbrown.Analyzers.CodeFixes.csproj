@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <!-- This assembly is packed by Aprbrown.Analyzers.Package, not on its own. -->
+    <IsPackable>false</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- Roslyn analyzer authoring rules (RS*). -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslyn pinned to 4.14.0 (spec §4.1), Workspaces included: the APB0003 fix renames a
+         symbol rather than rewriting a token, and Renamer lives in Workspaces (spec §3.4). -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Two jobs in one reference. The diagnostic IDs are shared with the analyzer, so the fixer
+         names the same ID the analyzer reports; and OutputItemType="Analyzer" runs the APB rules
+         against this project, which is spec §7's gating of the code fix project. A project cannot
+         be its own analyzer, so this is the half of §7 available to a project that is not
+         src/Aprbrown.Analyzers itself. The rest of the dogfooding wiring — the shipped config via
+         GlobalAnalyzerConfigFiles, the local .editorconfig, the third-party pins — is #12. -->
+    <ProjectReference Include="..\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj"
+                      OutputItemType="Analyzer" />
+  </ItemGroup>
+
+</Project>
