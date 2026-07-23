@@ -6,6 +6,16 @@ Custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
 
 Early — scaffolding only. The repository currently contains agent-skill configuration and no analyzer code yet. The sections below describe the intended shape of the project, not what is implemented.
 
+## Documentation
+
+- **[`docs/spec.md`](docs/spec.md)** — the implementation spec: what v1 ships, how the shipped
+  configuration is derived, the three analyzers specified by behaviour, packaging, and the
+  `MIX` → `APB` migration. Start here to build the package.
+- **[`docs/consuming.md`](docs/consuming.md)** — how a project consumes the package. Packed as the
+  package README, so it is also the nuget.org page.
+- **[`CONTEXT.md`](CONTEXT.md)** — vocabulary.
+- **[`docs/adr/`](docs/adr/)** — the decisions behind all of the above.
+
 ## Planned layout
 
 | Path | Purpose |
@@ -30,7 +40,8 @@ dotnet test
 1. Add the `DiagnosticAnalyzer` under `src/Aprbrown.Analyzers/`, with a unique diagnostic ID and a `DiagnosticDescriptor` in a shared descriptors file.
 2. Add a matching `CodeFixProvider` under `src/Aprbrown.Analyzers.CodeFixes/` if the diagnostic is mechanically fixable.
 3. Add tests under `tests/` covering both the triggering case and at least one near-miss that must *not* report.
-4. Document the rule — ID, category, default severity, and rationale — in `docs/rules/`.
+4. Specify the rule in [`docs/spec.md`](docs/spec.md) §3 — ID, category, default severity, rationale, what it must *not* flag, and the required test cases — and add it to `AnalyzerReleases.Unshipped.md`.
+5. Add it to the shipped configuration by ID. A rule absent from that allowlist is off, however the analyzer is written.
 
 ## Repository tooling
 

@@ -9,6 +9,28 @@
 > ADR-0002 is reserved for the ruleset architecture warranted by
 > [Audit the Mixologist ruleset against the universality test](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/4)
 > and is not yet written. This ADR is numbered 0003 to avoid claiming that slot.
+> **That slot is now filled:** [ADR-0002](0002-sealed-allowlist-ruleset-architecture.md).
+
+## Amendments
+
+Made while writing the consumption spec
+([#8](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/8)). The decisions below
+stand; two statements in them did not.
+
+1. **There is no `AnalysisMode` tier** (decision 5's assertion table). #4 assumed the SDK's 27
+   default-on `CA` rules could be restored past the blanket by an `AnalysisMode` tier, and left
+   proving it to #8. Measured on SDK `10.0.110`: `AnalysisMode` and `AnalysisLevel` cannot reach past
+   the blanket at **any** value, including `All` and `latest-all`. The `CA` rules are enumerated by
+   diagnostic ID like every other tier — see [ADR-0002](0002-sealed-allowlist-ruleset-architecture.md)
+   decision 4. The assertion row is corrected in place below, and the smoke test gains a row proving
+   default-off rules stayed off.
+2. **The environment open point (decision 3) is closed: the approval gate is adopted.**
+   `release.yml`'s publish job declares `environment: release` with the repository owner as required
+   reviewer and **`Prevent self-review` left off** — GitHub's default, verified, so a sole maintainer
+   can approve their own deployment. (The prohibition on self-approval applies to pull request
+   reviews, not to environment protection rules.) The push is unrevocable and a mistyped tag spends a
+   version number permanently; one click is cheap insurance. The trusted publishing policy is scoped
+   to the same environment.
 
 ## Context
 
@@ -76,7 +98,7 @@ edit `AnalyzerReleases.Shipped.md`, tag) in which two parts can silently disagre
 `ci.yml` runs on pull requests and pushes to `main`. `release.yml` runs on `v*` tags and is the only
 file that ever holds `id-token: write`. The trusted publishing policy names `release.yml`.
 
-**Open point — environment scoping.** A trusted publishing policy can optionally be scoped to a GitHub
+**Open point — environment scoping. → Closed by amendment 2: the gate is adopted.** A trusted publishing policy can optionally be scoped to a GitHub
 Actions environment, which is how a required-reviewer approval gate is placed in front of the
 unrevocable push. That was **unavailable** when this decision was taken — *"Users with GitHub Free plans
 can only configure environments for public repositories"* — but #6's decision to go public makes it free.
@@ -119,7 +141,8 @@ class the design can produce:
 | Assertion | Proves |
 |---|---|
 | An `APB` violation fires | The analyzer assembly is packed and loads |
-| A `CA` violation fires | The `AnalysisMode` tier survives the blanket `none` (#4's open worry) |
+| A `CA` violation fires | The 27 enumerated `CA` IDs survive the blanket `none` ~~The `AnalysisMode` tier survives~~ — see amendment 1 |
+| A `CA1707`-triggering name does **not** fire | The seal holds: default-off rules stayed off (added by #8) |
 | A `Meziantou` violation fires with the package installed | Config-without-assembly binds when the assembly arrives |
 | An IDE naming violation fires | Enumeration-by-ID works (#4 verified these are silently unenforced otherwise) |
 | `MA0004` does **not** fire | The sole deliberate exclusion stays excluded |
