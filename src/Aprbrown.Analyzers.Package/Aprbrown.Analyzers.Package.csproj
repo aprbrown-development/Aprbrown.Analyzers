@@ -61,10 +61,8 @@
           Pack="true" PackagePath="analyzers/dotnet/cs/Aprbrown.Analyzers.CodeFixes.dll" Visible="false" />
     <None Include="build\Aprbrown.Analyzers.props"
           Pack="true" PackagePath="build/Aprbrown.Analyzers.props" />
-    <!-- TEMPORARY: the shipped config is dropped from the allowlist to prove the smoke gate
-         catches it. This is the #2 research hazard exactly — a package that builds clean and
-         enforces nothing. Restored in the next commit. -->
-
+    <None Include="build\Aprbrown.Analyzers.globalconfig"
+          Pack="true" PackagePath="build/Aprbrown.Analyzers.globalconfig" />
     <None Include="..\..\docs\consuming.md"
           Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
