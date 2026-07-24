@@ -8,12 +8,19 @@
 # diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
 # assertion.
 #
-# At this stage the shipped config carries APB0001, APB0002 and APB0003, so the assertions are:
+# At this stage the shipped config carries APB0001-APB0003 and the Meziantou tier, so the
+# assertions are:
 #   - the produced .nupkg matches the §4.2 allowlist exactly;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
+#   - the packed config's Meziantou tier matches the derivation in spec §2.3 step 1, checked
+#     against the packed file rather than the source tree so what is asserted is what ships;
 #   - every rule in EXPECTED_RULES fires against the fixture, and TreatWarningsAsErrors promotes
 #     them to build errors;
+#   - severities survive the trip: a rule Meziantou defaults to Error arrives as an error and a
+#     Warning one as a warning, measured in a second build with TreatWarningsAsErrors=false where
+#     the two are still distinguishable;
+#   - MA0004 stays silent against a construct that violates it, with the assembly loaded;
 #   - every packed analyzer assembly loads in the consumer. The code fix assembly references
 #     Workspaces, which a command-line build does not host, so "does it load outside the IDE" is a
 #     real question and CS8032/CS8034 is how the compiler answers it — as a warning, which is the
@@ -88,6 +95,50 @@ if [ "$ACTUAL" != "$EXPECTED" ]; then
 fi
 info "package contents match the §4.2 allowlist"
 
+# --- Assertion: the packed config's Meziantou tier matches the derivation --------------------
+# Read out of the .nupkg, not out of src/: the source file is what was written, the packed one is
+# what a consumer receives, and only the second is worth asserting on. The derivation is spec §2.3
+# step 1 — every Meziantou.Analyzer 3.0.123 rule that is enabled by default at a build-gating
+# severity, minus MA0004, plus MA0032 — and it is frozen, so these numbers are constants rather
+# than something to recompute. Changing one is a deliberate act under ADR-0004, and this assertion
+# is what makes it deliberate.
+PACKED_CONFIG="$WORK/packed.globalconfig"
+if command -v unzip >/dev/null 2>&1; then
+  unzip -p "$NUPKG" 'build/Aprbrown.Analyzers.globalconfig' > "$PACKED_CONFIG"
+else
+  python3 -c "import zipfile,sys; open(sys.argv[2],'wb').write(zipfile.ZipFile(sys.argv[1]).read('build/Aprbrown.Analyzers.globalconfig'))" \
+    "$NUPKG" "$PACKED_CONFIG"
+fi
+[ -s "$PACKED_CONFIG" ] || fail "could not read build/Aprbrown.Analyzers.globalconfig out of the package"
+
+# A category re-enable admits default-off rules and rules upstream adds later, which is exactly
+# what the seal exists to prevent (ADR-0002 decision 4). Nothing in the shipped config may use one.
+if grep -qE '^[[:space:]]*dotnet_analyzer_diagnostic\.category-' "$PACKED_CONFIG"; then
+  grep -nE '^[[:space:]]*dotnet_analyzer_diagnostic\.category-' "$PACKED_CONFIG" >&2
+  fail "the shipped config re-enables by category; the seal only holds when every rule is enumerated by ID"
+fi
+info "no category re-enable in the shipped config"
+
+MA_COUNT="$(grep -cE '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" || true)"
+[ "$MA_COUNT" -eq 103 ] \
+  || fail "expected 103 Meziantou rules (103 default-on, minus MA0004, plus MA0032), found $MA_COUNT"
+info "Meziantou tier enumerates 103 rules"
+
+if grep -qE '^dotnet_diagnostic\.MA0004\.severity' "$PACKED_CONFIG"; then
+  fail "MA0004 is enumerated; it is the sole universality-test exclusion and must stay out"
+fi
+grep -qE '^dotnet_diagnostic\.MA0032\.severity[[:space:]]*=[[:space:]]*warning$' "$PACKED_CONFIG" \
+  || fail "MA0032 is missing or not at warning; it is default-off upstream and added deliberately"
+info "MA0004 excluded, MA0032 present at warning"
+
+# The three rules Meziantou defaults to Error. Recording them at warning would be a silent
+# downgrade of the vendor's own judgement, which §2.3 forbids: read the severity, do not assume it.
+for RULE in MA0037 MA0039 MA0049; do
+  grep -qE "^dotnet_diagnostic\.$RULE\.severity[[:space:]]*=[[:space:]]*error$" "$PACKED_CONFIG" \
+    || fail "$RULE is not recorded at error; the vendor defaults it to Error and the config must say so"
+done
+info "the three Error-severity Meziantou rules are recorded at error"
+
 # --- Restore fixture against the temp feed --------------------------------------------------
 info "restoring fixture against temp feed"
 dotnet restore "$FIXTURE" \
@@ -110,7 +161,12 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 
 # --- Assertion: every enumerated rule fires and fails the build ------------------------------
 # One row per rule the shipped config switches on, each with a matching case in the fixture.
-EXPECTED_RULES=(APB0001 APB0002 APB0003)
+# The three Meziantou rows are a deliberate sample rather than all 103 — one ordinary member of the
+# default-on Warning sweep (MA0026), the one rule added against a vendor default of off (MA0032),
+# and one of the three the vendor defaults to Error (MA0037). They fire only because a config
+# shipped by this package bound to an assembly this package does not depend on, which is the claim
+# under test; the packed-config assertions above cover the other 100 by enumeration.
+EXPECTED_RULES=(APB0001 APB0002 APB0003 MA0026 MA0032 MA0037)
 
 set +e
 dotnet build "$FIXTURE" --no-restore \
@@ -151,5 +207,40 @@ if [ "$BUILD_RC" -eq 0 ]; then
   fail "fixture build succeeded but should have failed on the enumerated rules as errors"
 fi
 info "TreatWarningsAsErrors failed the build as expected"
+
+# --- Assertion: severities survive the trip, and MA0004 stays silent ------------------------
+# The build above cannot answer either question. TreatWarningsAsErrors flattens every diagnostic
+# to "error", so a rule the config downgraded from error to warning would look identical, and a
+# build that stops on errors is a weak place to argue that something did not fire. So build once
+# more with the promotion off, where the compiler still prints each rule at its configured
+# severity and every analyzer runs to completion.
+SEVERITY_LOG="$WORK/severity.log"
+set +e
+dotnet build "$FIXTURE" --no-restore \
+  -p:AprbrownAnalyzersVersion="$VERSION" -p:TreatWarningsAsErrors=false \
+  -t:Rebuild --nologo -v quiet > "$SEVERITY_LOG" 2>&1
+set -e
+
+# MA0037 is one of the three Meziantou defaults to Error; MA0026 is an ordinary Warning. Both come
+# from the same fixture file, so "the config recorded what the vendor assigns" is the only thing
+# that can explain the two landing differently.
+grep -q 'error MA0037' "$SEVERITY_LOG" \
+  || { cat "$SEVERITY_LOG" >&2; fail "MA0037 did not arrive as an error; the vendor's Error severity was flattened"; }
+grep -q 'warning MA0026' "$SEVERITY_LOG" \
+  || { cat "$SEVERITY_LOG" >&2; fail "MA0026 did not arrive as a warning"; }
+info "vendor severities survived: MA0037 as error, MA0026 as warning"
+
+# MA0004 is the sole universality-test exclusion (ADR-0002 decision 2). Kettle.BoilAsync awaits
+# without ConfigureAwait, which is exactly what MA0004 reports, and MA0032 firing on that same
+# await proves the assembly is loaded and analysing the expression. So this silence is the
+# exclusion holding, not the analyzer being absent — which is the only way the assertion is worth
+# anything.
+grep -q 'MA0032' "$SEVERITY_LOG" \
+  || { cat "$SEVERITY_LOG" >&2; fail "MA0032 did not fire, so the MA0004 assertion below would prove nothing"; }
+if grep -q 'MA0004' "$SEVERITY_LOG"; then
+  grep 'MA0004' "$SEVERITY_LOG" >&2
+  fail "MA0004 fired; it is deliberately not enumerated and must stay off"
+fi
+info "MA0004 stayed silent against a violating await, with the analyzer loaded"
 
 echo "SMOKE PASS"
