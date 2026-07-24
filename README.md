@@ -8,9 +8,9 @@ Early — the tracer bullet is in. The repository skeleton is stood up and all t
 `APB0001` (no primary constructors on classes or structs), `APB0002` (no default value on a
 `CancellationToken` parameter) and `APB0003` (parameter names should match the implemented
 interface member) — are proven end to end from a packed `.nupkg` by `scripts/verify-package.sh`.
-The shipped config so far carries the blanket plus those three; the full ruleset, the code fix,
-and CI are additive work tracked in the issue backlog. The sections below describe the intended
-final shape of the project.
+The `APB0003` code fix ships alongside them. The shipped config so far carries the blanket plus
+those three; the full ruleset, dogfooding and CI are additive work tracked in the issue backlog.
+The sections below describe the intended final shape of the project.
 
 ## Documentation
 
@@ -27,7 +27,7 @@ final shape of the project.
 | Path | Purpose |
 |---|---|
 | `src/Aprbrown.Analyzers/` | The analyzers themselves (`DiagnosticAnalyzer` implementations) |
-| `src/Aprbrown.Analyzers.CodeFixes/` | Matching `CodeFixProvider`s |
+| `src/Aprbrown.Analyzers.CodeFixes/` | Matching `CodeFixProvider`s. Needs `Microsoft.CodeAnalysis.CSharp.Workspaces` — a fix that renames a symbol returns a changed solution, not a changed document |
 | `src/Aprbrown.Analyzers.Package/` | NuGet packaging project that ships the analyzer + code fix assemblies |
 | `tests/Aprbrown.Analyzers.Tests/` | Unit tests using `Microsoft.CodeAnalysis.Testing` verifiers |
 

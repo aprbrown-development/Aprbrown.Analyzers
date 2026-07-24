@@ -39,9 +39,13 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
-  <!-- Build the analyzer first, but do not reference its assembly for compilation. -->
+  <!-- Build the analyzer and the code fixes first, but do not reference their assemblies for
+       compilation. -->
   <ItemGroup>
     <ProjectReference Include="..\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Aprbrown.Analyzers.CodeFixes\Aprbrown.Analyzers.CodeFixes.csproj"
                       PrivateAssets="all"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
@@ -50,6 +54,8 @@
   <ItemGroup>
     <None Include="..\Aprbrown.Analyzers\bin\$(Configuration)\netstandard2.0\Aprbrown.Analyzers.dll"
           Pack="true" PackagePath="analyzers/dotnet/cs/Aprbrown.Analyzers.dll" Visible="false" />
+    <None Include="..\Aprbrown.Analyzers.CodeFixes\bin\$(Configuration)\netstandard2.0\Aprbrown.Analyzers.CodeFixes.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs/Aprbrown.Analyzers.CodeFixes.dll" Visible="false" />
     <None Include="build\Aprbrown.Analyzers.props"
           Pack="true" PackagePath="build/Aprbrown.Analyzers.props" />
     <None Include="build\Aprbrown.Analyzers.globalconfig"

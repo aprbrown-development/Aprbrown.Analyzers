@@ -13,7 +13,11 @@
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
 #   - every rule in EXPECTED_RULES fires against the fixture, and TreatWarningsAsErrors promotes
-#     them to build errors.
+#     them to build errors;
+#   - every packed analyzer assembly loads in the consumer. The code fix assembly references
+#     Workspaces, which a command-line build does not host, so "does it load outside the IDE" is a
+#     real question and CS8032/CS8034 is how the compiler answers it — as a warning, which is the
+#     #2 hazard shape all over again.
 # Later tickets add rows to EXPECTED_RULES as the config enumerates more rules back on.
 
 set -euo pipefail
@@ -63,9 +67,8 @@ list_entries() {
     python3 -c "import zipfile,sys; print('\n'.join(zipfile.ZipFile(sys.argv[1]).namelist()))" "$1"
   fi
 }
-# EXPECTED is the §4.2 allowlist. It grows in lockstep with what the package ships: when the
-# APB0003 code fix lands, add analyzers/dotnet/cs/Aprbrown.Analyzers.CodeFixes.dll here, or this
-# exact-match assertion will fail.
+# EXPECTED is the §4.2 allowlist. It grows in lockstep with what the package ships: add a row here
+# whenever the package gains a file, or this exact-match assertion will fail.
 # Drop the standard OPC/NuGet metadata; what remains is the content allowlist.
 ACTUAL="$(list_entries "$NUPKG" \
   | grep -vE '^(_rels/|package/|\[Content_Types\]\.xml$)' \
@@ -74,6 +77,7 @@ ACTUAL="$(list_entries "$NUPKG" \
 EXPECTED="$(printf '%s\n' \
   'README.md' \
   'analyzers/dotnet/cs/Aprbrown.Analyzers.dll' \
+  'analyzers/dotnet/cs/Aprbrown.Analyzers.CodeFixes.dll' \
   'build/Aprbrown.Analyzers.globalconfig' \
   'build/Aprbrown.Analyzers.props' \
   | LC_ALL=C sort)"
@@ -121,6 +125,13 @@ for RULE in "${EXPECTED_RULES[@]}"; do
   fi
   info "$RULE fired"
 done
+# --- Assertion: no packed analyzer assembly failed to load ----------------------------------
+if grep -qE 'CS8032|CS8034' "$BUILD_LOG"; then
+  grep -E 'CS8032|CS8034' "$BUILD_LOG" >&2
+  fail "an analyzer assembly failed to load in the consumer build"
+fi
+info "every packed analyzer assembly loaded"
+
 if [ "$BUILD_RC" -eq 0 ]; then
   cat "$BUILD_LOG" >&2
   fail "fixture build succeeded but should have failed on the enumerated rules as errors"
