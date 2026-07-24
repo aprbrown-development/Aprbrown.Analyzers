@@ -1,8 +1,10 @@
 name: CI
 
 # Every gate runs at PR time (ADR-0003 decision 4). A nuget.org version number is spent the moment
-# it is pushed, so a gate that first fires at tag time has already cost one. release.yml is a
-# re-run of this set, never a first look — which only holds if this file is the exhaustive one.
+# it is pushed, so a gate that first fires at tag time has already cost one. release.yml re-runs
+# this set and is meant to discover nothing new; the only checks it adds are the two that cannot
+# exist before a tag — AnalyzerReleases.Unshipped.md holding no rule rows (decision 8), and the
+# CHANGELOG section its release body is cut from (decision 9).
 on:
   pull_request:
   push:
@@ -16,11 +18,16 @@ on:
 permissions:
   contents: read
 
-# A superseded pull request run proves nothing about the commit that replaced it. Pushes to main
-# are deliberately not cancelled: each one is a commit a release could be cut from, and every such
-# commit deserves its own verdict rather than inheriting silence from being overtaken.
+# A superseded pull request run proves nothing about the commit that replaced it, so pull requests
+# share a group per ref and the older run is cancelled.
+#
+# Pushes to main each take a group of their own — github.run_id is unique per run — rather than
+# sharing one with cancellation switched off. Sharing would not have been enough: a concurrency
+# group holds at most one running and one pending run, and a third arrival cancels the *pending*
+# one, so two quick merges could leave the commit between them with no verdict at all. Every commit
+# on main is one a release could be cut from, and none may inherit silence from being overtaken.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -47,6 +54,11 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v7
+        with:
+          # Nothing in this workflow pushes, and the smoke test restores third-party packages from
+          # nuget.org inside this job. Leaving the default would park a credential in .git/config
+          # for that restore to run alongside, buying nothing.
+          persist-credentials: false
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v6
