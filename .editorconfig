@@ -33,9 +33,14 @@ dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisPerformance.severity = 
 # that prescribes it. Test doubles hold values rather than injected dependencies, which is the one
 # shape APB0001 should not object to — and the tests project is gated by the APB rules (spec §7), so
 # without this the first `private sealed class StubX(Y y) : IY` would fail the build.
-# MA0025's half of the snippet arrives with the ticket that enumerates MA0025 back on; until then it
-# is off under the blanket and a line here would assert nothing.
 dotnet_diagnostic.APB0001.severity = none
+
+# The other half of that same snippet, live now that the Meziantou tier enumerates MA0025 back on.
+# Throwing NotImplementedException *is* the correct way for a test double to say a member is not
+# part of its contract, so the rule is right everywhere except here. Written even though no test
+# currently throws one: this repository is the reference implementation of the onboarding snippet,
+# and a consumer copying it should find both halves.
+dotnet_diagnostic.MA0025.severity = none
 
 # SA0001 fires when a project does not generate an XML documentation file, and test projects have no
 # reason to. It survives the shipped config's blanket because it is reported with no location, and a

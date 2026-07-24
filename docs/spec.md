@@ -639,3 +639,18 @@ Recorded so a reader of the map's history is not misled.
    update, which pulls `Microsoft.CodeAnalysis.CSharp.Workspaces` into the code fix project and rules
    out a batch `FixAllProvider`.
 5. **ADR-0003's environment open point is closed** — the approval gate is adopted (section 5).
+6. **The Meziantou sweep is `isEnabledByDefault` *and* a build-gating severity**, not
+   `isEnabledByDefault` alone. Section 2.3 step 1 says "every `Meziantou.Analyzer` rule with
+   `isEnabledByDefault = true` — 103 rules". Measured against the pinned `3.0.123`: 209 rules
+   ship, **173** are enabled by default, and only **103** of those default to `Warning` or
+   `Error`. The other 70 default to `Info` (66) or `Hidden` (4) and do not gate a build. The
+   stated count and its 100-`Warning`/3-`Error` breakdown are correct; only the criterion
+   sentence is loose, and read literally it yields 173 rules rather than 103. The narrower
+   reading is the one the derivation used and the one the counts describe.
+   `consuming.md`'s "All 103 default-on rules" inherits the same looseness.
+7. **The call-site "trio" is a duo.** Sections 2.3 and 3.2 pair `APB0002`'s declaration half with
+   `CA2016` + `MA0040` + `MA0032` at the call site. `MA0040` is enabled by default at `Info`, so
+   correction 6 excludes it from the 103 and it is **not** enumerated — it stays off under the
+   blanket. Only `MA0032` is in the shipped config today; `CA2016` arrives with step 2. Admitting
+   `MA0040` would be a third deliberate departure from the sweep and a ruleset decision in its
+   own right, so it is recorded here rather than taken silently.

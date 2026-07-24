@@ -167,7 +167,8 @@ public sealed class CancellationTokenDefaultAnalyzerTests
         var compilation = CSharpCompilation.Create(
             assemblyName: "NoReferences",
             syntaxTrees: [CSharpSyntaxTree.ParseText(
-                "class C { void M(System.Threading.CancellationToken ct = default) { } }")],
+                "class C { void M(System.Threading.CancellationToken ct = default) { } }",
+                cancellationToken: CancellationToken.None)],
             references: []);
 
         var withAnalyzers = compilation.WithAnalyzers(

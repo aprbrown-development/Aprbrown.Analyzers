@@ -20,6 +20,15 @@
 
   <ItemGroup>
     <PackageReference Include="Aprbrown.Analyzers" Version="$(AprbrownAnalyzersVersion)" PrivateAssets="all" />
+
+    <!--
+      The pinned version spec §2.3 derives the Meziantou tier against, referenced the way a
+      consumer references it: separately, because the package deliberately takes no dependency on
+      it (ADR-0002 decision 1). This reference is load-bearing for the smoke test rather than
+      incidental — with it absent every Meziantou line in the shipped config is inert and the
+      tier's assertions would pass by vacuum. Kettle.cs is where they are measured.
+    -->
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.123" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
