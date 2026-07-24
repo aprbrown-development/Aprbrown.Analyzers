@@ -74,6 +74,18 @@ list_entries() {
     python3 -c "import zipfile,sys; print('\n'.join(zipfile.ZipFile(sys.argv[1]).namelist()))" "$1"
   fi
 }
+# Read one entry out of the package to a file. Failure here is a real failure — under
+# `set -e` an unguarded unzip would kill the script with its own exit code and no explanation —
+# so every caller passes the message it wants on the way out.
+read_entry() {
+  local nupkg="$1" entry="$2" dest="$3"
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -p "$nupkg" "$entry" > "$dest" 2>/dev/null
+  else
+    python3 -c "import zipfile,sys; open(sys.argv[3],'wb').write(zipfile.ZipFile(sys.argv[1]).read(sys.argv[2]))" \
+      "$nupkg" "$entry" "$dest" 2>/dev/null
+  fi
+}
 # EXPECTED is the §4.2 allowlist. It grows in lockstep with what the package ships: add a row here
 # whenever the package gains a file, or this exact-match assertion will fail.
 # Drop the standard OPC/NuGet metadata; what remains is the content allowlist.
@@ -103,13 +115,9 @@ info "package contents match the §4.2 allowlist"
 # than something to recompute. Changing one is a deliberate act under ADR-0004, and this assertion
 # is what makes it deliberate.
 PACKED_CONFIG="$WORK/packed.globalconfig"
-if command -v unzip >/dev/null 2>&1; then
-  unzip -p "$NUPKG" 'build/Aprbrown.Analyzers.globalconfig' > "$PACKED_CONFIG"
-else
-  python3 -c "import zipfile,sys; open(sys.argv[2],'wb').write(zipfile.ZipFile(sys.argv[1]).read('build/Aprbrown.Analyzers.globalconfig'))" \
-    "$NUPKG" "$PACKED_CONFIG"
-fi
-[ -s "$PACKED_CONFIG" ] || fail "could not read build/Aprbrown.Analyzers.globalconfig out of the package"
+read_entry "$NUPKG" 'build/Aprbrown.Analyzers.globalconfig' "$PACKED_CONFIG" \
+  || fail "could not read build/Aprbrown.Analyzers.globalconfig out of the package"
+[ -s "$PACKED_CONFIG" ] || fail "the packed build/Aprbrown.Analyzers.globalconfig is empty"
 
 # A category re-enable admits default-off rules and rules upstream adds later, which is exactly
 # what the seal exists to prevent (ADR-0002 decision 4). Nothing in the shipped config may use one.
@@ -123,6 +131,22 @@ MA_COUNT="$(grep -cE '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" |
 [ "$MA_COUNT" -eq 103 ] \
   || fail "expected 103 Meziantou rules (103 default-on, minus MA0004, plus MA0032), found $MA_COUNT"
 info "Meziantou tier enumerates 103 rules"
+
+# The count alone is a weak seal: a mistyped or duplicated ID still totals 103 and passes every
+# assertion around this one. So pin the tier's identity — which rules, at which severities — with a
+# digest over the sorted severity lines. The derivation is frozen, so this is a constant; when a
+# rule is deliberately added, removed or re-levelled under ADR-0004, regenerate it with
+#   grep -E '^dotnet_diagnostic\.MA[0-9]+\.severity' <config> | LC_ALL=C sort | sha256sum
+# and let the diff on this line be the thing a reviewer sees.
+MA_DIGEST_EXPECTED="0731fdb59880741fcbe3c7d59bb919ee4e4350427f95bba553c86e62b21f2649"
+MA_DIGEST_ACTUAL="$(grep -E '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" \
+  | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
+if [ "$MA_DIGEST_ACTUAL" != "$MA_DIGEST_EXPECTED" ]; then
+  echo "--- expected $MA_DIGEST_EXPECTED ---" >&2
+  echo "--- actual   $MA_DIGEST_ACTUAL ---"   >&2
+  fail "the Meziantou tier is not the frozen derivation; if the change was deliberate, update MA_DIGEST_EXPECTED"
+fi
+info "Meziantou tier matches the frozen derivation digest"
 
 if grep -qE '^dotnet_diagnostic\.MA0004\.severity' "$PACKED_CONFIG"; then
   fail "MA0004 is enumerated; it is the sole universality-test exclusion and must stay out"
@@ -165,7 +189,10 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 # default-on Warning sweep (MA0026), the one rule added against a vendor default of off (MA0032),
 # and one of the three the vendor defaults to Error (MA0037). They fire only because a config
 # shipped by this package bound to an assembly this package does not depend on, which is the claim
-# under test; the packed-config assertions above cover the other 100 by enumeration.
+# under test. What the other 100 get is weaker and worth naming: the digest above pins that they
+# are present at the right severities, but nothing here observes them fire. Proving 103 rules
+# behaviourally would mean 103 violations in the fixture, and the binding they would each
+# re-demonstrate is the same one these three already establish.
 EXPECTED_RULES=(APB0001 APB0002 APB0003 MA0026 MA0032 MA0037)
 
 set +e
@@ -209,11 +236,12 @@ fi
 info "TreatWarningsAsErrors failed the build as expected"
 
 # --- Assertion: severities survive the trip, and MA0004 stays silent ------------------------
-# The build above cannot answer either question. TreatWarningsAsErrors flattens every diagnostic
-# to "error", so a rule the config downgraded from error to warning would look identical, and a
-# build that stops on errors is a weak place to argue that something did not fire. So build once
-# more with the promotion off, where the compiler still prints each rule at its configured
-# severity and every analyzer runs to completion.
+# The build above cannot answer either question, because TreatWarningsAsErrors flattens every
+# diagnostic to "error": a rule the config had wrongly downgraded from error to warning would
+# print identically to one it recorded faithfully. So build once more with the promotion off,
+# where the compiler prints each rule at its configured severity and the two are told apart. The
+# build still fails — MA0037 is an error in its own right — but nothing here depends on its exit
+# code, only on what it printed.
 SEVERITY_LOG="$WORK/severity.log"
 set +e
 dotnet build "$FIXTURE" --no-restore \

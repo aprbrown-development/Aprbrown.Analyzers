@@ -6,7 +6,9 @@
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
 # Later tickets enumerate the rest of the house ruleset back on beneath the blanket. At this
-# stage APB0001, APB0002 and APB0003 are on.
+# stage APB0001-APB0003 and the Meziantou tier are on; the SDK CA rules (spec §2.3 step 2),
+# StyleCop's four ordering rules (step 3) and the IDE, naming and style rules (step 4) are not
+# yet, and are off under the blanket until they are.
 is_global = true
 
 # The blanket: everything off, including rules that do not exist yet.
@@ -35,8 +37,15 @@ dotnet_diagnostic.APB0003.severity = warning
 #   - MA0004 (ConfigureAwait) is omitted. The sole universality-test exclusion: its rationale is
 #     false for a class library (ADR-0002 decision 2). An all-web repository may re-enable it in
 #     its own .editorconfig.
-#   - MA0032 is added at warning although the vendor defaults it to off, completing the
-#     cancellation trio CA2016 + MA0040 + MA0032 alongside APB0002's declaration half.
+#   - MA0032 is added at warning although the vendor defaults it to off. It is the call-site half
+#     of the cancellation rule, standing opposite APB0002's declaration half.
+#
+#     Spec §2.3 and §3.2 describe that call-site half as a trio, CA2016 + MA0040 + MA0032. As
+#     enumerated here it is neither: CA2016 arrives with step 2, and MA0040 is not in this tier at
+#     all. MA0040 is enabled by default but at Info, so it does not gate a build and falls outside
+#     the 103, which is why the sweep does not carry it. Adding it would be a third deliberate
+#     departure and would put the count at 104. Left as measured rather than quietly corrected —
+#     it is a ruleset decision, and ADR-0004 makes adding a rule a minor version bump.
 # 103 default-on, minus one, plus one — 103 rules.
 #
 # Re-running the derivation against a newer Meziantou.Analyzer would silently admit whatever
