@@ -125,6 +125,20 @@ for RULE in "${EXPECTED_RULES[@]}"; do
   fi
   info "$RULE fired"
 done
+
+# --- Assertion: the packed config is the only global config in play -------------------------
+# Since #12 the repository root's Directory.Build.props injects this same config file into this
+# repository's own projects (spec §7), and tests/Fixture.Consumer/Directory.Build.props exists to
+# keep the fixture out of it. If that isolation ever breaks, both copies reach the consumer, every
+# shared key is unset with MultipleGlobalAnalyzerKeys, and the blanket goes with them — the seal
+# disappears and third-party rules run at vendor defaults. Every assertion above still passes,
+# because the APB rules keep firing at their descriptor default severity. Measured, not theorised.
+if grep -q 'MultipleGlobalAnalyzerKeys' "$BUILD_LOG"; then
+  grep 'MultipleGlobalAnalyzerKeys' "$BUILD_LOG" >&2
+  fail "a second global analyzer config collided with the packed one; the shipped config's keys were unset"
+fi
+info "the packed config is the only global analyzer config in the consumer build"
+
 # --- Assertion: no packed analyzer assembly failed to load ----------------------------------
 if grep -qE 'CS8032|CS8034' "$BUILD_LOG"; then
   grep -E 'CS8032|CS8034' "$BUILD_LOG" >&2

@@ -1,0 +1,41 @@
+<Project>
+
+  <!--
+    This repository is held to its own ruleset (spec §7, ADR-0003 decision 6). It is the reference
+    implementation of the onboarding snippet in docs/consuming.md — with one unavoidable difference:
+    a package cannot reference itself, so what a consumer receives through NuGet is wired by hand
+    here, and the APB analyzers by ProjectReference + OutputItemType="Analyzer" in each project.
+
+    tests/Fixture.Consumer deliberately opts out of this file — see the empty Directory.Build.props
+    in that directory for why.
+  -->
+
+  <!--
+    Import the packed props file itself rather than restating what it does. ADR-0003 decision 6
+    asks for "the same physical config file the packaging project packs — not a copy"; the same
+    argument covers the other shipped artifact, so both arrive here by reference and neither can
+    drift from what consumers get. This single line supplies the EnforceCodeStyleInBuild and
+    TreatWarningsAsErrors defaults *and* the GlobalAnalyzerConfigFiles entry pointing at the
+    shipped config: MSBuildThisFileDirectory inside an imported file resolves to that file's own
+    directory, so the config path lands on src/Aprbrown.Analyzers.Package/build/ as intended.
+
+    Import position matters for the same reason it does for a consumer (spec §4.3). Sdk.props
+    imports Microsoft.Common.props — which imports this file — before Microsoft.NET.Sdk.props
+    assigns TreatWarningsAsErrors=false, and that assignment is itself conditioned on the property
+    being empty, so the Condition idiom in the imported file yields genuine overridable defaults.
+    A .csproj <Import> would run after it and be silently overwritten.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)src/Aprbrown.Analyzers.Package/build/Aprbrown.Analyzers.props" />
+
+  <ItemGroup>
+    <!--
+      The pins docs/consuming.md prescribes and spec §2.3 derives the ruleset against. The package
+      takes no dependency on either (ADR-0002), so a consuming repository supplies them itself —
+      this repository included. PrivateAssets="all" does not cover the project declaring the
+      reference, which is why this belongs in Directory.Build.props rather than one project.
+    -->
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.123" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

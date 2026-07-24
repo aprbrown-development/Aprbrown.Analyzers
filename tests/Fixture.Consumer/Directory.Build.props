@@ -1,0 +1,18 @@
+<Project>
+
+  <!--
+    Deliberately empty, and deliberately present.
+
+    Directory.Build.props resolution stops at the first file found walking up, so this one stops
+    tests/Fixture.Consumer from picking up the repository root's. That isolation is the whole
+    point of the fixture: it must receive the shipped config and the two MSBuild property defaults
+    from the *packed package* and nowhere else (spec §6). Inheriting the root file would supply
+    both by another route and quietly turn the smoke test's assertions green regardless of what
+    the package contains — which is exactly the silent failure the gate exists to catch (#2
+    hazard H1). It would also inject the shipped config a second time, colliding with the
+    package's own copy on every key.
+
+    Do not add content here. If the fixture ever needs a property, set it in the .csproj.
+  -->
+
+</Project>
