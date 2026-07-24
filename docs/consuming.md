@@ -48,6 +48,19 @@ idiom (`private sealed class StubShopper(ShoppingBoard board) : IShopper`), and 
 cannot travel inside a package — a global config can only address exact absolute file paths, which a
 package can never know. Adjust the glob if your tests live elsewhere.
 
+**And one for any project that does not generate an XML documentation file:**
+
+```ini
+[*.cs]
+dotnet_diagnostic.SA0001.severity = none   # or set <GenerateDocumentationFile>true</…>
+```
+
+`SA0001` ("XML comment analysis disabled") is the one rule the configuration's everything-off line
+cannot reach. It is reported once per project with no source location, and a blanket entry has no
+file to attach itself to, so it arrives at StyleCop's own `warning` — an error, under
+`TreatWarningsAsErrors` — even though the configuration never switches it on. Test projects are
+where you will meet it.
+
 Two more, if your project has the relevant folders:
 
 ```ini
@@ -82,7 +95,7 @@ outranks it, always. That is a documented guarantee of the compiler, not an acci
 |---|---|
 | `APB0001`–`APB0003` | The three custom rules below |
 | `Meziantou.Analyzer` | All 103 default-on rules, plus `MA0032`, minus `MA0004` |
-| .NET SDK `CA` | The 27 rules the SDK enables by default |
+| .NET SDK `CA` | The 29 rules the SDK enables by default as build warnings or errors |
 | `StyleCop.Analyzers` | `SA1201`–`SA1204` only — member ordering. This is not a StyleCop adoption |
 | IDE / naming | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification |
 | Expression-bodied members | Seven rules at `suggestion` — nudges, never build failures |

@@ -654,3 +654,45 @@ Recorded so a reader of the map's history is not misled.
    blanket. Only `MA0032` is in the shipped config today; `CA2016` arrives with step 2. Admitting
    `MA0040` would be a third deliberate departure from the sweep and a ruleset decision in its
    own right, so it is recorded here rather than taken silently.
+8. **The `CA` tier is 29 rules, not 27.** Section 2.3 step 2 says "every `CA` rule the .NET
+   `10.0.110` SDK enables by default at `AnalysisMode=Default` — 27 rules". Measured the same way
+   correction 6 measured Meziantou — load the two `NetAnalyzers` assemblies the SDK ships,
+   instantiate every exported analyzer, read `IsEnabledByDefault` and `DefaultSeverity` off each
+   descriptor: 317 rules ship, **171** are enabled by default, and **29** of those default to a
+   build-gating severity — **27** at `Warning` and **two** at `Error`, `CA1856` and `CA2252`. The
+   stated 27 is exactly the `Warning` subset.
+   The two `Error` rules are carried rather than dropped to reach the stated count, because step 2
+   is the same sentence that says to record each rule at the severity the vendor assigns and to
+   read that value rather than assume it — dropping them would flatten precisely the judgement it
+   asks to be preserved, and would leave two error-severity rules a plain `dotnet build` enforces
+   today silently off across the fleet. It is also what correction 6 did with Meziantou's three
+   `Error` rules, which are inside the 103 for the same reason.
+   `AnalysisMode=Default` itself subtracts nothing here: the SDK's `analysislevel_10_default`
+   config turns off exactly one rule, `CA1516`, which defaults to `Info` and so falls outside the
+   gating filter regardless. `consuming.md`'s "The 27 rules the SDK enables by default" is
+   corrected to 29 in place, since that row describes what the package actually ships.
+9. **`CA1707` is default-*on* at `Hidden`, not default-off.** Section 2.3 step 2, ADR-0002
+   decision 4 and correction 2 above all call it default-off, and it is not: measured against SDK
+   `10.0.110` it is `IsEnabledByDefault = true` with `DefaultSeverity = Hidden`. Every conclusion
+   drawn from it stands — a `Naming` category re-enable still sets it to `warning` and it still
+   fights the house `_camelCase` convention, which is what those passages were demonstrating — but
+   the mechanism keeping it off is the blanket plus this file never naming it, not upstream's
+   enabled flag. `CA2007` is the genuinely default-off half of that pair
+   (`IsEnabledByDefault = false`, `Warning`), and it is the one carrying the weight in the smoke
+   test's silence assertions.
+10. **`CA2016` does not arrive with step 2 either.** Correction 7 says only `MA0032` is enumerated
+    today and `CA2016` arrives with the `CA` tier. It does not: `CA2016` is enabled by default at
+    `Info`, so correction 8's gating filter excludes it exactly as correction 6's excluded
+    `MA0040`. The call-site companion to `APB0002`'s declaration half is `MA0032` alone. Admitting
+    `CA2016` would be a deliberate departure from the sweep and a ruleset decision in its own
+    right, so — like `MA0040` — it is recorded here rather than taken silently.
+11. **The sealed allowlist has one measured leak, and it is `SA0001`.** The blanket is a bulk
+    `dotnet_analyzer_diagnostic.severity` entry, and a bulk entry has no syntax tree to resolve
+    options against for a diagnostic reported with **no location** — so it never reaches one.
+    `SA0001` ("XML comment analysis disabled") is reported per-project with no location and
+    therefore fires at the vendor's `Warning` in any project that does not generate a
+    documentation file, despite never being enumerated. This repository already hit it in its own
+    test project before the StyleCop tier shipped and answered it with a local deviation; every
+    consumer now meets it the moment they add the prescribed `StyleCop.Analyzers` reference, so
+    `consuming.md` documents it. It is not repaired in the shipped config: naming `SA0001` there,
+    even at `none`, would put a second `SA` rule in a tier specified as exactly four.
