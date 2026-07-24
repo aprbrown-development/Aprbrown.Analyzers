@@ -175,6 +175,7 @@ Not in the shipped config, documented in [`consuming.md`](consuming.md) as a tem
 | `APB0001 = none` under `[tests/**.cs]` | Path-scoped; test primary constructors hold values, not dependencies |
 | `MA0048 = none` for `Pages/`, `Data/Migrations/` | Path-scoped; Razor and EF naming |
 | `MA0051 = none` for EF `Migrations/` | Path-scoped; generated code |
+| `SA0001 = none` for any project without an XML documentation file | Reported with no location, so the blanket cannot reach it — see section 10 correction 11 |
 
 Path scoping cannot travel: a global AnalyzerConfig accepts only exact absolute file paths as section
 headers, and rejects globs outright with `InvalidGlobalSectionName`, dropping the section. An absolute
@@ -481,11 +482,13 @@ Analyzer unit tests test the analyzer; they cannot test the package. This gate t
 | Assertion | Proves |
 |---|---|
 | An `APB` violation fires | The analyzer assembly is packed and loads |
-| A `CA` violation fires | The 27 enumerated `CA` IDs survive the blanket |
+| A `CA` violation fires | The ~~27~~ **29** enumerated `CA` IDs survive the blanket — see section 10 correction 8 |
 | A `Meziantou` violation fires, with `Meziantou.Analyzer` referenced by the fixture | Config-without-assembly binds when the assembly arrives |
+| A member-ordering violation fires, with `StyleCop.Analyzers` referenced by the fixture | The same, for the four `SA` IDs |
 | An IDE naming violation fires | Enumeration-by-ID works — these are silently unenforced otherwise |
 | `MA0004` does **not** fire | The sole deliberate exclusion stays excluded |
-| A `CA1707`-triggering name does **not** fire | The seal holds; default-off rules stayed off |
+| `CA2007` does **not** fire | The seal holds; a genuinely default-off rule stayed off |
+| A `CA1707`-triggering name does **not** fire | No category re-enable admitted it — but see section 10 correction 9: `CA1707` is default-on at `Hidden`, so this row proves less on its own than "default-off rules stayed off" claimed, and `CA2007` above carries that weight |
 | Both MSBuild properties arrive | #2's hazard H1 is a *silent* failure |
 
 The `CA` assertion supersedes ADR-0003's wording, which described it as proving "the `AnalysisMode`
@@ -694,5 +697,12 @@ Recorded so a reader of the map's history is not misled.
     documentation file, despite never being enumerated. This repository already hit it in its own
     test project before the StyleCop tier shipped and answered it with a local deviation; every
     consumer now meets it the moment they add the prescribed `StyleCop.Analyzers` reference, so
-    `consuming.md` documents it. It is not repaired in the shipped config: naming `SA0001` there,
-    even at `none`, would put a second `SA` rule in a tier specified as exactly four.
+    `consuming.md` documents it and §2.4 registers it.
+    It could be repaired in one line — an explicit `dotnet_diagnostic.SA0001.severity = none` *does*
+    reach a no-location diagnostic where the bulk entry does not, which is exactly how this
+    repository's own `.editorconfig` silences it. That line is not taken here, and the honest reason
+    is scope rather than principle: #17 specifies this tier as exactly `SA1201`–`SA1204` and "no
+    other `SA` rule appears", and the smoke test asserts that set exactly. Repairing the leak inside
+    the shipped config is a ruleset decision in its own right — a rule the package names on every
+    consumer's behalf — and under ADR-0004 it belongs in its own ticket, weighed against the cost it
+    currently pushes onto every consumer: one line of onboarding boilerplate, forever.

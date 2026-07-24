@@ -56,7 +56,7 @@ dotnet_diagnostic.SA0001.severity = none   # or set <GenerateDocumentationFile>t
 ```
 
 `SA0001` ("XML comment analysis disabled") is the one rule the configuration's everything-off line
-cannot reach. It is reported once per project with no source location, and a blanket entry has no
+cannot reach. It is reported once per project with no source location, and that blanket line has no
 file to attach itself to, so it arrives at StyleCop's own `warning` — an error, under
 `TreatWarningsAsErrors` — even though the configuration never switches it on. Test projects are
 where you will meet it.

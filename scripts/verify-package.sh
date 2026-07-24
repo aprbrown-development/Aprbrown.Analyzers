@@ -139,20 +139,29 @@ MA_COUNT="$(grep -cE '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" |
   || fail "expected 103 Meziantou rules (103 default-on, minus MA0004, plus MA0032), found $MA_COUNT"
 info "Meziantou tier enumerates 103 rules"
 
-# The count alone is a weak seal: a mistyped or duplicated ID still totals 103 and passes every
-# assertion around this one. So pin the tier's identity — which rules, at which severities — with a
-# digest over the sorted severity lines. The derivation is frozen, so this is a constant; when a
-# rule is deliberately added, removed or re-levelled under ADR-0004, regenerate it with
-#   grep -E '^dotnet_diagnostic\.MA[0-9]+\.severity' <config> | LC_ALL=C sort | sha256sum
-# and let the diff on this line be the thing a reviewer sees.
-MA_DIGEST_EXPECTED="0731fdb59880741fcbe3c7d59bb919ee4e4350427f95bba553c86e62b21f2649"
-MA_DIGEST_ACTUAL="$(grep -E '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" \
-  | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
-if [ "$MA_DIGEST_ACTUAL" != "$MA_DIGEST_EXPECTED" ]; then
-  echo "--- expected $MA_DIGEST_EXPECTED ---" >&2
-  echo "--- actual   $MA_DIGEST_ACTUAL ---"   >&2
-  fail "the Meziantou tier is not the frozen derivation; if the change was deliberate, update MA_DIGEST_EXPECTED"
-fi
+# A count alone is a weak seal: a mistyped or duplicated ID still totals 103 and passes every
+# assertion around it. So each tier also pins its identity — which rules, at which severities — with
+# a digest over its sorted severity lines. Each derivation is frozen, so each digest is a constant;
+# when a rule is deliberately added, removed or re-levelled under ADR-0004, regenerate it with
+#   grep -E '^dotnet_diagnostic\.<prefix>[0-9]+\.severity' <config> | LC_ALL=C sort | sha256sum
+# and let the diff on that one line be the thing a reviewer sees.
+#
+# Three tiers pin themselves this way, so the comparison is a function and the expected digests are
+# the arguments. The name is what a failure prints, which is why it is spelled out at each call
+# rather than derived from the prefix.
+assert_tier_digest() {
+  local prefix="$1" expected="$2" name="$3"
+  local actual
+  actual="$(grep -E "^dotnet_diagnostic\.$prefix[0-9]+\.severity" "$PACKED_CONFIG" \
+    | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
+  if [ "$actual" != "$expected" ]; then
+    echo "--- expected $expected ---" >&2
+    echo "--- actual   $actual ---"   >&2
+    fail "the $name tier is not the frozen derivation; if the change was deliberate, update its expected digest"
+  fi
+}
+
+assert_tier_digest MA "0731fdb59880741fcbe3c7d59bb919ee4e4350427f95bba553c86e62b21f2649" "Meziantou"
 info "Meziantou tier matches the frozen derivation digest"
 
 if grep -qE '^dotnet_diagnostic\.MA0004\.severity' "$PACKED_CONFIG"; then
@@ -182,17 +191,7 @@ CA_COUNT="$(grep -cE '^dotnet_diagnostic\.CA[0-9]+\.severity' "$PACKED_CONFIG" |
 [ "$CA_COUNT" -eq 29 ] \
   || fail "expected 29 SDK CA rules (27 default-on at Warning, two at Error), found $CA_COUNT"
 
-# Same reasoning as the Meziantou digest: a count alone lets a mistyped or duplicated ID through.
-# Regenerate with
-#   grep -E '^dotnet_diagnostic\.CA[0-9]+\.severity' <config> | LC_ALL=C sort | sha256sum
-CA_DIGEST_EXPECTED="2ce6f012e1db6b3b7efad423b38f548a553aa86a5e4d5b26b88acb1011060937"
-CA_DIGEST_ACTUAL="$(grep -E '^dotnet_diagnostic\.CA[0-9]+\.severity' "$PACKED_CONFIG" \
-  | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
-if [ "$CA_DIGEST_ACTUAL" != "$CA_DIGEST_EXPECTED" ]; then
-  echo "--- expected $CA_DIGEST_EXPECTED ---" >&2
-  echo "--- actual   $CA_DIGEST_ACTUAL ---"   >&2
-  fail "the CA tier is not the frozen derivation; if the change was deliberate, update CA_DIGEST_EXPECTED"
-fi
+assert_tier_digest CA "2ce6f012e1db6b3b7efad423b38f548a553aa86a5e4d5b26b88acb1011060937" "CA"
 info "CA tier enumerates 29 rules and matches the frozen derivation digest"
 
 # The two the SDK defaults to Error. Recording either at warning would be the silent downgrade of
@@ -220,18 +219,11 @@ info "CA2007 and CA1707 are not enumerated"
 # category-StyleCop.CSharp.* switch-offs the source repository carried are redundant under the
 # blanket — the category check above already refuses them, this one refuses any other SA rule
 # arriving on.
-SA_DIGEST_EXPECTED="c1b0666a0969156bab864bd8b7c879ee65f8b87cef8e5262878316c9bdc7a264"
-SA_DIGEST_ACTUAL="$(grep -E '^dotnet_diagnostic\.SA[0-9]+\.severity' "$PACKED_CONFIG" \
-  | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
-SA_ACTUAL_IDS="$(grep -oE '^dotnet_diagnostic\.SA[0-9]+' "$PACKED_CONFIG" | sed 's/^dotnet_diagnostic\.//' \
-  | LC_ALL=C sort | tr '\n' ' ')"
+SA_ACTUAL_IDS="$(grep -oE '^dotnet_diagnostic\.SA[0-9]+\.severity' "$PACKED_CONFIG" \
+  | sed -E 's/^dotnet_diagnostic\.(SA[0-9]+)\.severity$/\1/' | LC_ALL=C sort | tr '\n' ' ')"
 [ "$SA_ACTUAL_IDS" = "SA1201 SA1202 SA1203 SA1204 " ] \
   || fail "the StyleCop tier is not exactly SA1201-SA1204; found: $SA_ACTUAL_IDS"
-if [ "$SA_DIGEST_ACTUAL" != "$SA_DIGEST_EXPECTED" ]; then
-  echo "--- expected $SA_DIGEST_EXPECTED ---" >&2
-  echo "--- actual   $SA_DIGEST_ACTUAL ---"   >&2
-  fail "the StyleCop tier is not the frozen derivation; if the change was deliberate, update SA_DIGEST_EXPECTED"
-fi
+assert_tier_digest SA "c1b0666a0969156bab864bd8b7c879ee65f8b87cef8e5262878316c9bdc7a264" "StyleCop"
 info "StyleCop tier is exactly SA1201-SA1204 at the vendor's severities"
 
 # --- Assertion: neither AnalysisMode nor AnalysisLevel is set anywhere -----------------------
@@ -246,9 +238,19 @@ if grep -vE '^[[:space:]]*#' "$PACKED_CONFIG" | grep -qiE 'AnalysisMode|Analysis
   grep -nvE '^[[:space:]]*#' "$PACKED_CONFIG" | grep -iE 'AnalysisMode|AnalysisLevel' >&2
   fail "the packed config sets AnalysisMode/AnalysisLevel; neither reaches past the blanket"
 fi
-PROPS_HITS="$(grep -rniE '<(AnalysisMode|AnalysisLevel)[A-Za-z]*>' \
-  --include='*.csproj' --include='*.props' --include='*.targets' --include='*.globalconfig' \
-  --include='*.editorconfig' "$REPO_ROOT" 2>/dev/null || true)"
+# The trailing [[:space:]>/] rather than a bare > is load-bearing: an MSBuild property carrying a
+# Condition attribute is still a property that is set, and <AnalysisMode Condition="…">All</…> is
+# the idiom this repository already uses for its own defaults. A pattern anchored on > alone walks
+# straight past it. Verified against both spellings before it was written this way.
+#
+# Only the file kinds that can carry an MSBuild property are searched. AnalyzerConfig files cannot —
+# these are properties, not config keys — and the packed config is checked above on its own terms.
+# obj/ and bin/ are excluded because the SDK writes a generated .editorconfig there carrying
+# build_property.EffectiveAnalysisLevelStyle, which is the SDK describing its own defaults rather
+# than anything this repository sets.
+PROPS_HITS="$(grep -rniE '<(AnalysisMode|AnalysisLevel)[A-Za-z]*[[:space:]>/]' \
+  --include='*.csproj' --include='*.props' --include='*.targets' \
+  --exclude-dir=obj --exclude-dir=bin "$REPO_ROOT" 2>/dev/null || true)"
 if [ -n "$PROPS_HITS" ]; then
   echo "$PROPS_HITS" >&2
   fail "AnalysisMode/AnalysisLevel is set in the repository; neither reaches past the blanket"
