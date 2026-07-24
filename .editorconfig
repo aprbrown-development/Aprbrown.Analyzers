@@ -1,0 +1,44 @@
+# This repository's local deviations from the shipped configuration it consumes.
+#
+# It is the reference implementation of the onboarding snippet (spec §7): every entry below is a
+# deviation taken through the mechanism every consumer gets — a local .editorconfig, which outranks
+# a global AnalyzerConfig outright. Nothing here changes src/Aprbrown.Analyzers.Package/build/
+# Aprbrown.Analyzers.globalconfig; a house rule that trips this repository's own code is fixed here,
+# never there.
+
+root = true
+
+[*.cs]
+
+# --- Restoring the analyzer-authoring safety net (ADR-0003 decision 7, spec §7) ---------------
+#
+# Microsoft.CodeAnalysis.Analyzers ships the RS-series that keeps analyzer authors honest — RS1001
+# through the RS2000-series that keeps AnalyzerReleases.Shipped.md / .Unshipped.md truthful,
+# RS2008 included. The shipped config's blanket switches all of it off, which in the one repository
+# in the fleet where it matters would leave release tracking silently unenforced.
+#
+# Re-enabled by *category*, one line each, so RS rules added by future package versions are covered
+# without editing this file. This is the one place category-level re-enabling is correct and it does
+# not contradict ADR-0002's seal: the seal governs what the package promises consumers. This is a
+# local config, and a repository loosening rules for itself is the deviation mechanism working.
+dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisCorrectness.severity = warning
+dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisDesign.severity = warning
+dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisReleaseTracking.severity = warning
+dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisPerformance.severity = warning
+
+# --- Deviations this repository takes -----------------------------------------------------------
+
+[tests/**.cs]
+# The carve-out docs/consuming.md marks "not optional" for every consumer, applied to the repository
+# that prescribes it. Test doubles hold values rather than injected dependencies, which is the one
+# shape APB0001 should not object to — and the tests project is gated by the APB rules (spec §7), so
+# without this the first `private sealed class StubX(Y y) : IY` would fail the build.
+# MA0025's half of the snippet arrives with the ticket that enumerates MA0025 back on; until then it
+# is off under the blanket and a line here would assert nothing.
+dotnet_diagnostic.APB0001.severity = none
+
+# SA0001 fires when a project does not generate an XML documentation file, and test projects have no
+# reason to. It survives the shipped config's blanket because it is reported with no location, and a
+# bulk `dotnet_analyzer_diagnostic.severity` entry does not reach a diagnostic that has no syntax
+# tree to resolve options against — an explicit ID does, which is what this is.
+dotnet_diagnostic.SA0001.severity = none

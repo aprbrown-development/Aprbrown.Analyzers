@@ -40,11 +40,14 @@
   </PropertyGroup>
 
   <!-- Build the analyzer and the code fixes first, but do not reference their assemblies for
-       compilation. -->
+       compilation. OutputItemType="Analyzer" on the analyzer reference additionally runs the APB
+       rules against this project (spec §7). This project compiles no source of its own today, so
+       that gating is inert — it is here so it stays true the moment it does. -->
   <ItemGroup>
     <ProjectReference Include="..\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj"
                       PrivateAssets="all"
-                      ReferenceOutputAssembly="false" />
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
     <ProjectReference Include="..\Aprbrown.Analyzers.CodeFixes\Aprbrown.Analyzers.CodeFixes.csproj"
                       PrivateAssets="all"
                       ReferenceOutputAssembly="false" />

@@ -23,7 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj" />
+    <!-- OutputItemType="Analyzer" runs the APB rules against the test code itself (spec §7);
+         ReferenceOutputAssembly stays at its default of true because the tests also need the
+         analyzer types to instantiate. A project cannot be its own analyzer, so the tests are one
+         of the three places the APB rules can be turned on this repository. -->
+    <ProjectReference Include="..\..\src\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj"
+                      OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\src\Aprbrown.Analyzers.CodeFixes\Aprbrown.Analyzers.CodeFixes.csproj" />
   </ItemGroup>
 

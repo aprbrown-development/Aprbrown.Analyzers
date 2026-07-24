@@ -1,0 +1,15 @@
+# Deliberately empty apart from root = true, and deliberately present.
+#
+# The companion to the empty Directory.Build.props beside it: that one stops the fixture inheriting
+# this repository's MSBuild wiring, this one stops it inheriting this repository's *deviations*.
+#
+# The fixture is a synthetic consumer whose whole job is to receive the ruleset from the packed
+# package and nothing else (spec §6). The repository root's .editorconfig carves APB0001 out under
+# [tests/**.cs] — the carve-out docs/consuming.md prescribes for test doubles — and Fixture.Consumer
+# sits under tests/, so it matched that glob and the fixture stopped reporting APB0001 at all. The
+# smoke test caught it, but a deviation this repository takes for its own test code must never reach
+# the fixture in the first place. root = true stops the walk-up here.
+#
+# Do not add rules here. A deviation the fixture needs is a deviation the smoke test should not have.
+
+root = true
