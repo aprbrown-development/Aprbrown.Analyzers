@@ -1,0 +1,82 @@
+namespace Fixture.Consumer;
+
+// The IDE, naming and style tier's proof (spec §2.3 step 4).
+//
+// This tier is the one where "enumerated by ID" is not a stylistic preference but the whole
+// mechanism: under the blanket, a naming rule whose dotnet_diagnostic severity is not set
+// explicitly is *silently unenforced* — it neither fires nor warns that it is inactive (#4). So
+// unlike the CA tier next door there is no vendor default to fall back on, and nothing here would
+// fire by accident. Every diagnostic below exists because the shipped config names its ID.
+//
+// Unlike Kettle and Ordering, this file needs no package reference at all: IDE rules are the
+// compiler's own, reached at build time through the EnforceCodeStyleInBuild default the package
+// ships. That property is load-bearing for this file the way the Meziantou reference is for
+// Kettle — without it every line below is inert.
+//
+// Field order is static-before-instance so SA1204 stays out of the way; the four SA rules are
+// proven next door in Ordering.cs and have no business firing here.
+public sealed class Lathe
+{
+    // IDE1006, and the more interesting of the two naming cases. `_created` satisfies the
+    // *general* private-fields rule and violates the *specific* private-statics one, so it fires
+    // only if Roslyn picks the more specific rule. It does: naming rules are ordered by
+    // specificity, not by declaration order (#2, verified twice). The source repository's comment
+    // claiming the opposite is not carried into the shipped config, and this field is why that
+    // claim did not have to be taken on trust — it sits *before* the general rule's own violation
+    // below, which under the declaration-order story would have swallowed it.
+    private static int _created = 1;
+
+    // Must stay silent: a private static in PascalCase is what the specific rule asks for.
+    private static int Produced = 2;
+
+    // IDE1006 — a private instance field with no `_` prefix, against
+    // dotnet_naming_rule.private_fields_are_underscored. IDE1006 is the single ID every
+    // dotnet_naming_rule violation reports under, which is why the shipped config must enumerate
+    // it for any of the naming block to do anything at all.
+    private int count = 3;
+
+    // Must stay silent: the shape the general rule asks for, so the file proves the rules fire on
+    // the right thing rather than merely firing.
+    private readonly int _size;
+
+    public Lathe(int size) => _size = size;
+
+    // IDE0040 again, on an interface member, which is the half `always` buys over
+    // `for_non_interface_members`. C# infers `public` here and the house rule still wants it
+    // written. Nested so MA0048's file-per-type rule has nothing to say about it, and placed here
+    // rather than at the end of the type because StyleCop's element order puts nested interfaces
+    // *before* methods, not after — SA1201 measured, not guessed.
+    public interface ILatheStep
+    {
+        void Tighten();
+    }
+
+    // IDE0022 (suggestion) — a block body wrapping a single expression. One of the seven
+    // expression-bodied preferences, which ship at `suggestion` precisely so six repositories can
+    // agree on shape without a disagreement failing anyone's build. The smoke test asserts this
+    // never appears as an error, with IDE0040 and IDE1006 erroring in the same file as the
+    // control.
+    public int Describe()
+    {
+        return count + _size + _created + Produced;
+    }
+
+    // IDE0003 must NOT fire, and that is a limitation rather than a decision. `this.` on a field
+    // is exactly what it reports, `dotnet_style_qualification_for_field = false` is what tells it
+    // so, and both are in place — but IDE0003 is one of the Simplify-family rules Roslyn runs only
+    // in the IDE, so a command-line build never reports it. Measured on SDK 10.0.110: IDE0009, the
+    // add-qualification half, fires from the same options in the same build; IDE0003 does not.
+    //
+    // The pair still ships. In an editor both halves work, which is where a developer meets them —
+    // and this is the one house convention the build does not gate. Spec §10 correction 12 records
+    // it; the smoke test pins the silence so an SDK that fixes it cannot do so unnoticed.
+    public int Measure() => this._size;
+
+    // IDE0040 — no accessibility modifier, against
+    // dotnet_style_require_accessibility_modifiers = always. C# would infer `private`; the house
+    // rule is that access is always something the author chose rather than something the reader
+    // has to know the language rules to recover.
+    void Idle()
+    {
+    }
+}

@@ -486,6 +486,11 @@ Analyzer unit tests test the analyzer; they cannot test the package. This gate t
 | A `Meziantou` violation fires, with `Meziantou.Analyzer` referenced by the fixture | Config-without-assembly binds when the assembly arrives |
 | A member-ordering violation fires, with `StyleCop.Analyzers` referenced by the fixture | The same, for the four `SA` IDs |
 | An IDE naming violation fires | Enumeration-by-ID works — these are silently unenforced otherwise |
+| A *second* IDE naming violation fires, on a private static named `_created` | Naming rules resolve by **specificity**, not declaration order. The general private-fields rule is satisfied by that name and only the specific private-statics rule objects, so this row is the one that makes the source repository's declaration-order comment demonstrably false rather than merely unported |
+| A missing accessibility modifier fires, twice | `IDE0040` is enumerated and reachable; the second is on an *interface member*, which is exactly what `always` buys over `for_non_interface_members` |
+| None of the seven expression-bodied IDs fires as an error | `suggestion` survives the trip. Measured in the `TreatWarningsAsErrors=true` build, the only one where a preference wrongly recorded at `warning` would show |
+| `IDE0003` does **not** fire | Not a seal assertion but a pinned limitation — it is IDE-only, see section 10 correction 12. The one assertion in the file that should eventually break |
+| The config totals 150 enumerated rules | No rule arrived outside a tier; the per-tier counts cannot catch that on their own — section 10 correction 13 |
 | `MA0004` does **not** fire | The sole deliberate exclusion stays excluded |
 | `CA2007` does **not** fire | The seal holds; a genuinely default-off rule stayed off |
 | A `CA1707`-triggering name does **not** fire | No category re-enable admitted it — but see section 10 correction 9: `CA1707` is default-on at `Hidden`, so this row proves less on its own than "default-off rules stayed off" claimed, and `CA2007` above carries that weight |
@@ -706,3 +711,29 @@ Recorded so a reader of the map's history is not misled.
     the shipped config is a ruleset decision in its own right — a rule the package names on every
     consumer's behalf — and under ADR-0004 it belongs in its own ticket, weighed against the cost it
     currently pushes onto every consumer: one line of onboarding boilerplate, forever.
+12. **`IDE0003` cannot fire in a build, so one house convention is IDE-only.** Section 2.3 step 4
+    enumerates `IDE0003` and `IDE0009` alongside the four `dotnet_style_qualification_for_*`
+    options, and every other rule in that step gates a build. This pair does not. `IDE0003`
+    ("remove `this` or `Me` qualification") is one of the Simplify-family rules Roslyn runs only in
+    the IDE; a command-line build never reports it, `EnforceCodeStyleInBuild` notwithstanding.
+    Measured on SDK `10.0.110` against `this._size` with `dotnet_style_qualification_for_field =
+    false`, in the same compilation where `IDE1006` and `IDE0040` both fired: `IDE0003` silent.
+    `IDE0009`, the add-qualification half driven by the same options, *does* fire in a build — but
+    only when the options say `true`, which the house ruleset never does, so it is enumerated and
+    unreachable in practice too.
+    Both stay in the shipped config. In an editor the pair works, which is where a developer meets
+    a `this.` they did not mean to write, and the alternative is dropping a house convention over a
+    tooling gap. What changes is the claim: "no `this.` qualification" is enforced by the IDE, not
+    by the build, and `docs/consuming.md` says so. The smoke test pins the silence with `IDE1006`
+    and `IDE0040` as its control, and its failure message says what to do on the day an SDK fixes
+    it — this is the one assertion in that file which *should* eventually break.
+13. **The shipped config is 150 rules, not "~131".** Section 1 and section 2.2 both give "~131",
+    written before any tier was measured. The tiers as derived are 3 `APB` + 103 Meziantou + 29
+    `CA` + 4 StyleCop + 11 IDE = **150**. Every part of that gap is already accounted for by an
+    earlier correction or by step 4 itself: correction 6 fixed the Meziantou criterion, correction
+    8 carried the `CA` tier's two `Error` rules, and step 4's eleven IDs were never given a count to
+    miss. The estimate is left in place rather than edited, because it is what the design believed
+    before measurement and the arithmetic above is the more useful record. `docs/consuming.md` and
+    `CONTEXT.md` are corrected in place, since both describe what the package actually ships.
+    The smoke test asserts the total alongside each tier's own count — a per-tier count cannot
+    catch a rule that arrived belonging to no tier at all.

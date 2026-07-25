@@ -1,7 +1,7 @@
 # Aprbrown.Analyzers
 
 One .NET coding standard, delivered as a package. It ships three custom Roslyn analyzers and — the
-larger half — a configuration that decides which of ~130 rules from `Meziantou.Analyzer`,
+larger half — a configuration that decides which of 150 rules from `Meziantou.Analyzer`,
 `StyleCop.Analyzers` and the .NET SDK are switched on.
 
 There is a single universal ruleset. No profiles, no severity levels, nothing to configure. If you
@@ -99,6 +99,15 @@ outranks it, always. That is a documented guarantee of the compiler, not an acci
 | `StyleCop.Analyzers` | `SA1201`–`SA1204` only — member ordering. This is not a StyleCop adoption |
 | IDE / naming | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification |
 | Expression-bodied members | Seven rules at `suggestion` — nudges, never build failures |
+
+The naming and accessibility rules cost nothing to adopt: `_camelCase` private fields, `PascalCase`
+private statics and `IDE0040` were each measured at **zero violations across six real repositories**.
+Accessibility is `always` rather than `for_non_interface_members`, so an interface's members spell
+`public` out like anything else — that is the one place you are likely to meet it.
+
+**`this.` qualification is enforced by your editor, not by the build.** `IDE0003` is one of the rules
+Roslyn only runs in the IDE, so a `this.` you did not mean to write shows up as a squiggle and a
+one-key fix, and a build will not stop you committing it. Every other rule in the table gates.
 
 **The custom rules:**
 
