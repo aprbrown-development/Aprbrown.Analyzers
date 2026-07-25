@@ -1,0 +1,202 @@
+name: Release
+
+# The only file in this repository that can mint a nuget.org key and push something unrevocable
+# (ADR-0003 decisions 1 and 3). It is meant to stay short enough to read in one screen and boring
+# enough that it almost never changes: a single workflow with a conditional publish job would mean
+# every future edit to PR CI happened inside the file holding publish rights.
+#
+# Nothing here is a first look. Every gate below already ran at PR time (decision 4) and re-runs to
+# discover nothing new, because a nuget.org version number is spent the moment it is pushed. The
+# only checks this file adds are the two that cannot exist before a tag, and they live in
+# scripts/verify-release.sh.
+on:
+  push:
+    tags: ['v*']
+
+# The default for every job. `id-token: write` and `contents: write` are granted on the publish job
+# alone, so what this file can do is visible at the point it can do it rather than inherited from a
+# settings page. ci.yml declares its own permissions for the same reason: to make the absence of
+# id-token a property a reviewer can see.
+permissions:
+  contents: read
+
+# Never cancel a release. Two tags in flight are two different version numbers and neither is a
+# stale view of the other — unlike a superseded pull request run, which proves nothing about the
+# commit that replaced it. A run that is waiting on the approval gate is exactly the run a
+# cancel-in-progress policy would kill.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+  # ADR-0003 decision 10. Set as an environment variable rather than a `-p:` flag so it also reaches
+  # the `dotnet pack` inside verify-package.sh, mirroring ci.yml — these are the duplicated setup
+  # lines the ADR accepts deliberately over a reusable-workflow indirection that could confuse the
+  # OIDC claim. If they ever grow enough to warrant sharing, the answer is a local composite action
+  # under .github/actions/, which runs inside the calling job and leaves the claim untouched.
+  ContinuousIntegrationBuild: true
+
+jobs:
+  verify:
+    name: Build, test, verify and pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          # This job pushes nothing, and the publish job below never checks out at all.
+          persist-credentials: false
+
+      # First, and before the SDK is even installed. Both assertions are text over Markdown and cost
+      # a second; everything after them costs ten minutes. A mistyped tag or a rule left unpromoted
+      # should be told so immediately, not after the smoke test has run to completion.
+      #
+      # The tag is the only source of a version number (ADR-0003 decision 2). No <Version> property
+      # exists anywhere in this repository, and nothing in it mints a publishable version on its own
+      # — a version exists only when one is typed into `git tag`.
+      - name: Release-time assertions
+        run: ./scripts/verify-release.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          # Floating patch, for the reasons ci.yml sets out at length: nothing asserted here is
+          # patch-sensitive, and the remedy if that ever changes is a global.json pinning dev
+          # machines and CI alike, not a version typed into a workflow only CI honours.
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Aprbrown.Analyzers.slnx
+
+      # The dogfooding gate (ADR-0003 decision 6): this repository consumes the same physical config
+      # file the packaging project packs, under TreatWarningsAsErrors, so a house-rule violation in
+      # its own source is a build error here.
+      - name: Build
+        run: dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
+
+      # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5).
+      - name: Pack-consume smoke test
+        run: ./scripts/verify-package.sh
+
+      # The artifact that is published is the artifact that was gated. Packing here rather than in
+      # the publish job also keeps that job free of a checkout, an SDK restore and a build — the
+      # less that happens under `id-token: write`, the smaller the thing a reviewer has to trust.
+      - name: Pack
+        run: |
+          dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj \
+            -c Release --no-build -o artifacts -p:Version="${GITHUB_REF_NAME#v}"
+
+      # The release body, cut from CHANGELOG.md's section for this version (ADR-0003 decision 9), so
+      # there is exactly one authored source and the release page cannot disagree with the
+      # repository. verify-release.sh already proved the section exists and is non-empty; this reads
+      # it out through the same parser rather than a second one free to answer differently.
+      - name: Cut the release notes from CHANGELOG.md
+        run: ./scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > artifacts/release-notes.md
+
+      # The major versions do not match, and that is correct rather than an oversight: upload and
+      # download stopped moving in lockstep after v4, and each has since bumped its major for
+      # runtime reasons of its own — Node 24, then an ESM migration — rather than for a change to
+      # the artifact format they share. Both are v4-format. Recorded here because the cost of being
+      # wrong is a failure that surfaces at tag time, after the version number is already committed.
+      - name: Upload the release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: artifacts/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to nuget.org
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # The approval gate (ADR-0003 amendment 2). The repository owner is a required reviewer and
+    # `Prevent self-review` is left off — GitHub's default, verified, so a sole maintainer can
+    # approve their own deployment; the prohibition on self-approval applies to pull request
+    # reviews, not to environment protection rules. The push is unrevocable and a mistyped tag
+    # spends a version number permanently, so one click is cheap insurance. The nuget.org trusted
+    # publishing policy is scoped to this same environment.
+    environment: release
+
+    permissions:
+      # The one grant of id-token: write in this repository. It is what NuGet/login exchanges for a
+      # single-use API key valid for one hour, and it is why this file must not delegate its build
+      # via workflow_call — OIDC workflow claims are subtle across that boundary and the failure
+      # would surface at the push.
+      id-token: write
+      # For `gh release create` only. The package push needs no GitHub token at all.
+      contents: write
+
+    steps:
+      - name: Download the release artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: artifacts
+
+      # `dotnet nuget push` is all this job runs, and the runner image happens to carry a usable
+      # SDK — but "happens to" is not a property worth resting an unrevocable push on.
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # Trusted publishing. GitHub's signed OIDC token is exchanged for a single-use nuget.org API
+      # key valid for one hour: no NUGET_API_KEY secret exists in this repository, and there is
+      # nothing to rotate or to leak. The one secret involved is the nuget.org **profile name** —
+      # not the email — which the policy is matched against.
+      - name: Exchange the OIDC token for a one-hour nuget.org key
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # Pushed by exact path rather than by artifacts/*.nupkg. A glob is a promise that whatever it
+      # matched is what was meant, and this is the last step before something unrevocable — the one
+      # place in the repository where "whatever is in that directory" is the wrong way to name a
+      # file. Spelling the version out means a second .nupkg arriving in the artifact cannot be
+      # pushed alongside the intended one, and a package whose name does not carry the tag's version
+      # fails here, after the approval click but before anything reaches nuget.org.
+      #
+      # No --skip-duplicate. A version that is already on nuget.org means the tag is wrong or the
+      # release already happened, and either way the right outcome is a red run, not a quiet
+      # success that reads as a publish.
+      - name: Push to nuget.org
+        run: |
+          NUPKG="artifacts/Aprbrown.Analyzers.${GITHUB_REF_NAME#v}.nupkg"
+          [ -f "$NUPKG" ] || { echo "no package at $NUPKG"; ls -la artifacts; exit 1; }
+          dotnet nuget push "$NUPKG" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://www.nuget.org/api/v2/package
+
+      # After the push, deliberately. The release page documents a package that exists; cutting it
+      # first would leave a page describing a version that a failed push means nobody can install.
+      #
+      # --prerelease is set from the tag itself: a tag carrying a prerelease suffix must not become
+      # the repository's "Latest release". The first tag is v1.0.0-preview.1 and is expected to be
+      # thrown away (ADR-0003 decision 11), so this is the normal case before it is the exception.
+      - name: Cut the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # An array rather than an unquoted string. The flag has to vanish entirely for a stable
+          # tag, and the usual way to write that — $PRERELEASE, unquoted, relying on word splitting
+          # to erase an empty value — is a quoting rule holding up the one line that decides whether
+          # a preview becomes the repository's "Latest release".
+          FLAGS=()
+          case "$GITHUB_REF_NAME" in *-*) FLAGS+=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file artifacts/release-notes.md \
+            --verify-tag \
+            "${FLAGS[@]}"

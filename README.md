@@ -14,8 +14,12 @@ all five steps, leaving the blanket plus **150 enumerated rules** — 3 `APB`, 1
 `Meziantou.Analyzer`, 29 SDK `CA`, 4 `StyleCop.Analyzers` ordering, and 11 IDE naming and style.
 This repository is held to that ruleset itself (spec §7) and CI gates every pull request.
 
-Still to come, tracked in the issue backlog: the release pipeline and `CHANGELOG.md`, trusted
-publishing, and onboarding the six fleet repositories.
+The release pipeline is in place: a `v*` tag builds, tests, runs the same smoke gate, waits for an
+approval click, and publishes to nuget.org with a keyless one-hour credential. See
+[Releasing](#releasing).
+
+Still to come, tracked in the issue backlog: the nuget.org account and trusted publishing policy,
+the `v1.0.0-preview.1` rehearsal, and onboarding the six fleet repositories.
 
 ## Documentation
 
@@ -24,6 +28,8 @@ publishing, and onboarding the six fleet repositories.
   `MIX` → `APB` migration. Start here to build the package.
 - **[`docs/consuming.md`](docs/consuming.md)** — how a project consumes the package. Packed as the
   package README, so it is also the nuget.org page.
+- **[`CHANGELOG.md`](CHANGELOG.md)** — what each version does to a consumer's build, grouped by
+  build impact. Each GitHub Release body is cut from it.
 - **[`CONTEXT.md`](CONTEXT.md)** — vocabulary.
 - **[`docs/adr/`](docs/adr/)** — the decisions behind all of the above.
 
@@ -56,6 +62,39 @@ exact diagnostic set. Run it on any dev machine:
 `tests/Fixture.Consumer` is deliberately outside the solution: it only builds once the package has
 been packed, so the smoke script drives it rather than `dotnet build`.
 
+## Releasing
+
+**The git tag is the only source of a version number.** No `<Version>` property exists anywhere in
+this repository and nothing in it mints a publishable version on its own; a version exists only when
+one is typed into `git tag`. nuget.org versions are immutable and unrevocable, so a version number is
+spent the moment it is pushed.
+
+Every gate therefore runs at pull request time, and
+[`release.yml`](.github/workflows/release.yml) re-runs the same set expecting to discover nothing
+new. It adds only the two checks that cannot exist before a tag, both in `scripts/verify-release.sh`
+and both runnable locally:
+
+```bash
+./scripts/verify-release.sh 1.0.0        # the two release-time gates
+./scripts/changelog-section.sh 1.0.0     # the release body, exactly as the workflow cuts it
+```
+
+1. `AnalyzerReleases.Unshipped.md` holds no rule rows — the build already catches rules that were
+   never *recorded*; this catches rules recorded but never promoted to *shipped*.
+2. `CHANGELOG.md` has a non-empty section for the version, because the GitHub Release body is cut
+   from it. A prerelease tag reads the section of the version it prefixes: `v1.0.0-preview.1` is a
+   rehearsal for `1.0.0` and carries that version's build impact.
+
+To cut a release: promote `AnalyzerReleases.Unshipped.md`'s rows into `AnalyzerReleases.Shipped.md`
+under a `## Release X.Y` heading, author the `CHANGELOG.md` section, merge, then tag. Publishing
+pauses on the `release` environment for an approval click before anything reaches nuget.org, and
+uses a single-use OIDC-issued key valid for one hour — there is no long-lived nuget.org credential
+in this repository.
+
+The one repository secret involved is **`NUGET_USER`**, holding the nuget.org *profile name* — not
+the email address. It is what the trusted publishing policy is matched against; there is no
+`NUGET_API_KEY`, and nothing to rotate.
+
 ## Adding an analyzer
 
 1. Add the `DiagnosticAnalyzer` under `src/Aprbrown.Analyzers/`, with a unique diagnostic ID and a `DiagnosticDescriptor` in a shared descriptors file.
@@ -63,6 +102,7 @@ been packed, so the smoke script drives it rather than `dotnet build`.
 3. Add tests under `tests/` covering both the triggering case and at least one near-miss that must *not* report.
 4. Specify the rule in [`docs/spec.md`](docs/spec.md) §3 — ID, category, default severity, rationale, what it must *not* flag, and the required test cases — and add it to `AnalyzerReleases.Unshipped.md`.
 5. Add it to the shipped configuration by ID. A rule absent from that allowlist is off, however the analyzer is written.
+6. Record it in [`CHANGELOG.md`](CHANGELOG.md) under the version it will ship in, classified by build impact. A new rule can fail a build that was green on the previous version, and the changelog is the only place that says so — release tracking covers the rule table, not the consequence.
 
 ## Repository tooling
 

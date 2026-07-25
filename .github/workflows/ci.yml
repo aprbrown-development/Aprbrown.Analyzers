@@ -102,3 +102,11 @@ jobs:
       # one anybody runs. A failing assertion inside the script exits non-zero and fails this step.
       - name: Pack-consume smoke test
         run: ./scripts/verify-package.sh
+
+      # The release-time gates are the one pair of checks that cannot run at PR time — neither has
+      # anything to check until a version number exists — but the *scripts* implementing them can,
+      # and by the same reasoning: a parser that first proves itself at release time has already
+      # cost a version number if it was wrong. These tests run them over fixtures, so what fires at
+      # tag time is a gate that has been demonstrated to fire.
+      - name: Release gate tests
+        run: ./scripts/tests/release-gate-tests.sh
