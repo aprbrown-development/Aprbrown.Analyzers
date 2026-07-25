@@ -17,7 +17,7 @@ namespace Fixture.Consumer;
 public sealed class Ordering
 {
     // SA1201 — kind. A field must not follow a method, and this method leads the type.
-    public int Describe() => _count + Limit + _spare + _created;
+    public int Describe() => _count + Limit + _spare + Created;
 
     private int _count;
 
@@ -28,13 +28,13 @@ public sealed class Ordering
 
     // SA1204 — static. Same kind, access and const-ness as the field above, differing only in
     // being static.
-    private static int _created;
+    private static int Created;
 
     private void Reset()
     {
         _count = 0;
         _spare = 0;
-        _created = 0;
+        Created = 0;
     }
 
     // SA1202 — access. Same kind as the method above, differing only in being public.

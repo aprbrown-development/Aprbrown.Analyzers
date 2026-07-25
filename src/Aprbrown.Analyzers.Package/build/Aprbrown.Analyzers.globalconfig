@@ -5,10 +5,14 @@
 # colliding keys. It is global only because of is_global = true below (spec §2.1), and it
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
-# Later tickets enumerate the rest of the house ruleset back on beneath the blanket. At this
-# stage APB0001-APB0003, the Meziantou tier, the SDK CA tier and StyleCop's four ordering rules
-# are on; the IDE, naming and style rules (spec §2.3 step 4) are not yet, and are off under the
-# blanket until they are.
+# The house ruleset is complete as of spec §2.3 step 4: APB0001-APB0003, the Meziantou tier, the
+# SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier are all
+# enumerated below — 150 rules under the blanket. Everything else is off, including rules that do
+# not exist yet, and adding one from here is a deliberate act under ADR-0004.
+#
+# 150, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
+# measured; each tier's count is the one its derivation produced, and spec §10 correction 13
+# records the arithmetic rather than reconciling it by deletion.
 #
 # Nothing here sets AnalysisMode or AnalysisLevel, and nothing in this package does either.
 # Measured on SDK 10.0.110: neither reaches past the blanket at any value, All and latest-all
@@ -407,3 +411,123 @@ dotnet_diagnostic.SA1202.severity = warning
 dotnet_diagnostic.SA1203.severity = warning
 # SA1204 — Static elements should appear before instance elements
 dotnet_diagnostic.SA1204.severity = warning
+
+# ---------------------------------------------------------------------------------------------
+# The IDE, naming and style tier — the C# compiler's own code-style analyzers (spec §2.3 step 4).
+#
+# Not a derivation like the three tiers above. There was no sweep to run: these are the house
+# conventions themselves — `_camelCase` private fields, `PascalCase` private statics, explicit
+# accessibility, no `this.` — carried across from the source repository, which had arrived at them
+# by hand. Adoption cost was measured rather than the rule list: private-field `_camelCase`,
+# private-static `PascalCase` and IDE0040 all came back at **0 violations across all six fleet
+# repositories**, which is why this tier ships at `warning` with no ratchet and no baseline file.
+#
+# Every entry here must be enumerated by ID, and this tier is the one where that stops being a
+# stylistic preference. Under the blanket, a naming rule whose `dotnet_diagnostic` severity is not
+# set explicitly is *silently unenforced* — it neither fires nor warns that it is inactive (#4).
+# There is no vendor default to fall back on: an ID missing from this block is a convention that
+# looks configured and does nothing, and nothing in a build would ever say so.
+#
+# Severities are given as `dotnet_diagnostic` entries only, never as the `option = value:severity`
+# shorthand the source repository used. The shorthand sets both at once, which means a reader
+# looking for what a rule is set to has two places to look and they can disagree. Splitting them
+# also keeps this file's one convention — every severity is a `dotnet_diagnostic` line — true of
+# the whole file rather than of three tiers out of four.
+#
+# The naming rule / symbols / style triples are ported verbatim; #2 verified they work
+# byte-identically in a global config. What is *not* ported is the comment that accompanied them,
+# which claimed naming rules are matched in declaration order and that the general private-fields
+# rule would otherwise swallow the specific private-statics one. That is false — Roslyn orders
+# them by specificity, verified twice in #2 — and the behaviour was correct for a different reason
+# than the comment gave. Declaration order below therefore carries no meaning and these blocks may
+# be reordered freely. tests/Fixture.Consumer/Lathe.cs measures it: a private static named
+# `_created` satisfies the general rule, violates the specific one, and fires.
+# ---------------------------------------------------------------------------------------------
+
+# IDE1006 — Naming styles
+#          The single ID every dotnet_naming_rule violation reports under, so the triples below
+#          enforce nothing without it.
+dotnet_diagnostic.IDE1006.severity = warning
+# IDE0003 — Remove 'this' or 'Me' qualification
+#          Enforced by the IDE only. IDE0003 is a Simplify-family rule Roslyn does not run in a
+#          command-line build, EnforceCodeStyleInBuild notwithstanding — measured on SDK 10.0.110
+#          in a compilation where IDE1006 and IDE0040 both fired. Kept, and kept at warning, so an
+#          editor shows the squiggle and offers the fix; spec §10 correction 12 records that this
+#          is the one house convention a build does not gate.
+dotnet_diagnostic.IDE0003.severity = warning
+# IDE0009 — Add 'this' or 'Me' qualification
+#          The opposite half, and unreachable for the opposite reason: it fires in a build, but
+#          only where the options below say `true`, which the house ruleset never does. Enumerated
+#          so the pair is complete and a consumer flipping an option locally gets both halves.
+dotnet_diagnostic.IDE0009.severity = warning
+# IDE0040 — Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = warning
+
+# A private field carries a `_` prefix, so nothing needs `this.` to tell a field from a parameter.
+# Private *statics* stay PascalCase.
+dotnet_naming_rule.private_static_fields_are_pascal_case.symbols = private_static_fields
+dotnet_naming_rule.private_static_fields_are_pascal_case.style = pascal_case
+dotnet_naming_rule.private_static_fields_are_pascal_case.severity = warning
+
+dotnet_naming_rule.private_fields_are_underscored.symbols = private_fields
+dotnet_naming_rule.private_fields_are_underscored.style = underscored_camel_case
+dotnet_naming_rule.private_fields_are_underscored.severity = warning
+
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.underscored_camel_case.required_prefix = _
+dotnet_naming_style.underscored_camel_case.capitalization = camel_case
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# With the prefix in place `this.` is always redundant. Both directions are set, because the two
+# IDs are the two halves of the same preference: IDE0003 removes a qualification the options below
+# reject, IDE0009 adds one they would have required.
+dotnet_style_qualification_for_field = false
+dotnet_style_qualification_for_property = false
+dotnet_style_qualification_for_method = false
+dotnet_style_qualification_for_event = false
+
+# Every type and member spells its access out — `private` where C# would infer it, `public` on an
+# interface's members included. The default reads as an omission rather than a decision; making it
+# explicit means access is always something the author chose, never something the reader has to
+# know the language rules to recover. `always`, not `for_non_interface_members`, so an interface
+# member is held to the same rule as any other.
+dotnet_style_require_accessibility_modifiers = always
+
+# Expression bodies wherever the member is a single expression — and the only rules in this file
+# that do not gate. `suggestion` is the whole point of them: six repositories agree on shape
+# without a disagreement failing anyone's build, which is a different bargain from the naming and
+# accessibility rules above and is why the severities differ rather than the list being shorter.
+csharp_style_expression_bodied_constructors = when_on_single_line
+# IDE0021 — Use expression body for constructors
+dotnet_diagnostic.IDE0021.severity = suggestion
+
+csharp_style_expression_bodied_methods = true
+# IDE0022 — Use expression body for methods
+dotnet_diagnostic.IDE0022.severity = suggestion
+
+csharp_style_expression_bodied_properties = true
+# IDE0025 — Use expression body for properties
+dotnet_diagnostic.IDE0025.severity = suggestion
+
+csharp_style_expression_bodied_indexers = true
+# IDE0026 — Use expression body for indexers
+dotnet_diagnostic.IDE0026.severity = suggestion
+
+csharp_style_expression_bodied_accessors = true
+# IDE0027 — Use expression body for accessors
+dotnet_diagnostic.IDE0027.severity = suggestion
+
+csharp_style_expression_bodied_lambdas = true
+# IDE0053 — Use expression body for lambdas
+dotnet_diagnostic.IDE0053.severity = suggestion
+
+csharp_style_expression_bodied_local_functions = when_on_single_line
+# IDE0061 — Use expression body for local functions
+dotnet_diagnostic.IDE0061.severity = suggestion
