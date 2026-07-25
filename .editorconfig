@@ -46,4 +46,8 @@ dotnet_diagnostic.MA0025.severity = none
 # reason to. It survives the shipped config's blanket because it is reported with no location, and a
 # bulk `dotnet_analyzer_diagnostic.severity` entry does not reach a diagnostic that has no syntax
 # tree to resolve options against — an explicit ID does, which is what this is.
+#
+# Written here before the StyleCop tier shipped, when this repository was the only one referencing
+# StyleCop.Analyzers. Now that the tier ships, every consumer meets the same thing on adoption, so it
+# is part of the onboarding snippet in docs/consuming.md and recorded as spec §10 correction 11.
 dotnet_diagnostic.SA0001.severity = none

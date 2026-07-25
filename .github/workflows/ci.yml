@@ -64,10 +64,22 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           # The SDK is load-bearing beyond compiling: it is the source of the CA analyzers, and
-          # spec §2.3 froze the ruleset derivation against 10.0.110. A floating patch is the right
-          # trade today — the shipped config enumerates no CA rules yet (#17) — and if SDK drift
-          # ever destabilises that tier, the fix is a global.json, which pins dev machines and CI
-          # to the same SDK, not a version typed into this file where only CI would honour it.
+          # spec §2.3 froze the ruleset derivation against 10.0.110. This comment used to justify a
+          # floating patch on the grounds that the shipped config enumerated no CA rules yet; #17
+          # enumerated 29 of them, so that premise is gone and what replaces it is narrower.
+          #
+          # A floating patch is still the right trade, because nothing this workflow asserts is
+          # patch-sensitive. The tier digests are taken over the shipped config file, not over the
+          # SDK, so they cannot drift with the runner. The behavioural assertions are that CA2200
+          # and CA2252 fire and that CA2007 and CA1707 do not — properties of rules that have been
+          # stable for releases, and a newer patch adding a default-on rule would simply leave it
+          # off under the blanket, which is the seal working rather than failing.
+          #
+          # What would break is narrow and loud: a patch that retires an enumerated ID, or changes
+          # one of those four rules' default severity or enabled state. The smoke test fails on the
+          # spot if so — it does not degrade quietly — and the remedy is unchanged: a global.json,
+          # which pins dev machines and CI to the same SDK, not a version typed into this file where
+          # only CI would honour it.
           dotnet-version: '10.0.x'
 
       - name: Restore

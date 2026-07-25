@@ -9,8 +9,6 @@ namespace Aprbrown.Analyzers;
 /// </summary>
 internal static class Descriptors
 {
-    private const string HelpLinkUri = "https://github.com/aprbrown-development/Aprbrown.Analyzers";
-
     /// <summary>APB0001 — do not use primary constructors on classes or structs (spec §3.1).</summary>
     public static readonly DiagnosticDescriptor PrimaryConstructor = new(
         id: DiagnosticIds.PrimaryConstructor,
@@ -49,4 +47,9 @@ internal static class Descriptors
             + "to interface implementations. This is the missing half, so an interface's parameter "
             + "names survive into every type that implements it.",
         helpLinkUri: HelpLinkUri);
+
+    // Below the descriptors rather than above them, because SA1202 orders members by access before
+    // it considers const-ness and this is the only private member of the type. The rule arrived
+    // with the StyleCop ordering tier; fixed here rather than deviated, per spec §7.
+    private const string HelpLinkUri = "https://github.com/aprbrown-development/Aprbrown.Analyzers";
 }

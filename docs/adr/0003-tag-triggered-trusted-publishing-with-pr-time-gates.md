@@ -141,8 +141,8 @@ class the design can produce:
 | Assertion | Proves |
 |---|---|
 | An `APB` violation fires | The analyzer assembly is packed and loads |
-| A `CA` violation fires | The 27 enumerated `CA` IDs survive the blanket `none` ~~The `AnalysisMode` tier survives~~ — see amendment 1 |
-| A `CA1707`-triggering name does **not** fire | The seal holds: default-off rules stayed off (added by #8) |
+| A `CA` violation fires | The ~~27~~ **29** enumerated `CA` IDs survive the blanket `none` ~~The `AnalysisMode` tier survives~~ — see amendment 1, and spec §10 correction 8 for the count |
+| A `CA1707`-triggering name does **not** fire | The seal holds: ~~default-off rules stayed off~~ no category re-enable admitted it (added by #8; `CA1707` is default-on at `Hidden`, so `CA2007` is the default-off half — spec §10 correction 9) |
 | A `Meziantou` violation fires with the package installed | Config-without-assembly binds when the assembly arrives |
 | An IDE naming violation fires | Enumeration-by-ID works (#4 verified these are silently unenforced otherwise) |
 | `MA0004` does **not** fire | The sole deliberate exclusion stays excluded |

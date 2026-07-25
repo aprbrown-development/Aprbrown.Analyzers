@@ -16,6 +16,20 @@
     <!-- Overridden by verify-package.sh (-p:AprbrownAnalyzersVersion=…) to match the packed
          version; the default keeps the project self-describing. -->
     <AprbrownAnalyzersVersion Condition="'$(AprbrownAnalyzersVersion)'==''">0.0.1-smoke</AprbrownAnalyzersVersion>
+
+    <!--
+      SA0001 reports "XML comment analysis disabled" once per project when no documentation file is
+      generated, and it escapes the shipped config's blanket: it carries no location, and a bulk
+      dotnet_analyzer_diagnostic.severity entry has no syntax tree to resolve options against, so it
+      never reaches it. This repository hits the same thing in its own test project and answers it
+      the same way the onboarding snippet now does.
+
+      Suppressed here rather than in an .editorconfig on purpose. The fixture must receive its
+      ruleset from the packed package and nowhere else, so it takes no severity entries of its own;
+      NoWarn is a project-shape decision about generating XML docs, not a deviation from the
+      ruleset, and it touches exactly one diagnostic the shipped config never names.
+    -->
+    <NoWarn>$(NoWarn);SA0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +43,17 @@
       tier's assertions would pass by vacuum. Kettle.cs is where they are measured.
     -->
     <PackageReference Include="Meziantou.Analyzer" Version="3.0.123" PrivateAssets="all" />
+
+    <!--
+      The same argument, for the tier spec §2.3 step 3 adds: four ordering rules configured by a
+      package that does not carry the assembly implementing them. Without this reference SA1201-
+      SA1204 are inert and Ordering.cs proves nothing. The version is the pin docs/consuming.md
+      prescribes and the derivation read the four severities from.
+
+      The SDK's CA analyzers need no reference — they arrive with the SDK — which is why Furnace.cs
+      has no counterpart line here.
+    -->
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

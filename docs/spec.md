@@ -175,6 +175,7 @@ Not in the shipped config, documented in [`consuming.md`](consuming.md) as a tem
 | `APB0001 = none` under `[tests/**.cs]` | Path-scoped; test primary constructors hold values, not dependencies |
 | `MA0048 = none` for `Pages/`, `Data/Migrations/` | Path-scoped; Razor and EF naming |
 | `MA0051 = none` for EF `Migrations/` | Path-scoped; generated code |
+| `SA0001 = none` for any project without an XML documentation file | Reported with no location, so the blanket cannot reach it — see section 10 correction 11 |
 
 Path scoping cannot travel: a global AnalyzerConfig accepts only exact absolute file paths as section
 headers, and rejects globs outright with `InvalidGlobalSectionName`, dropping the section. An absolute
@@ -481,11 +482,13 @@ Analyzer unit tests test the analyzer; they cannot test the package. This gate t
 | Assertion | Proves |
 |---|---|
 | An `APB` violation fires | The analyzer assembly is packed and loads |
-| A `CA` violation fires | The 27 enumerated `CA` IDs survive the blanket |
+| A `CA` violation fires | The ~~27~~ **29** enumerated `CA` IDs survive the blanket — see section 10 correction 8 |
 | A `Meziantou` violation fires, with `Meziantou.Analyzer` referenced by the fixture | Config-without-assembly binds when the assembly arrives |
+| A member-ordering violation fires, with `StyleCop.Analyzers` referenced by the fixture | The same, for the four `SA` IDs |
 | An IDE naming violation fires | Enumeration-by-ID works — these are silently unenforced otherwise |
 | `MA0004` does **not** fire | The sole deliberate exclusion stays excluded |
-| A `CA1707`-triggering name does **not** fire | The seal holds; default-off rules stayed off |
+| `CA2007` does **not** fire | The seal holds; a genuinely default-off rule stayed off |
+| A `CA1707`-triggering name does **not** fire | No category re-enable admitted it — but see section 10 correction 9: `CA1707` is default-on at `Hidden`, so this row proves less on its own than "default-off rules stayed off" claimed, and `CA2007` above carries that weight |
 | Both MSBuild properties arrive | #2's hazard H1 is a *silent* failure |
 
 The `CA` assertion supersedes ADR-0003's wording, which described it as proving "the `AnalysisMode`
@@ -654,3 +657,52 @@ Recorded so a reader of the map's history is not misled.
    blanket. Only `MA0032` is in the shipped config today; `CA2016` arrives with step 2. Admitting
    `MA0040` would be a third deliberate departure from the sweep and a ruleset decision in its
    own right, so it is recorded here rather than taken silently.
+8. **The `CA` tier is 29 rules, not 27.** Section 2.3 step 2 says "every `CA` rule the .NET
+   `10.0.110` SDK enables by default at `AnalysisMode=Default` — 27 rules". Measured the same way
+   correction 6 measured Meziantou — load the two `NetAnalyzers` assemblies the SDK ships,
+   instantiate every exported analyzer, read `IsEnabledByDefault` and `DefaultSeverity` off each
+   descriptor: 317 rules ship, **171** are enabled by default, and **29** of those default to a
+   build-gating severity — **27** at `Warning` and **two** at `Error`, `CA1856` and `CA2252`. The
+   stated 27 is exactly the `Warning` subset.
+   The two `Error` rules are carried rather than dropped to reach the stated count, because step 2
+   is the same sentence that says to record each rule at the severity the vendor assigns and to
+   read that value rather than assume it — dropping them would flatten precisely the judgement it
+   asks to be preserved, and would leave two error-severity rules a plain `dotnet build` enforces
+   today silently off across the fleet. It is also what correction 6 did with Meziantou's three
+   `Error` rules, which are inside the 103 for the same reason.
+   `AnalysisMode=Default` itself subtracts nothing here: the SDK's `analysislevel_10_default`
+   config turns off exactly one rule, `CA1516`, which defaults to `Info` and so falls outside the
+   gating filter regardless. `consuming.md`'s "The 27 rules the SDK enables by default" is
+   corrected to 29 in place, since that row describes what the package actually ships.
+9. **`CA1707` is default-*on* at `Hidden`, not default-off.** Section 2.3 step 2, ADR-0002
+   decision 4 and correction 2 above all call it default-off, and it is not: measured against SDK
+   `10.0.110` it is `IsEnabledByDefault = true` with `DefaultSeverity = Hidden`. Every conclusion
+   drawn from it stands — a `Naming` category re-enable still sets it to `warning` and it still
+   fights the house `_camelCase` convention, which is what those passages were demonstrating — but
+   the mechanism keeping it off is the blanket plus this file never naming it, not upstream's
+   enabled flag. `CA2007` is the genuinely default-off half of that pair
+   (`IsEnabledByDefault = false`, `Warning`), and it is the one carrying the weight in the smoke
+   test's silence assertions.
+10. **`CA2016` does not arrive with step 2 either.** Correction 7 says only `MA0032` is enumerated
+    today and `CA2016` arrives with the `CA` tier. It does not: `CA2016` is enabled by default at
+    `Info`, so correction 8's gating filter excludes it exactly as correction 6's excluded
+    `MA0040`. The call-site companion to `APB0002`'s declaration half is `MA0032` alone. Admitting
+    `CA2016` would be a deliberate departure from the sweep and a ruleset decision in its own
+    right, so — like `MA0040` — it is recorded here rather than taken silently.
+11. **The sealed allowlist has one measured leak, and it is `SA0001`.** The blanket is a bulk
+    `dotnet_analyzer_diagnostic.severity` entry, and a bulk entry has no syntax tree to resolve
+    options against for a diagnostic reported with **no location** — so it never reaches one.
+    `SA0001` ("XML comment analysis disabled") is reported per-project with no location and
+    therefore fires at the vendor's `Warning` in any project that does not generate a
+    documentation file, despite never being enumerated. This repository already hit it in its own
+    test project before the StyleCop tier shipped and answered it with a local deviation; every
+    consumer now meets it the moment they add the prescribed `StyleCop.Analyzers` reference, so
+    `consuming.md` documents it and §2.4 registers it.
+    It could be repaired in one line — an explicit `dotnet_diagnostic.SA0001.severity = none` *does*
+    reach a no-location diagnostic where the bulk entry does not, which is exactly how this
+    repository's own `.editorconfig` silences it. That line is not taken here, and the honest reason
+    is scope rather than principle: #17 specifies this tier as exactly `SA1201`–`SA1204` and "no
+    other `SA` rule appears", and the smoke test asserts that set exactly. Repairing the leak inside
+    the shipped config is a ruleset decision in its own right — a rule the package names on every
+    consumer's behalf — and under ADR-0004 it belongs in its own ticket, weighed against the cost it
+    currently pushes onto every consumer: one line of onboarding boilerplate, forever.

@@ -6,9 +6,15 @@
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
 # Later tickets enumerate the rest of the house ruleset back on beneath the blanket. At this
-# stage APB0001-APB0003 and the Meziantou tier are on; the SDK CA rules (spec §2.3 step 2),
-# StyleCop's four ordering rules (step 3) and the IDE, naming and style rules (step 4) are not
-# yet, and are off under the blanket until they are.
+# stage APB0001-APB0003, the Meziantou tier, the SDK CA tier and StyleCop's four ordering rules
+# are on; the IDE, naming and style rules (spec §2.3 step 4) are not yet, and are off under the
+# blanket until they are.
+#
+# Nothing here sets AnalysisMode or AnalysisLevel, and nothing in this package does either.
+# Measured on SDK 10.0.110: neither reaches past the blanket at any value, All and latest-all
+# included (ADR-0002 decision 4, spec §10 correction 1). Setting one would document an intent the
+# build does not honour. The CA rules below are back on because they are named, like everything
+# else in this file.
 is_global = true
 
 # The blanket: everything off, including rules that do not exist yet.
@@ -271,3 +277,133 @@ dotnet_diagnostic.MA0203.severity = warning
 dotnet_diagnostic.MA0207.severity = warning
 # MA0208 — [FixedAddressValueType] fields must be value types
 dotnet_diagnostic.MA0208.severity = warning
+
+# ---------------------------------------------------------------------------------------------
+# The SDK CA tier — Microsoft.CodeAnalysis.NetAnalyzers as shipped in .NET SDK 10.0.110
+# (spec §2.3 step 2).
+#
+# Derived once, then frozen, the same way the Meziantou tier was: load the two analyzer
+# assemblies the SDK ships (Microsoft.CodeAnalysis.NetAnalyzers.dll and its C# companion),
+# instantiate every DiagnosticAnalyzer they export, and read IsEnabledByDefault and
+# DefaultSeverity off each supported DiagnosticDescriptor. 317 rules, 171 enabled by default, of
+# which 29 default to a build-gating severity — 27 Warning and two Error (CA1856, CA2252). The
+# other 142 enabled rules default to Info (89) or Hidden (53), do not gate a build, and are not
+# part of the house ruleset. Each rule below is recorded at the severity the SDK assigns it,
+# read rather than assumed.
+#
+# The SDK's own AnalysisMode=Default is the descriptor defaults minus rules released after the
+# analysis level: analysislevel_10_default.globalconfig turns off exactly one rule, CA1516, which
+# defaults to Info and so falls outside the gating filter regardless.
+#
+# 29, not the 27 spec §2.3 step 2 states. The measured 27 is the Warning-severity subset; CA1856
+# and CA2252 are the two the SDK defaults to Error. Dropping them to reach 27 would flatten the
+# vendor's own judgement, which §2.3 forbids in the same breath as it gives the count, and would
+# leave two error-severity SDK rules a plain `dotnet build` enforces today silently off across the
+# fleet. Recorded as a correction in spec §10 rather than reconciled by deletion.
+#
+# A contradiction check against the rest of the ruleset came back clean: all 29 are correctness
+# rules — platform compatibility, marshalling, stackalloc in loops, rethrow, spans — with no
+# naming or ordering opinion. The only overlaps are duplications, never conflicts: CA2200≈MA0027
+# and CA2013≈MA0006-adjacent, same fix in each case.
+#
+# The two rules that would genuinely fight the house style stay off, and how they stay off is
+# worth being exact about because ADR-0002 decision 4 rests on it:
+#   - CA2007 (ConfigureAwait) is enabled-by-default *false* at Warning. Genuinely default-off,
+#     and against the MA0004 exclusion, so it stays out.
+#   - CA1707 (identifiers should not contain underscores) is enabled by default at *Hidden*, not
+#     off as ADR-0002 decision 4 and spec §10 correction 2 both say. It is off here because the
+#     blanket sets it to none and this file never names it — but a category re-enable of Naming
+#     would set it to warning and it would fight the house _camelCase convention, which is the
+#     demonstration those two passages were making. The conclusion stands; only the word
+#     "default-off" was imprecise. See spec §10.
+#
+# Re-running this derivation against a newer SDK would silently admit whatever rules that version
+# added, which is precisely what the seal exists to prevent (ADR-0002 decision 3). Do not
+# regenerate this block. From here it is edited by hand, one deliberate line at a time, under
+# ADR-0004.
+#
+# The comment above each line is the vendor's own title for the rule, carried across so a hand
+# edit can be read and audited without a browser.
+# ---------------------------------------------------------------------------------------------
+
+# CA1416 — Validate platform compatibility
+dotnet_diagnostic.CA1416.severity = warning
+# CA1417 — Do not use 'OutAttribute' on string parameters for P/Invokes
+dotnet_diagnostic.CA1417.severity = warning
+# CA1418 — Use valid platform string
+dotnet_diagnostic.CA1418.severity = warning
+# CA1420 — Property, type, or attribute requires runtime marshalling
+dotnet_diagnostic.CA1420.severity = warning
+# CA1422 — Validate platform compatibility
+dotnet_diagnostic.CA1422.severity = warning
+# CA1831 — Use AsSpan or AsMemory instead of Range-based indexers when appropriate
+dotnet_diagnostic.CA1831.severity = warning
+# CA1856 — Incorrect usage of ConstantExpected attribute
+dotnet_diagnostic.CA1856.severity = error
+# CA1857 — A constant is expected for the parameter
+dotnet_diagnostic.CA1857.severity = warning
+# CA2013 — Do not use ReferenceEquals with value types
+dotnet_diagnostic.CA2013.severity = warning
+# CA2014 — Do not use stackalloc in loops
+dotnet_diagnostic.CA2014.severity = warning
+# CA2015 — Do not define finalizers for types derived from MemoryManager<T>
+dotnet_diagnostic.CA2015.severity = warning
+# CA2017 — Parameter count mismatch
+dotnet_diagnostic.CA2017.severity = warning
+# CA2018 — 'Buffer.BlockCopy' expects the number of bytes to be copied for the 'count' argument
+dotnet_diagnostic.CA2018.severity = warning
+# CA2021 — Do not call Enumerable.Cast<T> or Enumerable.OfType<T> with incompatible types
+dotnet_diagnostic.CA2021.severity = warning
+# CA2022 — Avoid inexact read with 'Stream.Read'
+dotnet_diagnostic.CA2022.severity = warning
+# CA2023 — Invalid braces in message template
+dotnet_diagnostic.CA2023.severity = warning
+# CA2024 — Do not use 'StreamReader.EndOfStream' in async methods
+dotnet_diagnostic.CA2024.severity = warning
+# CA2200 — Rethrow to preserve stack details
+dotnet_diagnostic.CA2200.severity = warning
+# CA2247 — Argument passed to TaskCompletionSource constructor should be TaskCreationOptions enum instead of TaskContinuationOptions enum
+dotnet_diagnostic.CA2247.severity = warning
+# CA2252 — This API requires opting into preview features
+dotnet_diagnostic.CA2252.severity = error
+# CA2255 — The 'ModuleInitializer' attribute should not be used in libraries
+dotnet_diagnostic.CA2255.severity = warning
+# CA2256 — All members declared in parent interfaces must have an implementation in a DynamicInterfaceCastableImplementation-attributed interface
+dotnet_diagnostic.CA2256.severity = warning
+# CA2257 — Members defined on an interface with the 'DynamicInterfaceCastableImplementationAttribute' should be 'static'
+dotnet_diagnostic.CA2257.severity = warning
+# CA2258 — Providing a 'DynamicInterfaceCastableImplementation' interface in Visual Basic is unsupported
+dotnet_diagnostic.CA2258.severity = warning
+# CA2259 — 'ThreadStatic' only affects static fields
+dotnet_diagnostic.CA2259.severity = warning
+# CA2260 — Use correct type parameter
+dotnet_diagnostic.CA2260.severity = warning
+# CA2261 — Do not use ConfigureAwaitOptions.SuppressThrowing with Task<TResult>
+dotnet_diagnostic.CA2261.severity = warning
+# CA2264 — Do not pass a non-nullable value to 'ArgumentNullException.ThrowIfNull'
+dotnet_diagnostic.CA2264.severity = warning
+# CA2265 — Do not compare Span<T> to 'null' or 'default'
+dotnet_diagnostic.CA2265.severity = warning
+
+# ---------------------------------------------------------------------------------------------
+# The StyleCop ordering tier — StyleCop.Analyzers 1.2.0-beta.556 (spec §2.3 step 3).
+#
+# Four rules, and only four. StyleCop is the one mainstream analyzer that ships member-ordering
+# rules, which is the whole reason it is referenced; this is not a StyleCop adoption. Every other
+# SA rule stays off under the blanket, which is also why the eight
+# category-StyleCop.CSharp.*.severity = none lines the source repository carried are not ported:
+# under a blanket they are redundant, and a category line in this file would break the seal even
+# when it points downwards.
+#
+# Severities read off the vendor's descriptors during derivation, like every other tier: all four
+# default to Warning.
+# ---------------------------------------------------------------------------------------------
+
+# SA1201 — Elements should appear in the correct order
+dotnet_diagnostic.SA1201.severity = warning
+# SA1202 — Elements should be ordered by access
+dotnet_diagnostic.SA1202.severity = warning
+# SA1203 — Constants should appear before fields
+dotnet_diagnostic.SA1203.severity = warning
+# SA1204 — Static elements should appear before instance elements
+dotnet_diagnostic.SA1204.severity = warning
