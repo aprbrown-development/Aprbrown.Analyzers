@@ -1,0 +1,92 @@
+name: CI
+
+# Every gate runs at PR time (ADR-0003 decision 4). A nuget.org version number is spent the moment
+# it is pushed, so a gate that first fires at tag time has already cost one. release.yml re-runs
+# this set and is meant to discover nothing new; the only checks it adds are the two that cannot
+# exist before a tag — AnalyzerReleases.Unshipped.md holding no rule rows (decision 8), and the
+# CHANGELOG section its release body is cut from (decision 9).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# This workflow never holds `id-token: write` (ADR-0003 decision 3). That permission belongs to
+# exactly one file — release.yml, the only thing in the repository that can mint a nuget.org key
+# and push something unrevocable. Declaring the whole permission set explicitly, rather than
+# inheriting the repository default, is what makes that absence a property of this file that a
+# reviewer can see, instead of a property of a settings page they cannot.
+permissions:
+  contents: read
+
+# A superseded pull request run proves nothing about the commit that replaced it, so pull requests
+# share a group per ref and the older run is cancelled.
+#
+# Pushes to main each take a group of their own — github.run_id is unique per run — rather than
+# sharing one with cancellation switched off. Sharing would not have been enough: a concurrency
+# group holds at most one running and one pending run, and a third arrival cancels the *pending*
+# one, so two quick merges could leave the commit between them with no verdict at all. Every commit
+# on main is one a release could be cut from, and none may inherit silence from being overtaken.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+  # ContinuousIntegrationBuild=true in CI regardless (ADR-0003 decision 10): it normalises embedded
+  # paths and costs nothing. It is set as an environment variable rather than a `-p:` flag on each
+  # step so that it also reaches the `dotnet pack` *inside* verify-package.sh — the build that
+  # actually produces the artifact whose paths are at stake. MSBuild surfaces environment variables
+  # as properties, and nothing in this repository assigns this one, so the value survives to
+  # every project.
+  ContinuousIntegrationBuild: true
+
+jobs:
+  verify:
+    name: Build, test and verify the package
+    # GitHub-hosted, per ADR-0003 decision 3: the homelab self-hosted runners are offline and
+    # scoped to another repository, and the fleet's ruleset should not depend on the homelab being
+    # up. Going public also removed the Actions allowance as a constraint.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          # Nothing in this workflow pushes, and the smoke test restores third-party packages from
+          # nuget.org inside this job. Leaving the default would park a credential in .git/config
+          # for that restore to run alongside, buying nothing.
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          # The SDK is load-bearing beyond compiling: it is the source of the CA analyzers, and
+          # spec §2.3 froze the ruleset derivation against 10.0.110. A floating patch is the right
+          # trade today — the shipped config enumerates no CA rules yet (#17) — and if SDK drift
+          # ever destabilises that tier, the fix is a global.json, which pins dev machines and CI
+          # to the same SDK, not a version typed into this file where only CI would honour it.
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Aprbrown.Analyzers.slnx
+
+      # This is the dogfooding gate (spec §7, ADR-0003 decision 6). The repository consumes the
+      # same physical config file the packaging project packs, and the package props supply
+      # TreatWarningsAsErrors=true, so a house-rule violation in this repository's own source is a
+      # build error here rather than a warning scrolling past. Nothing extra is needed to enforce
+      # that — which is the point — so there is no separate lint step to drift from it.
+      - name: Build
+        run: dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
+
+      # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5). The
+      # gate has to be runnable on a dev machine to be worth anything, and a YAML copy of it would
+      # be a second set of assertions free to disagree with the first — with CI's copy the only
+      # one anybody runs. A failing assertion inside the script exits non-zero and fails this step.
+      - name: Pack-consume smoke test
+        run: ./scripts/verify-package.sh
