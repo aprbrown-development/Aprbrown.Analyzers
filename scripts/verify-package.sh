@@ -151,28 +151,30 @@ MA_COUNT="$(grep -cE '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" |
 info "Meziantou tier enumerates 103 rules"
 
 # A count alone is a weak seal: a mistyped or duplicated ID still totals 103 and passes every
-# assertion around it. So each tier also pins its identity — which rules, at which severities — with
-# a digest over its sorted severity lines. Each derivation is frozen, so each digest is a constant;
-# when a rule is deliberately added, removed or re-levelled under ADR-0004, regenerate it with
-#   grep -E '^dotnet_diagnostic\.<prefix>[0-9]+\.severity' <config> | LC_ALL=C sort | sha256sum
+# assertion around it. So each block of the config also pins its identity — which lines, with which
+# values — with a digest over its sorted contents. Each derivation is frozen, so each digest is a
+# constant; when a rule is deliberately added, removed or re-levelled under ADR-0004, regenerate it
+# with
+#   grep -E '<pattern>' <config> | LC_ALL=C sort | sha256sum
 # and let the diff on that one line be the thing a reviewer sees.
 #
-# Three tiers pin themselves this way, so the comparison is a function and the expected digests are
-# the arguments. The name is what a failure prints, which is why it is spelled out at each call
-# rather than derived from the prefix.
-assert_tier_digest() {
-  local prefix="$1" expected="$2" name="$3"
+# Five blocks pin themselves this way — the four ID tiers and the IDE tier's option half, which is
+# why the pattern is the argument rather than a rule-ID prefix. The name is what a failure prints,
+# which is why it is spelled out at each call rather than derived from the pattern.
+assert_digest() {
+  local pattern="$1" expected="$2" name="$3"
   local actual
-  actual="$(grep -E "^dotnet_diagnostic\.$prefix[0-9]+\.severity" "$PACKED_CONFIG" \
-    | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
+  actual="$(grep -E "$pattern" "$PACKED_CONFIG" | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
   if [ "$actual" != "$expected" ]; then
+    grep -nE "$pattern" "$PACKED_CONFIG" >&2
     echo "--- expected $expected ---" >&2
     echo "--- actual   $actual ---"   >&2
-    fail "the $name tier is not the frozen derivation; if the change was deliberate, update its expected digest"
+    fail "$name is not the frozen derivation; if the change was deliberate, update its expected digest"
   fi
 }
 
-assert_tier_digest MA "0731fdb59880741fcbe3c7d59bb919ee4e4350427f95bba553c86e62b21f2649" "Meziantou"
+assert_digest '^dotnet_diagnostic\.MA[0-9]+\.severity' \
+  "0731fdb59880741fcbe3c7d59bb919ee4e4350427f95bba553c86e62b21f2649" "the Meziantou tier"
 info "Meziantou tier matches the frozen derivation digest"
 
 if grep -qE '^dotnet_diagnostic\.MA0004\.severity' "$PACKED_CONFIG"; then
@@ -202,7 +204,8 @@ CA_COUNT="$(grep -cE '^dotnet_diagnostic\.CA[0-9]+\.severity' "$PACKED_CONFIG" |
 [ "$CA_COUNT" -eq 29 ] \
   || fail "expected 29 SDK CA rules (27 default-on at Warning, two at Error), found $CA_COUNT"
 
-assert_tier_digest CA "2ce6f012e1db6b3b7efad423b38f548a553aa86a5e4d5b26b88acb1011060937" "CA"
+assert_digest '^dotnet_diagnostic\.CA[0-9]+\.severity' \
+  "2ce6f012e1db6b3b7efad423b38f548a553aa86a5e4d5b26b88acb1011060937" "the CA tier"
 info "CA tier enumerates 29 rules and matches the frozen derivation digest"
 
 # The two the SDK defaults to Error. Recording either at warning would be the silent downgrade of
@@ -234,7 +237,8 @@ SA_ACTUAL_IDS="$(grep -oE '^dotnet_diagnostic\.SA[0-9]+\.severity' "$PACKED_CONF
   | sed -E 's/^dotnet_diagnostic\.(SA[0-9]+)\.severity$/\1/' | LC_ALL=C sort | tr '\n' ' ')"
 [ "$SA_ACTUAL_IDS" = "SA1201 SA1202 SA1203 SA1204 " ] \
   || fail "the StyleCop tier is not exactly SA1201-SA1204; found: $SA_ACTUAL_IDS"
-assert_tier_digest SA "c1b0666a0969156bab864bd8b7c879ee65f8b87cef8e5262878316c9bdc7a264" "StyleCop"
+assert_digest '^dotnet_diagnostic\.SA[0-9]+\.severity' \
+  "c1b0666a0969156bab864bd8b7c879ee65f8b87cef8e5262878316c9bdc7a264" "the StyleCop tier"
 info "StyleCop tier is exactly SA1201-SA1204 at the vendor's severities"
 
 # --- Assertion: the IDE, naming and style tier ----------------------------------------------
@@ -251,7 +255,8 @@ IDE_COUNT="$(grep -cE '^dotnet_diagnostic\.IDE[0-9]+\.severity' "$PACKED_CONFIG"
 [ "$IDE_COUNT" -eq 11 ] \
   || fail "expected 11 IDE rules (IDE1006, IDE0003, IDE0009, IDE0040 and seven expression-bodied), found $IDE_COUNT"
 
-assert_tier_digest IDE "f95edfd1d4196b5b80f82c22b70e9a9eb8e98ada5c0a6d0b75e30a86acdef46f" "IDE"
+assert_digest '^dotnet_diagnostic\.IDE[0-9]+\.severity' \
+  "f95edfd1d4196b5b80f82c22b70e9a9eb8e98ada5c0a6d0b75e30a86acdef46f" "the IDE tier"
 info "IDE tier enumerates 11 rules and matches the frozen derivation digest"
 
 # The four that gate. Recorded at warning, which TreatWarningsAsErrors turns into a build error —
@@ -276,26 +281,36 @@ info "the seven expression-bodied preferences are recorded at suggestion"
 # dotnet_style_* options to know which way round they point. The triples are ported verbatim from
 # the source repository, and #2 verified they work byte-identically in a global config; the digest
 # is what keeps them that way.
-NAMING_ACTUAL="$(grep -E '^(dotnet_naming_(rule|symbols|style)|dotnet_style_(qualification_for_|require_accessibility_modifiers)|csharp_style_expression_bodied_)' "$PACKED_CONFIG" \
-  | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
-if [ "$NAMING_ACTUAL" != "cbfc960cc2edba205b8a5978e396e9ff337ceb043d4ecbe3115140115eeec725" ]; then
-  grep -nE '^(dotnet_naming_|dotnet_style_|csharp_style_)' "$PACKED_CONFIG" >&2
-  echo "--- expected cbfc960cc2edba205b8a5978e396e9ff337ceb043d4ecbe3115140115eeec725 ---" >&2
-  echo "--- actual   $NAMING_ACTUAL ---" >&2
-  fail "the naming, qualification and expression-bodied option block is not the frozen derivation"
-fi
+assert_digest '^(dotnet_naming_(rule|symbols|style)|dotnet_style_(qualification_for_|require_accessibility_modifiers)|csharp_style_expression_bodied_)' \
+  "cbfc960cc2edba205b8a5978e396e9ff337ceb043d4ecbe3115140115eeec725" "the naming and style option block"
 info "the naming, qualification and expression-bodied options match the frozen derivation digest"
 
-# `option = value:severity` is the .editorconfig shorthand that sets both at once, and it is not
-# used here. Every severity in this file is a dotnet_diagnostic entry, so a reader looking for what
-# a rule is set to has exactly one place to look, and the shorthand cannot quietly disagree with
-# the explicit entry beside it. Anchored on the option lines rather than applied file-wide: the
-# comments above them are prose and may contain anything.
+# `option = value:severity` is the .editorconfig shorthand that sets both at once, and the source
+# repository used it throughout. It is not used here: a reader looking for what a rule is set to
+# should have one place to look, and a shorthand severity sitting beside an explicit
+# dotnet_diagnostic entry can quietly disagree with it. Anchored on the option families where the
+# shorthand is even possible rather than applied file-wide — the comments above them are prose and
+# may contain anything.
 if grep -E '^(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFIG" | grep -q ':'; then
   grep -nE '^(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFIG" | grep ':' >&2
   fail "a style option carries an inline :severity; severities belong in dotnet_diagnostic entries only"
 fi
 info "no style option carries an inline :severity"
+
+# The exceptions to "one place to look", pinned rather than waved at. Exactly three severity keys
+# in this file are not dotnet_diagnostic entries, and each has no dotnet_diagnostic form at all:
+#   - the blanket, which is the whole point of dotnet_analyzer_diagnostic — a per-ID entry cannot
+#     switch off a rule that does not exist yet, which is what makes the allowlist sealed;
+#   - the two naming rules, because Roslyn reports every dotnet_naming_rule violation under IDE1006
+#     and dotnet_naming_rule.<name>.severity is the only way to say what one of them is set to.
+# Asserting the set rather than describing it means a fourth cannot appear and be read as house
+# style — the failure above is a claim about the file, and this is what keeps the claim true.
+NON_DIAGNOSTIC_SEVERITIES="$(grep -oE '^[a-z_.]*\.severity' "$PACKED_CONFIG" \
+  | grep -v '^dotnet_diagnostic\.' | LC_ALL=C sort -u | tr '\n' ' ')"
+EXPECTED_NON_DIAGNOSTIC="dotnet_analyzer_diagnostic.severity dotnet_naming_rule.private_fields_are_underscored.severity dotnet_naming_rule.private_static_fields_are_pascal_case.severity "
+[ "$NON_DIAGNOSTIC_SEVERITIES" = "$EXPECTED_NON_DIAGNOSTIC" ] \
+  || fail "the only severities outside dotnet_diagnostic should be the blanket and the two naming rules'; found: $NON_DIAGNOSTIC_SEVERITIES"
+info "the only non-dotnet_diagnostic severities are the blanket and the two naming rules'"
 
 # --- Assertion: the shipped config is complete ----------------------------------------------
 # Step 4 was the last tier, so this total is now the whole house ruleset rather than a waypoint:
@@ -431,20 +446,33 @@ info "no expression-bodied preference failed the build, with the IDE analyzers r
 # would have had the general rule swallow it. That comment is not carried into the shipped config
 # and this count is why it did not have to be taken on trust.
 #
-# Deduplicated, because MSBuild prints each diagnostic twice — once as the compiler emits it and
-# again in the error summary at the end. Counting raw lines would read 2 as 4 and make the
-# assertion a test of MSBuild's log format rather than of the ruleset.
-LATHE_IDE1006="$(grep -o 'Lathe\.cs([0-9]*,[0-9]*): [a-z]* IDE1006' "$BUILD_LOG" | LC_ALL=C sort -u | wc -l)"
-[ "$LATHE_IDE1006" -eq 2 ] \
-  || { grep 'IDE1006' "$BUILD_LOG" >&2; fail "expected 2 IDE1006 diagnostics in Lathe.cs (general and specific naming rule), found $LATHE_IDE1006"; }
+# Counted per source location and deduplicated, because MSBuild prints each diagnostic twice — once
+# as the compiler emits it and again in the error summary at the end. Counting raw lines would read
+# 2 as 4 and make the assertion a test of MSBuild's log format rather than of the ruleset.
+#
+# Both counts in this section want the same thing — "this rule fired exactly N times in this file"
+# — so it is a function, like the digest comparison above. The reason is the argument because it is
+# what a failure has to explain: the count alone says nothing about which of the two was lost.
+assert_diagnostic_count() {
+  local file="$1" rule="$2" expected="$3" reason="$4"
+  local actual
+  actual="$(grep -o "$file([0-9]*,[0-9]*): [a-z]* $rule" "$BUILD_LOG" | LC_ALL=C sort -u | wc -l)"
+  # Numeric compare, not string: wc -l pads its output with spaces on some platforms and this
+  # script is meant to run on a dev machine as well as in CI.
+  if [ "$actual" -ne "$expected" ]; then
+    grep "$rule" "$BUILD_LOG" >&2
+    # The file arrives as a grep pattern; unescape it so the message reads as a filename.
+    fail "expected $expected $rule diagnostics in ${file//\\/} ($reason), found $actual"
+  fi
+}
+
+assert_diagnostic_count 'Lathe\.cs' IDE1006 2 "the general and the specific naming rule"
 info "both naming rules fired; the specific rule was not swallowed by the general one"
 
 # Two IDE0040 diagnostics too, and the second is the one `always` buys: an interface member, which
 # `for_non_interface_members` would have let through. The spec picks `always` deliberately, so the
 # difference between the two values has to be observable rather than merely written down.
-LATHE_IDE0040="$(grep -o 'Lathe\.cs([0-9]*,[0-9]*): [a-z]* IDE0040' "$BUILD_LOG" | LC_ALL=C sort -u | wc -l)"
-[ "$LATHE_IDE0040" -eq 2 ] \
-  || { grep 'IDE0040' "$BUILD_LOG" >&2; fail "expected 2 IDE0040 diagnostics in Lathe.cs (a member and an interface member), found $LATHE_IDE0040"; }
+assert_diagnostic_count 'Lathe\.cs' IDE0040 2 "a member and an interface member"
 info "IDE0040 fired on an interface member too; 'always' rather than 'for_non_interface_members'"
 
 # --- Assertion: IDE0003 is silent at build time, and that is a limitation -------------------

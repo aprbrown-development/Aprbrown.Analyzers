@@ -4,16 +4,15 @@ Custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
 
 ## Status
 
-The package is feature-complete; what is left is releasing it. All three analyzers — `APB0001` (no
-primary constructors on classes or structs), `APB0002` (no default value on a `CancellationToken`
-parameter) and `APB0003` (parameter names should match the implemented interface member) — are
-proven end to end from a packed `.nupkg` by `scripts/verify-package.sh`, and the `APB0003` code fix
-ships alongside them.
+All three analyzers — `APB0001` (no primary constructors on classes or structs), `APB0002` (no
+default value on a `CancellationToken` parameter) and `APB0003` (parameter names should match the
+implemented interface member) — are proven end to end from a packed `.nupkg` by
+`scripts/verify-package.sh`, and the `APB0003` code fix ships alongside them.
 
-The shipped config is complete as of [`docs/spec.md`](docs/spec.md) §2.3 step 5: the blanket plus
-**150 enumerated rules** — 3 `APB`, 103 `Meziantou.Analyzer`, 29 SDK `CA`, 4 `StyleCop.Analyzers`
-ordering, and 11 IDE naming and style. This repository is held to that ruleset itself (spec §7) and
-CI gates every pull request.
+The shipped config is complete: [`docs/spec.md`](docs/spec.md) §2.3's derivation has run through
+all five steps, leaving the blanket plus **150 enumerated rules** — 3 `APB`, 103
+`Meziantou.Analyzer`, 29 SDK `CA`, 4 `StyleCop.Analyzers` ordering, and 11 IDE naming and style.
+This repository is held to that ruleset itself (spec §7) and CI gates every pull request.
 
 Still to come, tracked in the issue backlog: the release pipeline and `CHANGELOG.md`, trusted
 publishing, and onboarding the six fleet repositories.

@@ -428,11 +428,17 @@ dotnet_diagnostic.SA1204.severity = warning
 # There is no vendor default to fall back on: an ID missing from this block is a convention that
 # looks configured and does nothing, and nothing in a build would ever say so.
 #
-# Severities are given as `dotnet_diagnostic` entries only, never as the `option = value:severity`
+# Severities are given as `dotnet_diagnostic` entries, never as the `option = value:severity`
 # shorthand the source repository used. The shorthand sets both at once, which means a reader
-# looking for what a rule is set to has two places to look and they can disagree. Splitting them
-# also keeps this file's one convention — every severity is a `dotnet_diagnostic` line — true of
-# the whole file rather than of three tiers out of four.
+# looking for what a rule is set to has two places to look and they can disagree.
+#
+# Three severities in this file are not `dotnet_diagnostic` entries, and none of them is an
+# inconsistency — each is a key with no `dotnet_diagnostic` form at all. The blanket at the top is
+# one, and has to be: a per-ID entry cannot switch off a rule that does not exist yet, which is the
+# whole mechanism of the seal. The `dotnet_naming_rule.*.severity` pair below is the other two,
+# because Roslyn reports every naming-rule violation under IDE1006 and that key is the only way to
+# say what one of them is set to. The smoke test asserts that set exactly rather than describing
+# it, so a fourth cannot appear and be read as house style.
 #
 # The naming rule / symbols / style triples are ported verbatim; #2 verified they work
 # byte-identically in a global config. What is *not* ported is the comment that accompanied them,
@@ -516,13 +522,13 @@ csharp_style_expression_bodied_properties = true
 # IDE0025 — Use expression body for properties
 dotnet_diagnostic.IDE0025.severity = suggestion
 
-csharp_style_expression_bodied_indexers = true
-# IDE0026 — Use expression body for indexers
-dotnet_diagnostic.IDE0026.severity = suggestion
-
 csharp_style_expression_bodied_accessors = true
 # IDE0027 — Use expression body for accessors
 dotnet_diagnostic.IDE0027.severity = suggestion
+
+csharp_style_expression_bodied_indexers = true
+# IDE0026 — Use expression body for indexers
+dotnet_diagnostic.IDE0026.severity = suggestion
 
 csharp_style_expression_bodied_lambdas = true
 # IDE0053 — Use expression body for lambdas

@@ -27,7 +27,7 @@ public sealed class Lathe
     private static int _created = 1;
 
     // Must stay silent: a private static in PascalCase is what the specific rule asks for.
-    private static int Made = 2;
+    private static int Produced = 2;
 
     // IDE1006 — a private instance field with no `_` prefix, against
     // dotnet_naming_rule.private_fields_are_underscored. IDE1006 is the single ID every
@@ -58,7 +58,7 @@ public sealed class Lathe
     // control.
     public int Describe()
     {
-        return count + _size + _created + Made;
+        return count + _size + _created + Produced;
     }
 
     // IDE0003 must NOT fire, and that is a limitation rather than a decision. `this.` on a field
