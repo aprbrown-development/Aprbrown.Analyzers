@@ -61,7 +61,8 @@ file to attach itself to, so it arrives at StyleCop's own `warning` — an error
 `TreatWarningsAsErrors` — even though the configuration never switches it on. Test projects are
 where you will meet it.
 
-Two more, if your project has the relevant folders:
+Two more, if your project has the relevant folders. These globs cover the *path-shaped* cases — Razor
+page models named for their `.cshtml`, timestamp-prefixed EF migrations:
 
 ```ini
 [{Pages,Data/Migrations}/**.cs]
@@ -69,6 +70,19 @@ dotnet_diagnostic.MA0048.severity = none   # Razor / EF file naming
 
 [Data/Migrations/**.cs]
 dotnet_diagnostic.MA0051.severity = none   # generated code is long
+```
+
+**`MA0048` is often repository-wide rather than path-shaped, so treat the glob as an example, not as
+the expected shape.** File-per-type is as much a convention about code *shape* as about folders: a
+record that exists only to be returned, living in the file of the type that returns it, or an
+interface sitting with its single implementation, will fire anywhere in the tree and leaves no
+folder to narrow to. Measured on the first repository onboarded: the two-folder glob above left
+**135 `MA0048` errors**, and the repository-wide switch-off it already had returns the build to
+zero. Decide which shape your repository is before copying the glob.
+
+```ini
+[*.cs]
+dotnet_diagnostic.MA0048.severity = none   # types declare their own return records
 ```
 
 ## What arrives with the package
@@ -141,6 +155,10 @@ dotnet_diagnostic.MA0004.severity = warning   # or turn one on
 
 Scope it to a path when the exception is about a *kind of code* rather than the whole repository —
 generated files, test doubles, migrations. Prefer a narrow glob over a repository-wide switch-off.
+
+A convention about code *shape* has no path to narrow to, though, and `MA0048` above is the common
+one. Where the exception runs through every folder, repository-wide is the honest scope; a glob that
+only covers part of it reads as a deviation smaller than the one actually taken.
 
 There is no supported way to change the package's configuration from the outside, and that is
 intentional: a deviation should be visible in the repository that takes it.
