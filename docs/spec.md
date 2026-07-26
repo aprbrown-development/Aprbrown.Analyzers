@@ -402,7 +402,10 @@ it silently omits dotfiles, and #2 produced a package that built clean and enfor
 
 Not packed: `LICENSE` (declared as `<PackageLicenseExpression>MIT</PackageLicenseExpression>` with
 `<Copyright>Copyright (c) 2026 Andrew P R Brown</Copyright>`), no `.pdb`, no `.snupkg`, no repository
-`README.md`. `PackageProjectUrl`, `RepositoryUrl` and `HelpLinkUri` point at the public repository.
+`README.md`. `PackageProjectUrl` and `RepositoryUrl` point at the public repository; `HelpLinkUri`
+points one level deeper, at [`consuming.md`](consuming.md)'s custom-rules section, because it is what an
+IDE opens from a squiggle and a consumer clicking `APB0001` wants the rule explained rather than the
+repository root.
 
 ### 4.3 `build/Aprbrown.Analyzers.props`
 
@@ -665,7 +668,9 @@ Recorded so a reader of the map's history is not misled.
    stated count and its 100-`Warning`/3-`Error` breakdown are correct; only the criterion
    sentence is loose, and read literally it yields 173 rules rather than 103. The narrower
    reading is the one the derivation used and the one the counts describe.
-   `consuming.md`'s "All 103 default-on rules" inherits the same looseness.
+   `consuming.md` said "All 103 default-on rules" and inherited the same looseness; its rule table now
+   states the narrower criterion — every rule enabled by default *at a build-gating severity* — so the
+   two documents no longer differ on what "default-on" means.
 7. **The call-site "trio" is a duo.** Sections 2.3 and 3.2 pair `APB0002`'s declaration half with
    `CA2016` + `MA0040` + `MA0032` at the call site. `MA0040` is enabled by default at `Info`, so
    correction 6 excludes it from the 103 and it is **not** enumerated — it stays off under the

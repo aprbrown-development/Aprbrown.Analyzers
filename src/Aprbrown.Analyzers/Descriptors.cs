@@ -51,5 +51,12 @@ internal static class Descriptors
     // Below the descriptors rather than above them, because SA1202 orders members by access before
     // it considers const-ness and this is the only private member of the type. The rule arrived
     // with the StyleCop ordering tier; fixed here rather than deviated, per spec §7.
-    private const string HelpLinkUri = "https://github.com/aprbrown-development/Aprbrown.Analyzers";
+    //
+    // This is what an IDE opens when a consumer clicks APB000n on a squiggle, so it points at the
+    // section that explains the three rules rather than at the repository root — consuming.md is
+    // the one place a consumer learns what a rule does (spec §4.2). Deep-linked to a heading rather
+    // than per-rule: all three are one short list, and one anchor cannot drift out of step with
+    // three.
+    private const string HelpLinkUri =
+        "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-three-custom-rules";
 }
