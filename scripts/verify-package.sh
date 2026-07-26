@@ -12,6 +12,8 @@
 # SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier, 150 rules under
 # the blanket — so the assertions are:
 #   - the produced .nupkg matches the §4.2 allowlist exactly;
+#   - the fragment every APB rule's help link deep-links to is still a heading in the packed
+#     README — a renamed heading breaks all three links with no 404 to notice;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
 #   - the packed config's Meziantou tier matches the derivation in spec §2.3 step 1, checked
@@ -124,6 +126,94 @@ if [ "$ACTUAL" != "$EXPECTED" ]; then
   fail "packed contents do not match the §4.2 allowlist"
 fi
 info "package contents match the §4.2 allowlist"
+
+# --- Assertion: the descriptors' help link points at a heading that ships --------------------
+# Every APB rule's helpLinkUri deep-links to a heading in docs/consuming.md, which this package
+# ships as README.md (#42). The C# constant and the prose are joined by nothing but the coincidence
+# of a slug, in two files no reviewer would open together — and a reworded heading breaks the IDE
+# help link for all three rules silently. There is no 404 to notice: GitHub serves the page and
+# ignores an unknown fragment, so a consumer clicking APB0001 on a squiggle simply lands at the top
+# of a long document with no sign they were meant to be 200 lines down (#43).
+#
+# The fragments are derived from Descriptors.cs rather than written out here, which would only move
+# the coupling into this script. Every help link in the file is checked, not just today's shared
+# constant, so this also starts failing the day someone gives a rule its own link without adding a
+# heading for it — which is what would make splitting the one anchor into three safe.
+#
+# The edge, stated so the next reader knows where the assertion stops, the way the MA0004 and
+# CA2007 silences state theirs. Three things are outside it:
+#   - this checks the *fragment against the shipped document*, never that the URL resolves. The
+#     host, the blob/main path and the repository name are unverified — the smoke test does no
+#     network I/O and should not start — so a typo in the domain would pass;
+#   - a link is found by the two shapes a descriptor can carry one in, `helpLinkUri:` and a
+#     `const string HelpLink…`. A URL reached by neither is not seen;
+#   - the slugifier is GitHub's for ASCII headings. It does not model the `-1`/`-2` suffixes
+#     GitHub appends to a duplicate heading, and it drops accented letters GitHub keeps. Both
+#     would fail a link that in fact works, which is the harmless direction.
+#
+# No fixture test in scripts/tests/ accompanies it, unlike the release gates' Markdown parsers.
+# Those fail open: a parser that quietly matches nothing looks exactly like a gate that passed.
+# This one is a required positive match, so a slugifier that produced nothing would fail the build
+# rather than wave it through.
+DESCRIPTORS="$REPO_ROOT/src/Aprbrown.Analyzers/Descriptors.cs"
+[ -f "$DESCRIPTORS" ] || fail "$DESCRIPTORS not found; it is where every APB rule's help link comes from"
+# One awk pass rather than grep piped into head: under `set -o pipefail` a reader that exits early
+# can take the pipeline's status with it.
+#
+# Arm on either shape a help link can arrive in, then take the next URL and disarm. Arming and
+# matching are separate rules rather than one pattern because the string may sit on the
+# declaration's line or, as the shared constant does today, wrap onto the next. The reference
+# `helpLinkUri: HelpLinkUri` arms without matching and stays armed until the constant supplies the
+# URL further down the file, which is why the three descriptors sharing one constant yield one link
+# rather than three.
+HELP_LINKS="$(awk '
+  /helpLinkUri:/ || /const string HelpLink[A-Za-z0-9]*[[:space:]]*=/ { armed = 1 }
+  armed && match($0, /https?:\/\/[^"]+/) { print substr($0, RSTART, RLENGTH); armed = 0 }
+' "$DESCRIPTORS" | LC_ALL=C sort -u)" \
+  || fail "could not read the help links out of src/Aprbrown.Analyzers/Descriptors.cs"
+[ -n "$HELP_LINKS" ] \
+  || fail "no help link found in src/Aprbrown.Analyzers/Descriptors.cs; every APB rule's helpLinkUri comes from it"
+
+PACKED_README="$WORK/packed-README.md"
+read_entry "$NUPKG" 'README.md' "$PACKED_README" \
+  || fail "could not read README.md out of the package"
+[ -s "$PACKED_README" ] || fail "the packed README.md is empty"
+
+# GitHub's slug for an ATX heading: lowercase, drop anything that is not alphanumeric, space,
+# hyphen or underscore — backticks and periods go, underscores survive as they do on GitHub — then
+# spaces to hyphens.
+#
+# Fenced blocks are skipped, and that narrows what this accepts rather than widening it:
+# consuming.md is largely .editorconfig samples, whose comment lines all begin with `#`. Admitted
+# as headings, they would be extra slugs for a broken fragment to match by accident.
+HEADING_SLUGS="$(awk '
+  /^ {0,3}(```|~~~)/ { in_fence = !in_fence; next }
+  !in_fence && /^ {0,3}#{1,6}[[:space:]]/ {
+    sub(/^ *#+[[:space:]]+/, "")     # the leading hashes and the space after them
+    sub(/[[:space:]]+#+[[:space:]]*$/, "")  # a closed ATX heading trailing its hashes back
+    sub(/[[:space:]]+$/, "")         # trailing space, which GitHub trims and a slug would keep
+    print
+  }
+' "$PACKED_README" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9 _-]//g; s/ /-/g')" \
+  || fail "could not slugify the headings of the packed README.md"
+
+# One assertion per link, so a future per-rule link names itself rather than hiding behind whichever
+# of them happens to be checked first.
+while IFS= read -r HELP_LINK; do
+  # A missing fragment is a silent regression to a document- or repository-level link — the state
+  # #42 moved away from, and one that no other assertion here would notice.
+  case "$HELP_LINK" in
+    *#?*) HELP_FRAGMENT="${HELP_LINK##*#}" ;;
+    *) fail "the help link '$HELP_LINK' carries no #fragment; it has regressed to a link that lands a consumer at the top of the document rather than at the rule. Restore the fragment in src/Aprbrown.Analyzers/Descriptors.cs" ;;
+  esac
+
+  # A here-string rather than a pipe into grep -q, for the pipefail reason given above.
+  if ! grep -qxF "$HELP_FRAGMENT" <<< "$HEADING_SLUGS"; then
+    echo "--- headings in the packed README.md ---" >&2; echo "$HEADING_SLUGS" >&2
+    fail "the help link fragment '#$HELP_FRAGMENT' matches no heading in the packed README.md, so an APB squiggle's help link now lands at the top of the document. Either restore the heading in docs/consuming.md or point that link in src/Aprbrown.Analyzers/Descriptors.cs at one that is there"
+  fi
+  info "the help link fragment '#$HELP_FRAGMENT' is a heading in the packed README.md"
+done <<< "$HELP_LINKS"
 
 # --- Assertion: the packed config's Meziantou tier matches the derivation --------------------
 # Read out of the .nupkg, not out of src/: the source file is what was written, the packed one is
