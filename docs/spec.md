@@ -425,11 +425,15 @@ One file carries both the MSBuild defaults and the config injection:
 `.targets`/`EditorConfigFiles` alternative exists to select a config from late-evaluated properties,
 which this package does not need now that `AnalysisLevel` is proven irrelevant to it.
 
-**The properties must come from package props specifically.** The SDK assigns
-`TreatWarningsAsErrors=false` in `Microsoft.NET.Sdk.props` — after `Directory.Build.props` and package
-props, but *before* the project file body. So an `<Import>` at the top of a `.csproj` sets it and is
-then silently overwritten, producing warnings where errors were intended. Package props run early
-enough; a `.csproj` import does not.
+**The properties must come from package props specifically.** The props phase runs
+`Directory.Build.props`, then package props, then the SDK's own defaults, then the project
+file body — in that order. `Microsoft.NET.Sdk.props` line 114 assigns
+`TreatWarningsAsErrors=false` under the same `Condition="'$(TreatWarningsAsErrors)'==''"` guard
+this package uses: after both of the first two, but *before* the project file body. So an
+`<Import>` at the top of a `.csproj` is too late in the other direction — the SDK has already
+satisfied the guard, so the package's own `Condition` never fires and the property stays
+`false`, producing warnings where errors were intended. Package props run early enough; a
+`.csproj` import does not.
 
 **Verified this session, end to end from a real `.nupkg`** — both properties arrive, and a consumer
 overrides them:
@@ -440,8 +444,12 @@ overrides them:
 | `Directory.Build.props` sets `TreatWarningsAsErrors=false` | **warning** — consumer wins |
 | `Directory.Build.props` sets `true` | error |
 
-Package props are imported before `Directory.Build.props`, so the `Condition` idiom yields genuine
-overridable defaults rather than a mandate.
+`Directory.Build.props` is imported *before* package props, so a consumer wins by **pre-empting**
+the default rather than overwriting it: it sets the property first, and the package's
+`Condition="'$(Prop)'==''"` then finds a value already there and stands down. The overridability is
+therefore the `Condition`'s doing and nothing else's. Drop it and the package would mandate the
+property, because package props run last of the two — see correction 15, which records the earlier
+inverted claim.
 
 `Nullable` and `ImplicitUsings` do **not** travel — they are project-shape decisions, not part of how
 the ruleset functions.
@@ -762,3 +770,34 @@ Recorded so a reader of the map's history is not misled.
     package is wrong, and a consumer copying a defective snippet cannot tell a guidance defect from
     a real violation. Its standing advice to prefer a narrow glob is kept — an exception with no
     path to narrow to is the documented exception to it, not a licence to switch rules off widely.
+15. **Package props are imported *after* `Directory.Build.props`, not before.** Section 4.3,
+    `build/Aprbrown.Analyzers.props`'s own comment and `consuming.md`'s override advice all said the
+    reverse, and attributed the two MSBuild properties' overridability to that ordering. Measured on
+    SDK `10.0.110`, in `/usr/share/dotnet/sdk/10.0.110/Current/Microsoft.Common.props`: line 34
+    imports `$(DirectoryBuildPropsPath)`, line 74 imports
+    `$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).*.props` — the NuGet-generated props that
+    pull in `build/<PackageId>.props`. Confirmed by evaluation, with a `Directory.Build.props` and
+    an `obj/*.nuget.g.props` each appending its name to a marker property, which came out
+    `Directory.Build.props`, then package props, then the project body. The delivery research
+    already had this right (`docs/research/2026-07-21-ruleset-delivery-and-precedence.md`, test D);
+    only the spec and the two docs inverted it. All three are corrected in place, `consuming.md`
+    included, since a consumer reads its override advice to decide where to put the property.
+    Nothing about the package changes and §4.3's verification table stands unedited — the consumer
+    does win, but by **pre-empting** the default rather than overwriting it. So does the
+    `.csproj`-`<Import>` conclusion, which rests on the SDK's own default in
+    `/usr/share/dotnet/sdk/10.0.110/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.props` line 114
+    landing after both and before the project body.
+    What the inversion put at risk is the `Condition`. Under the ordering as documented, the
+    `Condition` would be redundant belt-and-braces — a later `Directory.Build.props` would win
+    regardless — and an author reasoning from that could delete it as noise. Under the real
+    ordering it is load-bearing and nothing else does its job: measured with the `Condition` removed
+    and a consumer `Directory.Build.props` setting `TreatWarningsAsErrors=false`, the property
+    evaluates to `true`. The package would silently mandate. #39's own rationale draws the opposite
+    consequence — that a `Condition`-less package still could not mandate — and that is the same
+    inversion one step further on; the measurement above is the record.
+    One neighbouring sentence is repaired for the same reason. §4.3 said a `.csproj` `<Import>`
+    "sets it and is then silently overwritten", and nothing overwrites it: line 114 carries the
+    same `Condition` guard, so the SDK's `false` lands first and the package's guard then never
+    fires — hazard H1 in the delivery research, stated there correctly. The conclusion is
+    untouched; only the mechanism beside it was wrong, and making the ordering explicit is what
+    exposed it.

@@ -95,7 +95,8 @@ dotnet_diagnostic.MA0048.severity = none   # types declare their own return reco
 | `TreatWarningsAsErrors` | `true` | The ruleset is a gate, not a suggestion |
 
 Both are part of how the ruleset *functions*, which is why they ship. Override either by setting it in
-your `Directory.Build.props` — that runs after the package's own defaults and wins.
+your `Directory.Build.props` — that runs *before* the package's own defaults, which are guarded so
+they only apply when you have not set the property yourself. Setting it wins.
 
 `Nullable` and `ImplicitUsings` do **not** travel. They are decisions about your project's shape, not
 about code style.
