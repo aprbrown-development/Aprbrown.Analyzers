@@ -173,7 +173,7 @@ Not in the shipped config, documented in [`consuming.md`](consuming.md) as a tem
 | `MA0004` | Rationale false for libraries — the sole universality exclusion |
 | `MA0025 = none` under `[tests/**.cs]` | Path-scoped; cannot travel |
 | `APB0001 = none` under `[tests/**.cs]` | Path-scoped; test primary constructors hold values, not dependencies |
-| `MA0048 = none` for `Pages/`, `Data/Migrations/` | Path-scoped; Razor and EF naming |
+| `MA0048 = none`, repository-wide or path-scoped | A deviation, not always a carve-out: Razor and EF naming are path-shaped, a file-per-type convention is not — see section 10 correction 14 |
 | `MA0051 = none` for EF `Migrations/` | Path-scoped; generated code |
 | `SA0001 = none` for any project without an XML documentation file | Reported with no location, so the blanket cannot reach it — see section 10 correction 11 |
 
@@ -554,7 +554,9 @@ because it is the one that also *deletes* a local analyzer implementation.
    comments that are now carve-outs. What stays:
    - `MA0004` if `Mixologist` wants it (it is all-web, so re-enabling locally is reasonable),
    - the `tests/**` carve-outs for `MA0025` and `APB0001`,
-   - the `MA0048`/`MA0051` path carve-outs for `Pages/` and EF `Migrations/`.
+   - the `MA0051` path carve-out for EF `Migrations/`, and `MA0048 = none` **repository-wide** —
+     not the `Pages/` + `Migrations/` glob this step originally prescribed, which measured 135
+     violations (section 10 correction 14).
    - Fix the false naming-order comment rather than carrying it across (section 2.3).
 5. **Remove the `Microsoft.CodeAnalysis.*` pins** that existed only to build the local analyzer —
    `Microsoft.CodeAnalysis.CSharp`, `Microsoft.CodeAnalysis.Analyzers`, and the
@@ -737,3 +739,26 @@ Recorded so a reader of the map's history is not misled.
     `CONTEXT.md` are corrected in place, since both describe what the package actually ships.
     The smoke test asserts the total alongside each tier's own count — a per-tier count cannot
     catch a rule that arrived belonging to no tier at all.
+14. **`Mixologist`'s `MA0048` entry is a repository-wide deviation, not a path carve-out.** Section 8
+    step 4 prescribed `MA0048 = none` for `Pages/` and EF `Data/Migrations/` only, and
+    `consuming.md` presented the same glob as the shape a consumer should expect. Implemented
+    literally while onboarding against `1.0.0-preview.1` (#22), `Mixologist` built with **135
+    `MA0048` errors** and zero of any other rule — so the delivery mechanism was clean and the
+    prescribed deviation set was wrong. Restoring the repository-wide switch-off `Mixologist` held
+    before onboarding returns it to 0/0.
+    `MA0048` is off there for three reasons and only two are path-shaped: Razor page models named
+    for their `.cshtml`, timestamp-prefixed EF migrations, and — the third — a house convention that
+    a record existing only to be returned lives in the file of the type returning it
+    (`SourceEditor.cs` declares `SourcePick`, `BookFields` and `SourceMergeResult`; `RecipeStore.cs`
+    declares `RecipeView`, `RecipeSeed` and `RecipeListRow`), with an interface sitting alongside its
+    single implementation. That third reason is about code shape rather than folders, runs through
+    `Recipes/`, `Sources/` and `Ingredients/` alike, and so has no glob that expresses it. Section 8
+    was written before the `Sources/` and typed-source work landed in `Mixologist`, which is
+    probably why only the path-shaped reasons were visible then.
+    Nothing about the package changes — `MA0048` stays enumerated at `warning`, and this is a
+    guidance defect, not a delivery one. `consuming.md` now presents the glob as the path-shaped
+    example and names the repository-wide case beside it, for the same reason the `tests/**`
+    carve-out is marked not optional: section 9 makes any diagnostic in the canary evidence the
+    package is wrong, and a consumer copying a defective snippet cannot tell a guidance defect from
+    a real violation. Its standing advice to prefer a narrow glob is kept — an exception with no
+    path to narrow to is the documented exception to it, not a licence to switch rules off widely.
