@@ -28,6 +28,30 @@ matching its tag, so there is exactly one authored source and the release page c
 this file. A prerelease tag reads the section of the version it prefixes — `v1.0.0-preview.1` is a
 rehearsal for `1.0.0` and carries that version's build impact, because it has none of its own.
 
+## 1.0.1
+
+Documentation only. No analyzer, no configuration entry and no MSBuild property changed, so every
+answer below is the same one.
+
+### Fails a green build — by design
+
+_Nothing. No rule was added and no severity was raised._
+
+### Fails a green build — silently
+
+_Nothing. No analyzer changed, so nothing catches a case it missed on `1.0.0`._
+
+### Cannot fail a green build
+
+- **The README records that ReSharper offers to introduce the primary constructor `APB0001`
+  forbids.** The conversion is offered on a type the build has just rejected, which reads like a
+  misconfigured ruleset and is not one: the offer comes from ReSharper's engine rather than Roslyn's
+  `IDE0290`, which is not named in the sealed allowlist, and no file this package ships reaches it.
+  Switching the offer off is an entry the consuming repository makes in its own editor
+  configuration — see
+  [the consumer docs](docs/consuming.md#resharper-offers-the-primary-constructor-apb0001-forbids).
+  The shipped config is unchanged.
+
 ## 1.0.0
 
 The first release, so the question above has no previous version to ask it against. What follows
