@@ -264,6 +264,42 @@ A few things usually fall out:
   certainly `SA0001`; see [step 2](#2-add-these-editorconfig-entries).
 - **The IDE flags something the build does not.** Expected for `IDE0003`, and only for that rule. See
   above.
+- **The IDE offers to *introduce* something the build rejects.** Seen with ReSharper installed, and
+  not a sign the ruleset is wrong. See
+  [below](#resharper-offers-the-primary-constructor-apb0001-forbids).
+
+### ReSharper offers the primary constructor `APB0001` forbids
+
+With ReSharper installed — in Rider, or in Visual Studio — the editor offers **"Convert into primary
+constructor"** on a type `APB0001` has just reported as an error. Same line, same moment. That reads
+exactly like a misconfigured ruleset, and it is not one.
+
+The offer comes from ReSharper's own engine, not from Roslyn. Roslyn's equivalent, `IDE0290`, is not
+named in the sealed allowlist, so the blanket leaves it off; what ReSharper offers carries no
+`IDExxxx` code, which is how you tell the two apart in the Alt+Enter menu. **Nothing this package
+ships can reach it.** ReSharper reads its settings from `.editorconfig` files it discovers by walking
+the directory tree, and the shipped configuration is not one of those — so switching the offer off is
+an entry your repository makes, if it wants one.
+
+Which entry depends on what you are being offered, and the editor tells you. If the code is
+highlighted without pressing Alt+Enter *and* the Alt+Enter item has a **"Configure inspection
+severity"** submenu, it is an *inspection*. Set it to `none` from that submenu and let the editor
+write the `.editorconfig` key itself rather than typing the name out:
+
+```ini
+[*.cs]
+resharper_convert_to_primary_constructor_highlighting = none
+```
+
+If instead there is no highlight until you press Alt+Enter and no severity submenu, it is a *context
+action*: those carry no severity and have no `.editorconfig` representation at all, leaving
+ReSharper's own context-action settings page or a team-shared `.sln.DotSettings` as the only levers.
+Either way it is a per-repository editor choice rather than something a NuGet package delivers, and
+either way ReSharper reads none of it unless EditorConfig support is enabled in the IDE.
+
+`csharp_style_prefer_primary_constructors = false` is **not** the fix for this. It is a Roslyn style
+option governing `IDE0290`, which the blanket already leaves off, and it says nothing to ReSharper's
+engine.
 
 ## Versioning
 
