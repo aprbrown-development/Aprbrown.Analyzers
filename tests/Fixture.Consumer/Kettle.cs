@@ -24,8 +24,8 @@ public static class Kettle
         //
         // MA0032 (warning) fires: Task.Delay has a CancellationToken overload and none is passed.
         // MA0032 is default-*off* at the vendor, so a default-on sweep would miss it; the house
-        // adds it deliberately as the call-site half of the cancellation rule, completing
-        // CA2016 + MA0040 + MA0032 alongside APB0002's declaration half.
+        // adds it deliberately as the call-site half of the cancellation rule, opposite APB0002's
+        // declaration half. CA2016 and MA0040 default to Info and stay off (spec §10).
         //
         // MA0004 (ConfigureAwait) must NOT fire: an await with no ConfigureAwait is precisely
         // what it reports, the assembly that implements it is loaded, and MA0032 firing on this

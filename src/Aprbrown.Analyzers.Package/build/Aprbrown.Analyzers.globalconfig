@@ -51,11 +51,12 @@ dotnet_diagnostic.APB0003.severity = warning
 #     of the cancellation rule, standing opposite APB0002's declaration half.
 #
 #     Spec §2.3 and §3.2 describe that call-site half as a trio, CA2016 + MA0040 + MA0032. As
-#     enumerated here it is neither: CA2016 arrives with step 2, and MA0040 is not in this tier at
-#     all. MA0040 is enabled by default but at Info, so it does not gate a build and falls outside
-#     the 103, which is why the sweep does not carry it. Adding it would be a third deliberate
-#     departure and would put the count at 104. Left as measured rather than quietly corrected —
-#     it is a ruleset decision, and ADR-0004 makes adding a rule a minor version bump.
+#     enumerated here it is neither: MA0032 stands alone. MA0040 is enabled by default but at Info,
+#     so it does not gate a build and falls outside the 103, which is why the sweep does not carry
+#     it. Adding it would be a third deliberate departure and would put the count at 104. CA2016
+#     is excluded from the CA tier for the same reason (spec §10 correction 10). Left as measured
+#     rather than quietly corrected — it is a ruleset decision, and ADR-0004 makes adding a rule a
+#     minor version bump.
 # 103 default-on, minus one, plus one — 103 rules.
 #
 # Re-running the derivation against a newer Meziantou.Analyzer would silently admit whatever

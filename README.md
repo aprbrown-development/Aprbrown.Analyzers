@@ -59,10 +59,9 @@ repository is held to that ruleset itself, and CI gates every pull request again
 The release pipeline is in place: a `v*` tag builds, tests, runs the same pack-consume gate, waits for
 an approval click, and publishes to nuget.org with a keyless one-hour credential.
 
-**The package is not published yet.** Remaining before `1.0.0`, tracked in the
-[issue backlog](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues): the nuget.org
-account and trusted publishing policy, a `v1.0.0-preview.1` rehearsal, and onboarding the first
-consuming repositories.
+**`1.0.0` is published on [nuget.org](https://www.nuget.org/packages/Aprbrown.Analyzers).**
+Onboarding the rest of the fleet is tracked in the
+[issue backlog](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues).
 
 ## Development
 
@@ -150,9 +149,9 @@ and nothing to rotate.
 
 ### Repository tooling
 
-`.agents/skills/` and `.claude/skills/` hold shared agent skill definitions (the `.claude` entries are
-symlinks into `.agents`), pinned by `skills-lock.json`. They are development tooling and are not part of
-the shipped package.
+Agent skills come from the globally installed `mattpocock-skills` plugin rather than from this
+repository. `docs/agents/` configures them for this repository: the issue tracker, the triage labels
+and the domain docs. None of it is part of the shipped package.
 
 ## Licence
 

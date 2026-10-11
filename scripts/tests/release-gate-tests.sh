@@ -251,8 +251,8 @@ assert_exits 1 'no version argument fails' \
 assert_exits 0 'the committed CHANGELOG.md has a non-empty 1.0.0 section' \
   "$SECTION" 1.0.0
 
-# Unshipped.md deliberately gets no equivalent: it holds the three APB rules until a release
-# promotes them (#21, #23), so asserting it here would assert the opposite of the truth.
+# Unshipped.md deliberately gets no equivalent: between releases it legitimately holds rules no
+# release has promoted yet, so it is only required to be empty at tag time, by verify-release.sh.
 
 echo
 echo "release gate tests: $PASSED passed, $FAILED failed"
