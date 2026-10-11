@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -91,33 +90,17 @@ public sealed class InterfaceParameterNameAnalyzer : DiagnosticAnalyzer
         for (var i = 0; i < parameterCount; i++)
         {
             var parameter = implementation.Parameters[i];
-            var expected = interfaceMethod.Parameters[i].Name;
+            var interfaceParameter = interfaceMethod.Parameters[i];
 
-            if (string.Equals(parameter.Name, expected, StringComparison.Ordinal))
+            if (string.Equals(parameter.Name, interfaceParameter.Name, StringComparison.Ordinal))
             {
                 continue;
             }
 
-            // Spec §3.3 requires that a parameter with no source location — an implementation
-            // inherited from metadata — is never reported. The containing-type check above is
-            // what actually excludes those, since a metadata method's containing type is never
-            // the source type under analysis. This stays as the guard on the reporting itself:
-            // Diagnostic.Create needs a location, and the requirement should be enforced where
-            // it is stated rather than only as a side effect of an earlier test.
-            if (parameter.Locations.FirstOrDefault(location => location.IsInSource) is not { } location)
+            if (InterfaceParameterNameDiagnostic.Create(parameter, interfaceParameter) is { } diagnostic)
             {
-                continue;
+                context.ReportDiagnostic(diagnostic);
             }
-
-            // The expected name travels in the property bag as well as the message, so the code
-            // fix can rename without repeating the interface walk above.
-            context.ReportDiagnostic(Diagnostic.Create(
-                Descriptors.InterfaceParameterName,
-                location,
-                ImmutableDictionary<string, string?>.Empty.Add(DiagnosticProperties.ExpectedName, expected),
-                parameter.Name,
-                expected,
-                $"{interfaceMethod.ContainingType.Name}.{interfaceMethod.Name}"));
         }
     }
 }
