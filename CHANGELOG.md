@@ -55,6 +55,15 @@ _Nothing. No analyzer changed, so nothing catches a case it missed on `1.0.0`._
   Both default to `Info`, so neither is in the shipped config. `MA0032` alone polices the call site.
   The corrected text is what an IDE shows when you expand the diagnostic, and the same correction
   is made in [the consumer docs](docs/consuming.md#the-three-custom-rules).
+- **The README no longer claims `IDE0040` costs nothing to adopt.** It said `IDE0040` measured zero
+  violations across the six repositories the ruleset was derived from; against live builds it
+  scored 0, 20 and 259 on the first three repositories onboarded. Every hit is an interface member
+  declared without an explicit `public`, which `dotnet_style_require_accessibility_modifiers =
+  always` deliberately catches, so its cost scales with how many hand-written interfaces you have.
+  The fix is mechanical: `dotnet format style --diagnostics IDE0040`. The zero-violation claims for
+  `_camelCase` private fields and `PascalCase` private statics are kept, since they held everywhere
+  — see [the consumer docs](docs/consuming.md#3-build-and-fix-what-it-reports). The rule and its
+  option are unchanged.
 
 ## 1.0.0
 
