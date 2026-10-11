@@ -3,7 +3,7 @@
 What the package contains, how it is built, and how it reaches a consuming repository. Written so an
 implementation session can build v1 without reopening a design question.
 
-**Read first:** [`CONTEXT.md`](../CONTEXT.md) for vocabulary, then the four ADRs — this document
+**Read first:** [`GLOSSARY.md`](../GLOSSARY.md) for vocabulary, then the four ADRs — this document
 states *what to build*, the ADRs state *why*, and it is not repeated here.
 
 | ADR | Settles |
@@ -749,7 +749,7 @@ Recorded so a reader of the map's history is not misled.
     8 carried the `CA` tier's two `Error` rules, and step 4's eleven IDs were never given a count to
     miss. The estimate is left in place rather than edited, because it is what the design believed
     before measurement and the arithmetic above is the more useful record. `docs/consuming.md` and
-    `CONTEXT.md` are corrected in place, since both describe what the package actually ships.
+    `GLOSSARY.md` are corrected in place, since both describe what the package actually ships.
     The smoke test asserts the total alongside each tier's own count — a per-tier count cannot
     catch a rule that arrived belonging to no tier at all.
 14. **`Mixologist`'s `MA0048` entry is a repository-wide deviation, not a path carve-out.** Section 8

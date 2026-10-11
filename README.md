@@ -47,7 +47,7 @@ Full detail, including the other 147 rules and everything deliberately left off,
 | [`docs/consuming.md`](docs/consuming.md) | **Consumers.** Install, configure, override, troubleshoot. Packed as the package README, so it is also the nuget.org page. |
 | [`CHANGELOG.md`](CHANGELOG.md) | **Upgraders.** What each version does to a consumer's build, grouped by build impact. Each GitHub Release body is cut from it. |
 | [`docs/spec.md`](docs/spec.md) | **Contributors.** The implementation spec: what v1 ships, how the configuration is derived, the three analyzers specified by behaviour, packaging. |
-| [`CONTEXT.md`](CONTEXT.md) | Vocabulary used across the other documents. |
+| [`GLOSSARY.md`](GLOSSARY.md) | Vocabulary used across the other documents. |
 | [`docs/adr/`](docs/adr/) | The decisions behind all of the above, and why. |
 
 ## Repository status
