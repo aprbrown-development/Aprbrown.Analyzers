@@ -30,7 +30,7 @@ public sealed class InterfaceParameterNameCodeFixProvider : CodeFixProvider
 {
     /// <inheritdoc />
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = ImmutableArray.Create(DiagnosticIds.InterfaceParameterName);
+        = ImmutableArray.Create(Descriptors.InterfaceParameterName.Id);
 
     /// <summary>
     /// No batch fix-all support, deliberately (spec §3.4). Every fix-all implementation available

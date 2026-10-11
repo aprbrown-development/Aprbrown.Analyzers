@@ -24,8 +24,8 @@
 
   <ItemGroup>
     <!-- The fixer must name the same diagnostic ID the analyzer reports, and ADR-0004 makes that
-         string public API. Sharing the constant keeps one definition; the assembly surface stays
-         closed. -->
+         string public API. Reading it from the shared descriptor keeps one definition; the assembly
+         surface stays closed. -->
     <InternalsVisibleTo Include="Aprbrown.Analyzers.CodeFixes" />
   </ItemGroup>
 
