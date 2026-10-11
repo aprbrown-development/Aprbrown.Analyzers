@@ -54,20 +54,9 @@ public sealed class InterfaceParameterNameCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            // The analyzer reports on the parameter's identifier, so the enclosing declaration is
-            // one step up; FirstAncestorOrSelf absorbs the difference between Roslyn handing back
-            // the identifier's parent and the parameter itself.
-            if (root.FindNode(diagnostic.Location.SourceSpan)
-                    ?.FirstAncestorOrSelf<ParameterSyntax>() is not { } parameter)
-            {
-                continue;
-            }
-
-            // The name to rename to is the analyzer's conclusion, carried in the property bag
-            // rather than re-derived here. Absent or empty means a diagnostic this fixer does not
-            // understand — from an older analyzer version, say — and silence beats a bad rename.
-            if (diagnostic.Properties.TryGetValue(DiagnosticProperties.ExpectedName, out var expected) is false
-                || string.IsNullOrEmpty(expected))
+            // The name to rename to is the analyzer's conclusion, read back rather than
+            // re-derived here.
+            if (InterfaceParameterNameDiagnostic.Read(diagnostic, root) is not (var parameter, var expected))
             {
                 continue;
             }
@@ -76,7 +65,7 @@ public sealed class InterfaceParameterNameCodeFixProvider : CodeFixProvider
             // Roslyn marks it as a rename conflict and hands back source that does not compile.
             // A fix that breaks the build is worse than no fix, so the diagnostic is left for the
             // developer to settle by hand.
-            if (NameIsAlreadyDeclared(semanticModel, parameter, expected!, context.CancellationToken))
+            if (NameIsAlreadyDeclared(semanticModel, parameter, expected, context.CancellationToken))
             {
                 continue;
             }
@@ -86,7 +75,7 @@ public sealed class InterfaceParameterNameCodeFixProvider : CodeFixProvider
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title,
-                    cancellationToken => RenameAsync(context.Document, parameter, expected!, cancellationToken),
+                    cancellationToken => RenameAsync(context.Document, parameter, expected, cancellationToken),
                     equivalenceKey: title),
                 diagnostic);
         }

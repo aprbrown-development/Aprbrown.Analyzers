@@ -27,6 +27,10 @@
          string public API. Reading it from the shared descriptor keeps one definition; the assembly
          surface stays closed. -->
     <InternalsVisibleTo Include="Aprbrown.Analyzers.CodeFixes" />
+
+    <!-- A diagnostic contract is internal, shared by an analyzer and its fixer, and is tested
+         directly through its own round trip rather than only through the light bulb. -->
+    <InternalsVisibleTo Include="Aprbrown.Analyzers.Tests" />
   </ItemGroup>
 
   <ItemGroup>
