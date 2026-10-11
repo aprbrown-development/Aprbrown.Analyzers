@@ -390,10 +390,16 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 #     over again.
 check_diagnostics() {
   local log="$1" build="$2"; shift 2
-  local diff
-  if ! diff="$("$REPO_ROOT/scripts/diagnostic-diff.sh" "$log" "$FIXTURE_DIR" "$@" 2>&1)"; then
+  local differences rc=0
+  differences="$("$REPO_ROOT/scripts/diagnostic-diff.sh" "$log" "$FIXTURE_DIR" "$@" 2>&1)" || rc=$?
+  # Exit 2 is the comparison refusing to run — a malformed marker, or a log line it cannot read — and
+  # says nothing about the build, so it is not dressed up as a diagnostic mismatch.
+  if [ "$rc" -eq 2 ]; then
+    echo "$differences" >&2
+    fail "the fixture build $build could not be compared with its expectation markers"
+  elif [ "$rc" -ne 0 ]; then
     cat "$log" >&2
-    echo "$diff" >&2
+    echo "$differences" >&2
     fail "the fixture build $build did not raise exactly the diagnostics its expectation markers declare (+ raised but not declared, - declared but not raised)"
   fi
 }

@@ -29,7 +29,9 @@ case $# in
 esac
 
 LOG="$1"
-FIXTURE="$(cd "$2" && pwd)"
+# Physical, not logical: the compiler writes the resolved path into the log, so a fixture named
+# through a symlink would otherwise never be recognised in it.
+FIXTURE="$(cd "$2" && pwd -P)"
 
 # Every diagnostic the build printed, one row each. A failed build prints each one twice — as it is
 # raised and again in the summary — so the copies collapse on the full location, column included,
@@ -42,14 +44,22 @@ FIXTURE="$(cd "$2" && pwd)"
 # MultipleGlobalAnalyzerKeys is one of these, and the one that matters most.
 #
 # The optional `N>` is the node number MSBuild prefixes at -v normal and above.
+#
+# Any other line that reports an error or a warning is refused (exit 2) rather than dropped: a line
+# neither shape reads would otherwise pass a build that raised it, the comparison failing open.
 actual() {
   local id='([A-Za-z][A-Za-z0-9_]*)'
   sed -nE \
-    -e "s/^[[:space:]]*([0-9]+>)?([^(]+)\(([0-9]+),([0-9]+)\): (error|warning) $id: .*\$/\2|\3|\4|\5|\6/p" \
-    -e "s/^[[:space:]]*([0-9]+>)?(.*[^[:space:]]) : (error|warning) $id: .*\$/\2|||\3|\4/p" \
+    -e "s/^[[:space:]]*([0-9]+>)?(.+)\(([0-9]+),([0-9]+)\): (error|warning) $id: .*\$/\2|\3|\4|\5|\6/p" -e t \
+    -e "s/^[[:space:]]*([0-9]+>)?(.*[^[:space:]]) : (error|warning) $id: .*\$/\2|||\3|\4/p" -e t \
+    -e "/[[:space:]:](error|warning) $id: /s/^/?|/p" \
     "$LOG" \
     | LC_ALL=C sort -u \
     | awk -F'|' -v root="$FIXTURE/" '{
+        if ($1 == "?") {
+          print "diagnostic-diff: a diagnostic line no pattern reads: " substr($0, 3) > "/dev/stderr"
+          exit 2
+        }
         if ($2 == "") { print $1 " " $5 " " $4; next }
         file = $1
         if (index(file, root) == 1) file = substr(file, length(root) + 1)
@@ -68,9 +78,11 @@ expected() {
   ( cd "$FIXTURE" && find . -name '*.cs' -not -path './obj/*' -not -path './bin/*' | LC_ALL=C sort ) \
     | while read -r path; do
         awk -v file="${path#./}" -v promoted="$PROMOTED" '{
-          at = index($0, "expect:")
+          comment = index($0, "//")
+          if (!comment) next
+          at = index(substr($0, comment), "expect:")
           if (!at) next
-          n = split(substr($0, at + 7), rows, ",")
+          n = split(substr($0, comment + at + 6), rows, ",")
           for (k = 1; k <= n; k++) {
             if (split(rows[k], word, " ") != 2 || word[1] !~ /^[A-Za-z]+[0-9]+$/ || word[2] !~ /^(error|warning)$/) {
               print "diagnostic-diff: malformed expectation marker at " file ":" NR ": [" rows[k] "]; want <ID> error|warning" > "/dev/stderr"

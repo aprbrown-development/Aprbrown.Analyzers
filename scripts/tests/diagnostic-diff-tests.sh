@@ -145,7 +145,9 @@ diagnostic Pair.cs 2 28 warning APB0099 >> "$LOG"
 diagnostic Pair.cs 2 21 warning APB0099 >> "$LOG"
 diagnostic Pair.cs 2 28 warning APB0099 >> "$LOG"
 assert_same 'a rule raised twice on one line matches a marker declaring it twice'
-sed -i 's/, APB0099 warning//' "$FIXTURE/Pair.cs"
+printf '%s\n' \
+  'namespace Fixture.Consumer;' \
+  'public record Pair(int A, int B); // expect: APB0099 warning' > "$FIXTURE/Pair.cs"
 assert_differs 'a rule raised twice on one line and declared once is named with +' -- \
   '+ Pair.cs:2 APB0099 warning'
 
@@ -200,6 +202,46 @@ echo "     1>$(diagnostic Widget.cs 5 20 warning APB0001)" >> "$LOG"
 echo "     1>$(diagnostic Widget.cs 5 14 warning IDE0040)" >> "$LOG"
 assert_differs 'a normal-verbosity log is compared, not ignored' -- \
   '+ Widget.cs:5 IDE0040 warning'
+
+# --- a path with a parenthesis in it -------------------------------------------------------------
+# A checkout under "Projects (old)" is an ordinary directory name, and the (line,col) that follows
+# the path is the only parenthesis that ends it.
+FIXTURE="$WORK/Copy (2)/Fixture.Consumer"
+reset; widget
+diagnostic Widget.cs 5 20 warning APB0001 >> "$LOG"
+assert_same 'a fixture under a path containing a parenthesis is still read'
+FIXTURE="$WORK/Fixture.Consumer"
+
+# --- a fixture reached through a symlink ---------------------------------------------------------
+# The compiler writes the resolved path into the log, so a fixture named through a symlink — a
+# symlinked home, macOS's /var — must still be recognised as the fixture.
+reset; widget
+ln -s "$FIXTURE" "$WORK/linked"
+diagnostic Widget.cs 5 20 warning APB0001 >> "$LOG"
+out="$("$DIFF" "$LOG" "$WORK/linked" 2>&1)"; rc=$?
+if [ "$rc" -eq 0 ]; then ok 'a fixture named through a symlink matches the resolved paths in the log'
+else not_ok 'a fixture named through a symlink matches the resolved paths in the log' "exit $rc; output: $out"; fi
+rm "$WORK/linked"
+
+# --- a diagnostic line the comparison cannot read -------------------------------------------------
+# Every line that reports an error or a warning must become a row. One that matches neither shape
+# would otherwise be dropped, and a build that raised it would pass — the comparison failing open.
+# So it is refused (exit 2) and quoted, never skipped.
+reset; widget
+diagnostic Widget.cs 5 20 warning APB0001 >> "$LOG"
+echo "something unforeseen: error XY0001: a shape no pattern reads" >> "$LOG"
+out="$("$DIFF" "$LOG" "$FIXTURE" 2>&1)"; rc=$?
+if [ "$rc" -eq 2 ] && grep -qF 'XY0001' <<< "$out"; then ok 'a diagnostic line that cannot be read is refused, not dropped'
+else not_ok 'a diagnostic line that cannot be read is refused, not dropped' "exit $rc; output: $out"; fi
+
+# --- the marker lives in a comment ---------------------------------------------------------------
+# "expect:" in a string literal is code, not a declaration, and must not be read as one.
+reset; widget
+printf '%s\n' \
+  'namespace Fixture.Consumer;' \
+  'public static class Words { public const string Prompt = "expect: anything"; }' > "$FIXTURE/Words.cs"
+diagnostic Widget.cs 5 20 warning APB0001 >> "$LOG"
+assert_same 'expect: outside a // comment is not a marker'
 
 # --- a file with no markers ----------------------------------------------------------------------
 # A file without a marker declares silence, and silence is asserted as exactly as firing — what
