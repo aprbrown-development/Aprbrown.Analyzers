@@ -9,7 +9,7 @@ for the planned layout and build commands.
 
 ### Issue tracker
 
-Issues and PRDs live as GitHub issues in `aprbrown-development/Aprbrown.Analyzers`,
+Issues and specs live as GitHub issues in `aprbrown-development/Aprbrown.Analyzers`,
 managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
@@ -19,5 +19,5 @@ The five canonical triage roles, each label string equal to its name. See
 
 ### Domain docs
 
-Single-context — `CONTEXT.md` and `docs/adr/` at the repo root. See
+Single-context — `GLOSSARY.md` and `docs/adr/` at the repo root. See
 `docs/agents/domain.md`.
