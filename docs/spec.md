@@ -597,10 +597,8 @@ Only `EveIndustryTools` has config of its own, but the pattern is general:
 - **Keep local anything path-scoped**, which cannot travel regardless.
 - **Adoption cost on naming is zero fleet-wide; on accessibility it is not** — private-field
   `_camelCase` and private-static `PascalCase` measured 0 across all six repositories. `IDE0040`
-  was measured 0 by a probe that discarded interface members, which are exactly what `always`
-  catches, and scored 0, 20 and 259 against live builds (correction 16). Expect it wherever a
-  repository's hand-written interfaces leave `public` off their members. Other violations will concentrate in the Meziantou and
-  `CA` tiers.
+  did not (correction 16): expect it wherever a repository's hand-written interfaces leave
+  `public` off their members. Other violations will concentrate in the Meziantou and `CA` tiers.
 
 ---
 
@@ -832,7 +830,7 @@ Recorded so a reader of the map's history is not misled.
     docs. A repository with few hand-written interfaces scores near zero and reveals nothing, which
     is why the number grew with each repository rather than settling.
     The two naming claims stand: both rules held at zero on every repository measured, including
-    `EveIndustryTools`'s 1,307 files. Nothing about the package changes — `always` stays, and the
+    `EveIndustryTools`'s 1,307 `.cs` files. Nothing about the package changes — `always` stays, and the
     fix is mechanical and purely additive (`dotnet format style --diagnostics IDE0040`). Sections 8
     and 9 are corrected in place, because both are guidance a reader acts on rather than a record
     of what the design believed, and `consuming.md`'s build-and-fix step now names `IDE0040` as the

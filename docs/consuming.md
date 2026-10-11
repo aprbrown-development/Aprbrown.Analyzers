@@ -123,8 +123,8 @@ repositories** the ruleset was derived from, and have stayed at zero on every re
 since.
 
 `IDE0040` is the exception. Its hits are interface members declared without an explicit `public`, so
-what it costs you scales with how many hand-written interfaces you have: the first three repositories
-onboarded scored 0, 20 and 259. The fix is mechanical and purely additive —
+what it costs you scales with how many hand-written interfaces you have: the three repositories
+onboarded so far scored 0, 20 and 259. The fix is mechanical and purely additive —
 `dotnet format style --diagnostics IDE0040` — and the reason it fires at all is
 [the note on `dotnet_style_require_accessibility_modifiers`](#the-rules).
 
