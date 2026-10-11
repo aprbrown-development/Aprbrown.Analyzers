@@ -66,3 +66,13 @@ _Avoid_: bug fix, improvement
 The gate that proves an already-built package delivers the house ruleset intact to a consumer. It
 inspects the package it is handed and never makes its own.
 _Avoid_: package verification, smoke script, pack test
+
+**Consumer fixture**:
+The stand-in consuming project the pack-consume smoke test restores against the package. Every
+diagnostic it raises is declared in its own source, by expectation markers.
+_Avoid_: test project, sample consumer, fixture app
+
+**Expectation marker**:
+A comment on a consumer fixture line naming a diagnostic, at its shipped severity, that the line must
+raise. A line or file without one must raise nothing, so silence is asserted as exactly as firing.
+_Avoid_: annotation, expect comment, assertion

@@ -24,7 +24,7 @@ public sealed class Lathe
     // claiming the opposite is not carried into the shipped config, and this field is why that
     // claim did not have to be taken on trust — it sits *before* the general rule's own violation
     // below, which under the declaration-order story would have swallowed it.
-    private static int _created = 1;
+    private static int _created = 1; // expect: IDE1006 warning
 
     // Must stay silent: a private static in PascalCase is what the specific rule asks for.
     private static int Produced = 2;
@@ -33,7 +33,7 @@ public sealed class Lathe
     // dotnet_naming_rule.private_fields_are_underscored. IDE1006 is the single ID every
     // dotnet_naming_rule violation reports under, which is why the shipped config must enumerate
     // it for any of the naming block to do anything at all.
-    private int count = 3;
+    private int count = 3; // expect: IDE1006 warning
 
     // Must stay silent: the shape the general rule asks for, so the file proves the rules fire on
     // the right thing rather than merely firing.
@@ -48,14 +48,15 @@ public sealed class Lathe
     // *before* methods, not after — SA1201 measured, not guessed.
     public interface ILatheStep
     {
-        void Tighten();
+        void Tighten(); // expect: IDE0040 warning
     }
 
     // IDE0022 (suggestion) — a block body wrapping a single expression. One of the seven
     // expression-bodied preferences, which ship at `suggestion` precisely so six repositories can
-    // agree on shape without a disagreement failing anyone's build. The smoke test asserts this
-    // never appears as an error, with IDE0040 and IDE1006 erroring in the same file as the
-    // control.
+    // agree on shape without a disagreement failing anyone's build. A suggestion never reaches the
+    // build log, so this line carries no marker: if IDE0022 ever appears here, at warning or
+    // error, the smoke test fails on it as unexpected — with IDE0040 and IDE1006 firing in the same
+    // file as the control.
     public int Describe()
     {
         return count + _size + _created + Produced;
@@ -76,7 +77,7 @@ public sealed class Lathe
     // dotnet_style_require_accessibility_modifiers = always. C# would infer `private`; the house
     // rule is that access is always something the author chose rather than something the reader
     // has to know the language rules to recover.
-    void Idle()
+    void Idle() // expect: IDE0040 warning
     {
     }
 }

@@ -6,10 +6,20 @@ namespace Fixture.Consumer;
 // analyzers are loaded and analysing this exact file. That is what makes the two silences below
 // evidence of the ruleset rather than evidence of an absent analyzer — the same argument Kettle
 // makes for MA0004.
+//
+// CA2200 and CA2252 are a sample of the 29-rule tier, not all of it: one ordinary Warning and one of
+// the two the SDK defaults to Error. The SDK carries these analyzers, so the fixture needs no
+// package reference for them, and what they prove is narrower than Kettle's rules: that enumeration
+// by ID reaches past the blanket at all, which nothing else shows for this tier, since AnalysisMode
+// cannot.
 public static class Furnace
 {
     // CA2200 (warning) — rethrowing the caught variable discards the stack. An ordinary member of
     // the 27-rule Warning sweep, and the control for the two silences further down.
+    //
+    // MA0027 (warning) fires on the same `throw e;`, and is declared beside it. It is Meziantou's
+    // near-duplicate of CA2200, and the house ships both deliberately (the shipped config notes the
+    // overlap), so the second diagnostic is the ruleset working rather than noise.
     public static void Relight()
     {
         try
@@ -18,7 +28,7 @@ public static class Furnace
         }
         catch (InvalidOperationException e)
         {
-            throw e;
+            throw e; // expect: CA2200 warning, MA0027 warning
         }
     }
 
@@ -30,7 +40,7 @@ public static class Furnace
     // These two are also why this tier ships 29 rules where spec §2.3 step 2 says 27: the 27 is the
     // Warning subset, and dropping the vendor's Error rules to reach it would flatten a severity
     // the spec says to read rather than assume.
-    public static void Prime() => Prototype.Ignite();
+    public static void Prime() => Prototype.Ignite(); // expect: CA2252 error
 
     // CA2007 must NOT fire. An await written without ConfigureAwait is precisely what it reports,
     // and the SDK analyzer that implements it is loaded — CA2200 above proves that. It is
