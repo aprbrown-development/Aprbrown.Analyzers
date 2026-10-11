@@ -79,6 +79,6 @@ _Avoid_: annotation, expect comment, assertion
 
 **Descriptor contract test**:
 The test that holds every rule the package defines to what a consumer is told about it: its help
-link lands on a heading of the consuming guide, and its default severity is the one the shipped
-config sets. A rule added later is covered without the test being edited.
+link lands on a heading of the consumer documentation, and its default severity is the one the
+shipped config sets. A rule added later is covered without the test being edited.
 _Avoid_: descriptor test, metadata test, help-link check

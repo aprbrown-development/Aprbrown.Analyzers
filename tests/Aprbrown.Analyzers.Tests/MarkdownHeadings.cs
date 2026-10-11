@@ -16,11 +16,23 @@ internal static partial class MarkdownHeadings
         string? openFence = null;
         foreach (var line in markdown.Split('\n').Select(l => l.TrimEnd('\r')))
         {
+            // A block opens on any fence and closes only on a bare run of the same character at least
+            // as long, so an info string ("```ini") inside an open block is content.
             var fence = Fence().Match(line);
-            if (fence.Success && (openFence is null || fence.Value.TrimStart().StartsWith(openFence, StringComparison.Ordinal)))
+            if (fence.Success)
             {
-                openFence = openFence is null ? fence.Value.TrimStart() : null;
-                continue;
+                var run = fence.Groups["run"].Value;
+                if (openFence is null)
+                {
+                    openFence = run;
+                    continue;
+                }
+
+                if (run.StartsWith(openFence, StringComparison.Ordinal) && string.IsNullOrWhiteSpace(fence.Groups["info"].Value))
+                {
+                    openFence = null;
+                    continue;
+                }
             }
 
             if (openFence is not null)
@@ -66,7 +78,6 @@ internal static partial class MarkdownHeadings
     [GeneratedRegex(@"^ {0,3}#{1,6}[ \t]+(?<text>.*?)([ \t]+#+)?[ \t]*$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
     private static partial Regex AtxHeading();
 
-    // The opening run alone, so a closing fence is recognised by the same character it opened with.
-    [GeneratedRegex(@"^ {0,3}(```+|~~~+)", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"^ {0,3}(?<run>```+|~~~+)(?<info>.*)$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Fence();
 }

@@ -48,6 +48,21 @@ public sealed class MarkdownHeadingsTests
     }
 
     [Fact]
+    public void A_fence_line_carrying_an_info_string_does_not_close_the_block()
+    {
+        // A closing fence is bare; "```ini" inside an open block is content, so the block runs on.
+        const string markdown = """
+            ```
+            ```ini
+            # Still inside the block
+            ```
+            ## After
+            """;
+
+        Assert.Equal(["after"], MarkdownHeadings.Slugs(markdown));
+    }
+
+    [Fact]
     public void A_repeated_heading_takes_a_numbered_suffix()
     {
         const string markdown = """

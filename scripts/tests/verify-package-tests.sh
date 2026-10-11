@@ -111,7 +111,8 @@ assert_refused 'packed contents do not match the §4.2 allowlist' \
 # ADR-0004 calls a versioned act, made to one file only. MA0004 because it is the rule most worth
 # refusing — the sole universality-test exclusion — and because it is not enumerated, so the line
 # is new rather than a duplicate of one already there. The package carries the real config and
-# README so every earlier check passes, and the refusal must name the rule rather than say "differs".
+# every allowlisted entry so the earlier checks pass, and the refusal must name the rule rather than
+# say "differs".
 SHIPPED_CONFIG="$REPO_ROOT/src/Aprbrown.Analyzers.Package/build/Aprbrown.Analyzers.globalconfig"
 if grep -qE '^[[:space:]]*dotnet_diagnostic\.MA0004\.' "$SHIPPED_CONFIG"; then
   not_ok 'the drifted config fixture adds a rule the shipped config does not enumerate' \

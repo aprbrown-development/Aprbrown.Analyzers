@@ -13,10 +13,12 @@ namespace Aprbrown.Analyzers.Tests;
 /// </summary>
 public sealed partial class DescriptorContractTests
 {
+    // Written out rather than read from the descriptors, so a descriptor pointing at the wrong
+    // repository, branch or file has something independent to disagree with.
     private const string ConsumingGuideUrl =
         "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md";
 
-    public static TheoryData<string> DescriptorIds => new(Descriptors().Select(d => d.Id));
+    public static TheoryData<string> DescriptorIds => new(AnalyzerDescriptors().Select(d => d.Id));
 
     // A help link is what an IDE opens when a consumer clicks the rule on a squiggle. GitHub serves
     // the page and ignores an unknown fragment, so a reworded heading leaves no 404 to notice: the
@@ -72,7 +74,7 @@ public sealed partial class DescriptorContractTests
     [Fact]
     public void Shipped_config_names_exactly_the_rules_the_package_defines()
     {
-        var defined = Descriptors().Select(d => d.Id).Order(StringComparer.Ordinal).ToList();
+        var defined = AnalyzerDescriptors().Select(d => d.Id).Order(StringComparer.Ordinal).ToList();
         var configured = ShippedSeverities().Keys
             .Where(id => id.StartsWith("APB", StringComparison.Ordinal))
             .Order(StringComparer.Ordinal)
@@ -83,16 +85,19 @@ public sealed partial class DescriptorContractTests
     }
 
     private static DiagnosticDescriptor Descriptor(string id)
-        => Descriptors().Single(d => string.Equals(d.Id, id, StringComparison.Ordinal));
+        => AnalyzerDescriptors().Single(d => string.Equals(d.Id, id, StringComparison.Ordinal));
 
     // Every concrete analyzer the package ships, read through the interface a host reads it through.
-    private static IEnumerable<DiagnosticDescriptor> Descriptors()
+    // Deduplicated by the descriptor's own value equality, not by ID: one descriptor shared by two
+    // analyzers is one rule, but two that claim the same ID and differ are a conflict, which
+    // Descriptor(id) refuses at Single.
+    private static IEnumerable<DiagnosticDescriptor> AnalyzerDescriptors()
         => typeof(PrimaryConstructorAnalyzer).Assembly.GetTypes()
             .Where(t => !t.IsAbstract
                 && typeof(DiagnosticAnalyzer).IsAssignableFrom(t)
                 && t.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
             .SelectMany(t => ((DiagnosticAnalyzer)Activator.CreateInstance(t)!).SupportedDiagnostics)
-            .DistinctBy(d => d.Id, StringComparer.Ordinal);
+            .Distinct();
 
     // Every `dotnet_diagnostic.<id>.severity = <value>` line of the shipped config, by ID.
     private static Dictionary<string, string> ShippedSeverities()
