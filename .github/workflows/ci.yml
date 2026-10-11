@@ -127,6 +127,13 @@ jobs:
       - name: Expected ruleset comparison tests
         run: ./scripts/tests/ruleset-diff-tests.sh
 
+      # The comparison the smoke test makes between a fixture build and the fixture's expectation
+      # markers (#52), over canned logs: that it names every diagnostic a build raised and no marker
+      # declares, every declared one it did not raise, and any severity in between — and refuses a
+      # marker no build could ever satisfy.
+      - name: Fixture diagnostic comparison tests
+        run: ./scripts/tests/diagnostic-diff-tests.sh
+
       # The release-time gates are the one pair of checks that cannot run at PR time — neither has
       # anything to check until a version number exists — but the *scripts* implementing them can,
       # and by the same reasoning: a parser that first proves itself at release time has already
