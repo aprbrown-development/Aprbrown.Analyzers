@@ -12,8 +12,8 @@ namespace Aprbrown.Analyzers;
 /// </summary>
 /// <remarks>
 /// Both directions live here because each is the other's assumption. Where the diagnostic is
-/// reported decides how the fixer finds the parameter again; what travels in the property bag
-/// decides what the fixer can do without repeating the analyzer's walk of
+/// reported decides how the fixer finds the parameter again; what the diagnostic carries decides
+/// what the fixer can do without repeating the analyzer's walk of
 /// <c>AllInterfaces</c> / <c>FindImplementationForInterfaceMember</c>. Unlike the message
 /// arguments — display text, formatted and localisable — property values survive round-tripping
 /// and are addressed by name.

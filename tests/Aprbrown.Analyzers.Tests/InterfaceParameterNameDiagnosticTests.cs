@@ -17,7 +17,7 @@ namespace Aprbrown.Analyzers.Tests;
 public sealed class InterfaceParameterNameDiagnosticTests
 {
     [Fact]
-    public void Read_gives_back_the_parameter_and_the_interfaces_name()
+    public void A_created_diagnostic_reads_back_as_the_parameter_and_the_interfaces_name()
     {
         var (parameter, interfaceParameter, root) = Mismatch();
 
@@ -91,9 +91,13 @@ public sealed class InterfaceParameterNameDiagnosticTests
     }
 
     /// <summary>
-    /// <paramref name="diagnostic" /> as another reporter might have raised it: the same message,
-    /// with whichever of its descriptor, location and properties are given replaced.
+    /// <paramref name="diagnostic" /> as another reporter might have raised it, with whichever of
+    /// its descriptor, location and properties are given replaced.
     /// </summary>
+    /// <remarks>
+    /// The message arguments are fixed rather than carried over — a diagnostic does not expose
+    /// them — and <see cref="InterfaceParameterNameDiagnostic.Read"/> never looks at the message.
+    /// </remarks>
     private static Diagnostic Recreated(
         Diagnostic diagnostic,
         DiagnosticDescriptor? descriptor = null,
