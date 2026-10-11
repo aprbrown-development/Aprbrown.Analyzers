@@ -76,3 +76,9 @@ _Avoid_: test project, sample consumer, fixture app
 A comment on a consumer fixture line naming a diagnostic, at its shipped severity, that the line must
 raise. A line or file without one must raise nothing, so silence is asserted as exactly as firing.
 _Avoid_: annotation, expect comment, assertion
+
+**Descriptor contract test**:
+The test that holds every rule the package defines to what a consumer is told about it: its help
+link lands on a heading of the consuming guide, and its default severity is the one the shipped
+config sets. A rule added later is covered without the test being edited.
+_Avoid_: descriptor test, metadata test, help-link check
