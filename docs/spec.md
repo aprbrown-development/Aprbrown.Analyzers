@@ -595,9 +595,10 @@ Only `EveIndustryTools` has config of its own, but the pattern is general:
   that its version does not implement are inert; rules its version adds arrive disabled under the
   blanket.
 - **Keep local anything path-scoped**, which cannot travel regardless.
-- **Adoption cost on naming and accessibility is zero fleet-wide** — private-field `_camelCase`,
-  private-static `PascalCase` and `IDE0040` all measured 0 across all six repositories. Violations
-  will concentrate in the Meziantou and `CA` tiers.
+- **Adoption cost on naming is zero fleet-wide; on accessibility it is not** — private-field
+  `_camelCase` and private-static `PascalCase` measured 0 across all six repositories. `IDE0040`
+  did not (correction 16): expect it wherever a repository's hand-written interfaces leave
+  `public` off their members. Other violations will concentrate in the Meziantou and `CA` tiers.
 
 ---
 
@@ -637,8 +638,9 @@ repositories.
 **`WordleHelper` second** because it is the first repository with no prior relationship to the
 ruleset. Whatever it costs to adopt is the number that predicts repositories 3–5, and it is worth
 learning that before committing to a bulk pass. Expect violations to concentrate in the `Meziantou`
-and `CA` tiers: naming and accessibility measured **zero across all six repositories**, so that axis
-costs nothing anywhere.
+and `CA` tiers: naming measured **zero across all six repositories**, so that axis costs nothing
+anywhere. Accessibility does not share that zero — `IDE0040` costs one fix per interface member
+written without `public` (correction 16).
 
 Onboarding the repositories is **out of scope for this map** — the sequencing is spec, the work is
 downstream.
@@ -809,3 +811,27 @@ Recorded so a reader of the map's history is not misled.
     fires — hazard H1 in the delivery research, stated there correctly. The conclusion is
     untouched; only the mechanism beside it was wrong, and making the ordering explicit is what
     exposed it.
+16. **`IDE0040` does not measure zero; the probe that said so discarded its true positives.**
+    Sections 8 and 9 said naming *and accessibility* cost nothing fleet-wide, with `IDE0040` among
+    the three rules measured at 0 across all six repositories. Measured against live builds:
+
+    | Repository | `IDE0040` | private-field `_camelCase` | private-static `PascalCase` |
+    |---|---:|---:|---:|
+    | `Mixologist` (#22) | 0 | 0 | 0 |
+    | `FPL_Helper/web` (#24) | 20 | 0 | 0 |
+    | `EveIndustryTools` (#25) | 259 | 0 | 0 |
+
+    Every hit has one shape: an interface member declared without an explicit `public`. The zero
+    came from #5's grep probe, which counted type and member declarations lacking a modifier and
+    threw interface members away as false positives — "interface members (which correctly take no
+    modifier)". Under `dotnet_style_require_accessibility_modifiers = always`, which the shipped
+    config sets deliberately and the fixture asserts, those are the true positives. The probe and
+    the ruleset disagreed about what counts, and the probe's answer is the one that reached the
+    docs. A repository with few hand-written interfaces scores near zero and reveals nothing, which
+    is why the number grew with each repository rather than settling.
+    The two naming claims stand: both rules held at zero on every repository measured, including
+    `EveIndustryTools`'s 1,307 `.cs` files. Nothing about the package changes — `always` stays, and the
+    fix is mechanical and purely additive (`dotnet format style --diagnostics IDE0040`). Sections 8
+    and 9 are corrected in place, because both are guidance a reader acts on rather than a record
+    of what the design believed, and `consuming.md`'s build-and-fix step now names `IDE0040` as the
+    exception and points to its existing note on the option.

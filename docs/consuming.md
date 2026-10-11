@@ -117,9 +117,16 @@ dotnet_diagnostic.MA0048.severity = none   # types declare their own return reco
 
 Adoption is **big-bang**: install, fix the violations, done. There is no severity ratchet and no
 baseline-suppression file to grandfather existing code in. Violations concentrate in the
-`Meziantou.Analyzer` and `CA` tiers; the naming and accessibility rules are usually free — `_camelCase`
-private fields, `PascalCase` private statics and `IDE0040` were each measured at **zero violations
-across all six repositories** the ruleset was derived from.
+`Meziantou.Analyzer` and `CA` tiers. The naming rules are usually free — `_camelCase` private fields
+and `PascalCase` private statics were each measured at **zero violations across all six
+repositories** the ruleset was derived from, and have stayed at zero on every repository onboarded
+since.
+
+`IDE0040` is the exception. Its hits are interface members declared without an explicit `public`, so
+what it costs you scales with how many hand-written interfaces you have: the three repositories
+onboarded so far scored 0, 20 and 259. The fix is mechanical and purely additive —
+`dotnet format style --diagnostics IDE0040` — and the reason it fires at all is
+[the note on `dotnet_style_require_accessibility_modifiers`](#the-rules).
 
 If your repository already has an `.editorconfig`, see
 [Adopting into an existing configuration](#adopting-into-an-existing-configuration).
