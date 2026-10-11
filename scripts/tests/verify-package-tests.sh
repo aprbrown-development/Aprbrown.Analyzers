@@ -124,15 +124,29 @@ assert_refused 'matches no heading in the packed README.md' \
 
 # --- the expected ruleset --------------------------------------------------------------------------
 # One rule switched on in the shipped config and not in the expected ruleset (#51): the change
-# ADR-0004 calls a versioned act, made to one file only. The package carries the real config and
+# ADR-0004 calls a versioned act, made to one file only. MA0004 because it is the rule most worth
+# refusing — the sole universality-test exclusion — and because it is not enumerated, so the line
+# is new rather than a duplicate of one already there. The package carries the real config and
 # README so every earlier check passes, and the refusal must name the rule rather than say "differs".
+SHIPPED_CONFIG="$REPO_ROOT/src/Aprbrown.Analyzers.Package/build/Aprbrown.Analyzers.globalconfig"
+if grep -qE '^[[:space:]]*dotnet_diagnostic\.MA0004\.' "$SHIPPED_CONFIG"; then
+  not_ok 'the drifted config fixture adds a rule the shipped config does not enumerate' \
+    "MA0004 is already enumerated in $SHIPPED_CONFIG; pick another rule for this case"
+fi
 DRIFTED_CONFIG="$WORK/drifted.globalconfig"
-cp "$REPO_ROOT/src/Aprbrown.Analyzers.Package/build/Aprbrown.Analyzers.globalconfig" "$DRIFTED_CONFIG"
-echo 'dotnet_diagnostic.MA0099.severity = warning' >> "$DRIFTED_CONFIG"
+cp "$SHIPPED_CONFIG" "$DRIFTED_CONFIG"
+echo 'dotnet_diagnostic.MA0004.severity = warning' >> "$DRIFTED_CONFIG"
+DRIFTED_ENTRIES=(
+  'Aprbrown.Analyzers.nuspec='"$NUSPEC"
+  'analyzers/dotnet/cs/Aprbrown.Analyzers.dll='"$STUB"
+  'analyzers/dotnet/cs/Aprbrown.Analyzers.CodeFixes.dll='"$STUB"
+  'build/Aprbrown.Analyzers.globalconfig='"$DRIFTED_CONFIG"
+  'build/Aprbrown.Analyzers.props='"$STUB"
+  'README.md='"$GOOD_README"
+)
 DRIFTED="$WORK/drifted.nupkg"
-make_nupkg "$DRIFTED" "${ALLOWLISTED[@]/#build\/Aprbrown.Analyzers.globalconfig=*/build/Aprbrown.Analyzers.globalconfig=$DRIFTED_CONFIG}" \
-  "README.md=$GOOD_README"
-assert_refused '+ dotnet_diagnostic.MA0099.severity = warning' \
+make_nupkg "$DRIFTED" "${DRIFTED_ENTRIES[@]}"
+assert_refused '+ dotnet_diagnostic.MA0004.severity = warning' \
   'a package whose config enumerates a rule the expected ruleset does not is refused, naming it' \
   "$DRIFTED"
 

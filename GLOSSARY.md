@@ -18,7 +18,7 @@ _Avoid_: globalconfig, editorconfig, ruleset file, .ruleset
 
 **Expected ruleset**:
 The independent, checked-in record of every setting the shipped config must contain, against which
-the packed config is compared exactly. Deliberately a second copy: a change to the house ruleset is
+the shipped config is compared exactly, as a consumer receives it. Deliberately a second copy: a change to the house ruleset is
 made in both, and any line where they disagree is named.
 _Avoid_: oracle, golden file, snapshot, baseline
 

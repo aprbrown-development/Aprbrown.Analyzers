@@ -256,6 +256,7 @@ read_entry "$NUPKG" 'build/Aprbrown.Analyzers.globalconfig' "$PACKED_CONFIG" \
 # did. Why individual lines are pinned as they are — the vendor Errors kept at error, MA0004, CA2007
 # and CA1707 kept out — is recorded beside those lines in the expected ruleset.
 EXPECTED_RULESET="$REPO_ROOT/tests/expected-ruleset.txt"
+[ -s "$EXPECTED_RULESET" ] || fail "the expected ruleset $EXPECTED_RULESET is missing or empty"
 if ! RULESET_DIFF="$("$REPO_ROOT/scripts/ruleset-diff.sh" "$PACKED_CONFIG" "$EXPECTED_RULESET" 2>&1)"; then
   echo "--- + only in the packed config, - only in tests/expected-ruleset.txt ---" >&2
   echo "$RULESET_DIFF" >&2
@@ -293,8 +294,12 @@ info "no category re-enable in the shipped config"
 # dotnet_diagnostic entry can quietly disagree with it. Anchored on the option families where the
 # shorthand is even possible rather than applied file-wide — the comments above them are prose and
 # may contain anything.
-if grep -E '^(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFIG" | grep -q ':'; then
-  grep -nE '^(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFIG" | grep ':' >&2
+#
+# Indentation is allowed for here, as in the severity check below, because the comparison with the
+# expected ruleset trims it: an indented line is a setting to that comparison, so it must be one to
+# the shape checks too, or it could be added to both files and pass every check.
+if grep -E '^[[:space:]]*(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFIG" | grep -q ':'; then
+  grep -nE '^[[:space:]]*(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFIG" | grep ':' >&2
   fail "a style option carries an inline :severity; severities belong in dotnet_diagnostic entries only"
 fi
 info "no style option carries an inline :severity"
@@ -307,8 +312,8 @@ info "no style option carries an inline :severity"
 #     dotnet_naming_rule.<name>.severity is the only way to say what one of them is set to.
 # Which naming rules exist is the expected ruleset's business; this asserts only the kinds of key,
 # so a severity of any other kind cannot appear and be read as house style.
-STRAY_SEVERITIES="$(grep -oE '^[^#[:space:]=]+\.severity' "$PACKED_CONFIG" \
-  | grep -vE '^dotnet_diagnostic\.' \
+STRAY_SEVERITIES="$(grep -oE '^[[:space:]]*[^#[:space:]=]+\.severity' "$PACKED_CONFIG" \
+  | sed -E 's/^[[:space:]]+//' | grep -vE '^dotnet_diagnostic\.' \
   | grep -vxE 'dotnet_analyzer_diagnostic\.severity|dotnet_naming_rule\.[^.]+\.severity' || true)"
 [ -z "$STRAY_SEVERITIES" ] \
   || fail "the only severities outside dotnet_diagnostic should be the blanket and the naming rules'; found: $STRAY_SEVERITIES"
@@ -316,8 +321,8 @@ info "the only non-dotnet_diagnostic severities are the blanket and the naming r
 
 # The tier sizes, reported rather than asserted: the expected ruleset already pins every line, so a
 # count here would be a third copy of the same fact. What it is for is the reader of a CI log.
-TIER_COUNTS="$(grep -oE '^dotnet_diagnostic\.[A-Za-z]+[0-9]+\.severity' "$PACKED_CONFIG" \
-  | sed -E 's/^dotnet_diagnostic\.([A-Za-z]+)[0-9]+\.severity$/\1/' | LC_ALL=C sort | uniq -c \
+TIER_COUNTS="$({ grep -oE '^[[:space:]]*dotnet_diagnostic\.[A-Za-z]+[0-9]+\.severity' "$PACKED_CONFIG" || true; } \
+  | sed -E 's/^[[:space:]]*dotnet_diagnostic\.([A-Za-z]+)[0-9]+\.severity$/\1/' | LC_ALL=C sort | uniq -c \
   | awk '{ printf "%s%s %s", sep, $2, $1; sep = " · "; total += $1 } END { printf " · %d rules", total }')"
 info "the shipped config enumerates $TIER_COUNTS under the blanket"
 
@@ -379,8 +384,8 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 # and one of the three the vendor defaults to Error (MA0037). They fire only because a config
 # shipped by this package bound to an assembly this package does not depend on, which is the claim
 # under test. What the other 100 get is weaker and worth naming: the expected ruleset above pins
-# that they are present at the right severities, but nothing here observes them fire. Proving 103 rules
-# behaviourally would mean 103 violations in the fixture, and the binding they would each
+# that they are present at the right severities, but nothing here observes them fire. Proving 103
+# rules behaviourally would mean 103 violations in the fixture, and the binding they would each
 # re-demonstrate is the same one these three already establish.
 #
 # The CA rows are the same kind of sample over the 29-rule CA tier: CA2200 for the Warning sweep
@@ -449,8 +454,8 @@ info "no expression-bodied preference failed the build, with the IDE analyzers r
 # 2 as 4 and make the assertion a test of MSBuild's log format rather than of the ruleset.
 #
 # Both counts in this section want the same thing — "this rule fired exactly N times in this file"
-# — so it is a function. The reason is the argument because it is
-# what a failure has to explain: the count alone says nothing about which of the two was lost.
+# — so it is a function. The reason is the argument because it is what a failure has to explain:
+# the count alone says nothing about which of the two was lost.
 assert_diagnostic_count() {
   local file="$1" rule="$2" expected="$3" reason="$4"
   local actual

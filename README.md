@@ -117,7 +117,7 @@ packed, so the smoke script drives it rather than `dotnet build`.
    what it must *not* flag, and the required test cases — and add it to `AnalyzerReleases.Unshipped.md`.
 5. Add it to the shipped configuration by ID. A rule absent from that allowlist is off, however the
    analyzer is written. Add the same line to [`tests/expected-ruleset.txt`](tests/expected-ruleset.txt),
-   the expected ruleset the packed config is compared against line for line; any change to the
+   the expected ruleset the shipped config is compared against line for line; any change to the
    house ruleset is made in both files.
 6. Document it in [`docs/consuming.md`](docs/consuming.md) — that document is where a consumer learns
    what a rule does, and every diagnostic's IDE help link points at it.

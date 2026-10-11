@@ -75,10 +75,10 @@ jobs:
           #
           # A floating patch is still the right trade, because nothing this workflow asserts is
           # patch-sensitive. The expected ruleset is compared with the shipped config file, not with
-          # anything the SDK reports, so it cannot drift with the runner. The behavioural assertions are that CA2200
-          # and CA2252 fire and that CA2007 and CA1707 do not — properties of rules that have been
-          # stable for releases, and a newer patch adding a default-on rule would simply leave it
-          # off under the blanket, which is the seal working rather than failing.
+          # anything the SDK reports, so it cannot drift with the runner. The behavioural assertions
+          # are that CA2200 and CA2252 fire and that CA2007 and CA1707 do not — properties of rules
+          # that have been stable for releases, and a newer patch adding a default-on rule would
+          # simply leave it off under the blanket, which is the seal working rather than failing.
           #
           # What would break is narrow and loud: a patch that retires an enumerated ID, or changes
           # one of those four rules' default severity or enabled state. The smoke test fails on the
