@@ -36,10 +36,10 @@ env:
 
   # ContinuousIntegrationBuild=true in CI regardless (ADR-0003 decision 10): it normalises embedded
   # paths and costs nothing. It is set as an environment variable rather than a `-p:` flag on each
-  # step so that it also reaches the `dotnet pack` *inside* verify-package.sh — the build that
-  # actually produces the artifact whose paths are at stake. MSBuild surfaces environment variables
-  # as properties, and nothing in this repository assigns this one, so the value survives to
-  # every project.
+  # step so that the build and the pack that produce the artifact whose paths are at stake cannot
+  # disagree about it, nor a step added later forget it. MSBuild surfaces environment variables as
+  # properties, and nothing in this repository assigns this one, so the value survives to every
+  # project.
   ContinuousIntegrationBuild: true
 
 jobs:
@@ -96,12 +96,25 @@ jobs:
       - name: Test
         run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
 
+      # The smoke test never packs; its caller does (ADR-0003 amendment 3). release.yml packs the
+      # tag version here instead, so this file holds the smoke version and nothing else does. Into
+      # the runner's temp directory, not artifacts/, because nothing here is uploaded.
+      - name: Pack a smoke version
+        run: |
+          dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj \
+            -c Release --no-build -o "$RUNNER_TEMP/smoke" -p:Version=0.0.1-smoke
+
       # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5). The
       # gate has to be runnable on a dev machine to be worth anything, and a YAML copy of it would
       # be a second set of assertions free to disagree with the first — with CI's copy the only
       # one anybody runs. A failing assertion inside the script exits non-zero and fails this step.
       - name: Pack-consume smoke test
-        run: ./scripts/verify-package.sh
+        run: ./scripts/verify-package.sh "$RUNNER_TEMP/smoke/Aprbrown.Analyzers.0.0.1-smoke.nupkg"
+
+      # The gate's refusals: handed a deliberately broken package, it must fail, and for the right
+      # reason. Only possible since it stopped packing its own (amendment 3).
+      - name: Smoke test refusal tests
+        run: ./scripts/tests/verify-package-tests.sh
 
       # The release-time gates are the one pair of checks that cannot run at PR time — neither has
       # anything to check until a version number exists — but the *scripts* implementing them can,

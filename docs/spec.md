@@ -473,8 +473,10 @@ ADR-0003 and ADR-0004 settle these; the deliverables are listed here so nothing 
   so a sole maintainer can approve their own deployment. This closes ADR-0003's open point: the push
   is unrevocable and a mistyped tag spends a version number permanently, so one click is cheap
   insurance. The nuget.org trusted publishing policy is scoped to the same environment.
-- `scripts/verify-package.sh` — packs to a temp feed, restores `tests/Fixture.Consumer` against it,
-  builds, and asserts an exact diagnostic set. Assertions in section 6.
+- `scripts/verify-package.sh <path-to.nupkg>` — takes an already-packed package, places it alone in
+  a temp feed, restores `tests/Fixture.Consumer` against it, builds, and asserts an exact diagnostic
+  set. It never packs: the caller does, so `release.yml` gates the file it pushes (ADR-0003
+  amendment 3). Assertions in section 6.
 - `CHANGELOG.md` — build-impact classified per ADR-0004; `release.yml` cuts a GitHub Release from the
   matching section.
 - `AnalyzerReleases.Shipped.md` / `.Unshipped.md` from day one. `release.yml` asserts `Unshipped.md`

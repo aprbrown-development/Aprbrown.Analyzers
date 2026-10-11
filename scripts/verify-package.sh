@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 #
-# Pack-consume smoke test (spec §6, ADR-0003 decision 5).
+# Pack-consume smoke test (spec §6, ADR-0003 decision 5 and amendment 3).
+#
+#   verify-package.sh <path-to.nupkg>
 #
 # Analyzer unit tests test the analyzer; they cannot test the *package* — a package can build
-# clean and enforce nothing (research produced exactly that). This gate packs Aprbrown.Analyzers
-# to a temporary feed, restores tests/Fixture.Consumer against it, builds, and asserts an exact
-# diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
-# assertion.
+# clean and enforce nothing (research produced exactly that). This gate takes an already-packed
+# Aprbrown.Analyzers package, places it alone in a temporary feed, restores tests/Fixture.Consumer
+# against it, builds, and asserts an exact diagnostic set. It runs on a dev machine and in CI alike,
+# and exits non-zero on any failed assertion.
+#
+# It never packs. Whoever calls it packs, at whatever version they mean to ship, so release.yml
+# gates the very file it then pushes rather than a sibling packed for the purpose (amendment 3). The
+# version the fixture restores comes from the package's own .nuspec. On a dev machine:
+#
+#   dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj -c Release \
+#     -o artifacts -p:Version=0.0.1-smoke
+#   ./scripts/verify-package.sh artifacts/Aprbrown.Analyzers.0.0.1-smoke.nupkg
 #
 # The shipped config is complete as of spec §2.3 step 4 — APB0001-APB0003, the Meziantou tier, the
 # SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier, 150 rules under
 # the blanket — so the assertions are:
-#   - the produced .nupkg matches the §4.2 allowlist exactly;
+#   - the given .nupkg matches the §4.2 allowlist exactly;
 #   - the fragment every APB rule's help link deep-links to is still a heading in the packed
 #     README — a renamed heading breaks all three links with no 404 to notice;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
@@ -50,43 +60,18 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PKG_PROJECT="$REPO_ROOT/src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj"
 FIXTURE="$REPO_ROOT/tests/Fixture.Consumer/Fixture.Consumer.csproj"
-VERSION="0.0.1-smoke"
-
-WORK="$(mktemp -d)"
-FEED="$WORK/feed"
-CONFIG="$WORK/nuget.config"
-BUILD_LOG="$WORK/build.log"
-# Isolate the package cache so a rebuilt package under the same version is never served stale.
-export NUGET_PACKAGES="$WORK/packages"
-trap 'rm -rf "$WORK"' EXIT
 
 fail() { echo "SMOKE FAIL: $*" >&2; exit 1; }
 info() { echo "  smoke: $*"; }
 
-mkdir -p "$FEED"
+# --- The package under test ------------------------------------------------------------------
+# Required, with no fallback to packing one here: a fallback is exactly the sibling package
+# amendment 3 removed, and it would be the path a forgotten argument quietly took.
+[ $# -eq 1 ] || fail "usage: verify-package.sh <path-to.nupkg>"
+GIVEN="$1"
+[ -f "$GIVEN" ] || fail "no package at $GIVEN"
 
-cat > "$CONFIG" <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <packageSources>
-    <clear />
-    <add key="smoke-feed" value="$FEED" />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-  </packageSources>
-</configuration>
-EOF
-
-# --- Pack -----------------------------------------------------------------------------------
-info "packing $VERSION -> temp feed"
-dotnet pack "$PKG_PROJECT" -c Release -o "$FEED" -p:Version="$VERSION" --nologo -v quiet \
-  || fail "pack failed"
-
-NUPKG="$FEED/Aprbrown.Analyzers.$VERSION.nupkg"
-[ -f "$NUPKG" ] || fail "expected package not produced: $NUPKG"
-
-# --- Assertion: packed contents match the §4.2 allowlist exactly ----------------------------
 list_entries() {
   if command -v unzip >/dev/null 2>&1; then
     unzip -Z1 "$1"
@@ -106,6 +91,47 @@ read_entry() {
       "$nupkg" "$entry" "$dest" 2>/dev/null
   fi
 }
+
+WORK="$(mktemp -d)"
+FEED="$WORK/feed"
+CONFIG="$WORK/nuget.config"
+BUILD_LOG="$WORK/build.log"
+# Isolate the package cache so a repacked package under the same version is never served stale.
+export NUGET_PACKAGES="$WORK/packages"
+trap 'rm -rf "$WORK"' EXIT
+
+# The version is the package's own claim, read from its .nuspec — the same field NuGet resolves the
+# fixture's reference against — rather than parsed out of a filename a caller is free to rename.
+ENTRIES="$(list_entries "$GIVEN" 2>/dev/null)" || fail "$GIVEN is not a readable package"
+NUSPEC_ENTRY="$(awk '/^[^\/]+\.nuspec$/ { print; exit }' <<< "$ENTRIES")"
+[ -n "$NUSPEC_ENTRY" ] || fail "$GIVEN carries no .nuspec at its root"
+NUSPEC="$WORK/package.nuspec"
+read_entry "$GIVEN" "$NUSPEC_ENTRY" "$NUSPEC" || fail "could not read $NUSPEC_ENTRY out of $GIVEN"
+VERSION="$(awk 'match($0, /<version>[^<]*<\/version>/) {
+  v = substr($0, RSTART + 9, RLENGTH - 19); gsub(/[[:space:]]/, "", v); print v; exit
+}' "$NUSPEC")"
+[ -n "$VERSION" ] || fail "$NUSPEC_ENTRY in $GIVEN declares no <version>"
+
+# Copied, not pointed at: a feed is a directory, and the caller's directory may hold other packages
+# (a dev's stale artifacts/) or other files (release.yml's release notes). The copy is
+# byte-for-byte, so the package asserted on below is the package the caller goes on to push.
+mkdir -p "$FEED"
+NUPKG="$FEED/Aprbrown.Analyzers.$VERSION.nupkg"
+cp "$GIVEN" "$NUPKG"
+info "verifying $GIVEN (version $VERSION)"
+
+cat > "$CONFIG" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="smoke-feed" value="$FEED" />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  </packageSources>
+</configuration>
+EOF
+
+# --- Assertion: packed contents match the §4.2 allowlist exactly ----------------------------
 # EXPECTED is the §4.2 allowlist. It grows in lockstep with what the package ships: add a row here
 # whenever the package gains a file, or this exact-match assertion will fail.
 # Drop the standard OPC/NuGet metadata; what remains is the content allowlist.

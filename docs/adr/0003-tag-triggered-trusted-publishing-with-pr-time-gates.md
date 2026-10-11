@@ -147,7 +147,8 @@ delivery research
 built clean and **enforced nothing**, because `<None Include="build\**" Pack="true" />` silently omits
 dotfiles. Nothing in an analyzer unit test suite catches that.
 
-`scripts/verify-package.sh` packs to a temporary folder feed, restores a fixture consumer project
+`scripts/verify-package.sh` ~~packs to~~ **takes an already-packed package and places it in** a
+temporary folder feed (amendment 3), restores a fixture consumer project
 against it, builds, and asserts the exact diagnostic ID set. The fixture covers one case per failure
 class the design can produce:
 
