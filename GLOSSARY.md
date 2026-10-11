@@ -82,3 +82,8 @@ The test that holds every rule the package defines to what a consumer is told ab
 link lands on a heading of the consumer documentation, and its default severity is the one the
 shipped config sets. A rule added later is covered without the test being edited.
 _Avoid_: descriptor test, metadata test, help-link check
+
+**Diagnostic contract**:
+What a rule's diagnostic promises its code fix: where it is reported and the conclusion it carries,
+so the fix acts on the analyzer's finding rather than re-deriving it.
+_Avoid_: property bag, payload, diagnostic properties
