@@ -306,6 +306,10 @@ rejects that shape outright, so a second diagnostic on the same construct would 
 | Override of `Stream.ReadAsync(Memory<byte>, CancellationToken = default)` keeping `= default` | 0 — inherited default |
 | Implicit implementation of `I.M(CancellationToken ct = default)` keeping `= default` | 0 on the implementation; 1 on `I.M` |
 | Explicit implementation `I.M(CancellationToken ct = default)` keeping `= default` | 0 on the implementation; 1 on `I.M` |
+| Override keeping the default of a base `RunAsync(CancellationToken ct = default)` in the same source | 0 on the override; 1 on the base |
+| Implementation of a generic `I<T>.M(T item, CancellationToken ct = default)` keeping `= default` | 0 on the implementation; 1 on `I<T>.M` |
+| `interface J : I { Task I.M(CancellationToken ct = default) => …; }` (default implementation) | 0 on `J`'s; 1 on `I.M` |
+| Half-typed override or implementation whose arity disagrees with its member | no crash |
 | Override of an abstract `RunAsync(CancellationToken ct)` adding `= default` | 1 diagnostic |
 | Override adding `= default` to a middle override that dropped the root's default | 1 on the leaf; 1 on the root |
 | `interface J : I { new Task M(CancellationToken ct = default); }` | 1 on `J.M`; 1 on `I.M` |

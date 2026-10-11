@@ -177,6 +177,20 @@ public sealed class CancellationTokenDefaultAnalyzerTests
     }
 
     [Fact]
+    public async Task Override_of_a_base_in_the_same_source_keeping_its_default_is_not_flagged()
+    {
+        // The base answers for the default once, where the author chose it.
+        const string source = Usings + """
+            abstract class B { public abstract Task RunAsync({|#0:CancellationToken ct = default|}); }
+            class D : B { public override Task RunAsync(CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
     public async Task Override_introducing_a_default_its_base_lacks_is_flagged()
     {
         // The exemption follows the base's default; it is not a blanket pass for overrides. Here
@@ -214,6 +228,37 @@ public sealed class CancellationTokenDefaultAnalyzerTests
         const string source = Usings + """
             interface I { Task M({|#0:CancellationToken ct = default|}); }
             class C : I { Task I.M(CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Implementation_of_a_generic_interface_keeping_its_default_is_not_flagged()
+    {
+        // The implementation is matched against the constructed interface member, not its
+        // definition, so a generic interface must not slip past the identity comparison.
+        const string source = Usings + """
+            interface I<T> { Task M(T item, {|#0:CancellationToken ct = default|}); }
+            class C<T> : I<T> { public Task M(T item, CancellationToken ct = default) => Task.CompletedTask; }
+            class D : I<int> { public Task M(int item, CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Default_implementation_on_a_derived_interface_keeping_the_default_is_not_flagged()
+    {
+        // Unlike a "new" redeclaration, an explicit implementation in an interface body implements
+        // the member, so it is exempt on the same terms as one in a class.
+        const string source = Usings + """
+            interface I { Task M({|#0:CancellationToken ct = default|}); }
+            interface J : I { Task I.M(CancellationToken ct = default) => Task.CompletedTask; }
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(
@@ -291,5 +336,43 @@ public sealed class CancellationTokenDefaultAnalyzerTests
         var diagnostics = await withAnalyzers.GetAnalyzerDiagnosticsAsync(CancellationToken.None);
 
         Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Half_typed_overrides_and_implementations_do_not_crash_the_analyzer()
+    {
+        // The IDE runs the analyzer against code mid-edit, where an override or implementation
+        // and its member need not agree on arity. Any throw would surface as AD0001 and take down
+        // the whole analysis, so it is asserted absent; the compiler errors are expected and ignored.
+        // These shapes do not reach the analyzer's bounds check: measured, the compiler binds none
+        // of them to their member, so they pin "no crash" rather than the check itself, which
+        // stays as a guard against whatever error recovery the compiler does hand back.
+        const string source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            abstract class B { public abstract Task M(CancellationToken ct = default); }
+            class D : B { public override Task M(int extra, CancellationToken ct = default) => Task.CompletedTask; }
+            interface I { Task M(CancellationToken ct = default); }
+            class C : I { Task I.M(int extra, CancellationToken ct = default) => Task.CompletedTask; public Task M(int a, int b, CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "HalfTyped",
+            syntaxTrees: [CSharpSyntaxTree.ParseText(source, cancellationToken: CancellationToken.None)],
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var withAnalyzers = compilation.WithAnalyzers(
+            [new CancellationTokenDefaultAnalyzer()],
+            new AnalyzerOptions([]));
+
+        var diagnostics = await withAnalyzers.GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+
+        // An analyzer exception arrives here as AD0001, so "only APB0002" rules it out.
+        Assert.All(diagnostics, diagnostic => Assert.Equal("APB0002", diagnostic.Id));
     }
 }
