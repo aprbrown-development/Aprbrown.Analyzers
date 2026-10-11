@@ -182,8 +182,8 @@ other rule in the table above gates.
   explicit constructor assigning readonly fields, so a type's dependency surface reads as one block.
   *Records are exempt* — positional parameters are the point of a record. No code fix.
 - **`APB0002` — no default value on a `CancellationToken` parameter.** A defaulted token lets a caller
-  drop cancellation without saying so, invisibly at the call site. `CA2016`, `MA0032` and `MA0040`
-  police the call site; this is the declaration half. No code fix.
+  drop cancellation without saying so, invisibly at the call site. `MA0032` polices the call site;
+  this is the declaration half. No code fix.
 - **`APB0003` — an interface implementation's parameter names must match the interface's.** `CA1725`
   requires this for base-class overrides but is blind to interface implementations; this is the missing
   half. **Ships with a code fix**, which renames the symbol rather than the token, so every reference

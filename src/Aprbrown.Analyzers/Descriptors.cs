@@ -31,8 +31,8 @@ internal static class Descriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "The caller always decides cancellation. A defaulted token lets a caller "
-            + "silently opt out, and the opting-out is invisible at the call site. CA2016, MA0032 "
-            + "and MA0040 police the call site; this rule is the declaration half.",
+            + "silently opt out, and the opting-out is invisible at the call site. MA0032 polices "
+            + "the call site; this rule is the declaration half.",
         helpLinkUri: HelpLinkUri);
 
     /// <summary>APB0003 — parameter names should match the implemented interface member (spec §3.3).</summary>

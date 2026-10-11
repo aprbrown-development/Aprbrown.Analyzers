@@ -30,8 +30,8 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 
 ## 1.0.1
 
-Documentation only. No analyzer, no configuration entry and no MSBuild property changed, so every
-answer below is the same one.
+Documentation only. No analyzer's behaviour, no configuration entry and no MSBuild property
+changed, so every answer below is the same one.
 
 ### Fails a green build — by design
 
@@ -51,6 +51,10 @@ _Nothing. No analyzer changed, so nothing catches a case it missed on `1.0.0`._
   configuration — see
   [the consumer docs](docs/consuming.md#resharper-offers-the-primary-constructor-apb0001-forbids).
   The shipped config is unchanged.
+- **`APB0002`'s description no longer names `CA2016` and `MA0040` as its call-site companions.**
+  Both default to `Info`, so neither is in the shipped config. `MA0032` alone polices the call site.
+  The corrected text is what an IDE shows when you expand the diagnostic, and the same correction
+  is made in [the consumer docs](docs/consuming.md#the-three-custom-rules).
 
 ## 1.0.0
 
