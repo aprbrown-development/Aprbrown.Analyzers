@@ -19,28 +19,27 @@
 #   ./scripts/verify-package.sh artifacts/Aprbrown.Analyzers.0.0.1-smoke.nupkg
 #
 # The shipped config is complete as of spec §2.3 step 4 — APB0001-APB0003, the Meziantou tier, the
-# SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier, 150 rules under
-# the blanket — so the assertions are:
+# SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier, all under the
+# blanket — so the assertions are:
 #   - the given .nupkg matches the §4.2 allowlist exactly;
 #   - the fragment every APB rule's help link deep-links to is still a heading in the packed
 #     README — a renamed heading breaks all three links with no 404 to notice;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
-#   - the packed config's Meziantou tier matches the derivation in spec §2.3 step 1, checked
-#     against the packed file rather than the source tree so what is asserted is what ships;
+#   - the packed config is exactly the expected ruleset (tests/expected-ruleset.txt), checked
+#     against the packed file rather than the source tree so what is asserted is what ships, with
+#     any difference named line by line — and it keeps the sealed allowlist's shape: the blanket
+#     first, no category re-enable, no inline :severity, and no severity outside dotnet_diagnostic
+#     but the blanket's and the naming rules';
 #   - every rule in EXPECTED_RULES fires against the fixture, and TreatWarningsAsErrors promotes
 #     them to build errors;
 #   - severities survive the trip: a rule Meziantou defaults to Error arrives as an error and a
 #     Warning one as a warning, measured in a second build with TreatWarningsAsErrors=false where
 #     the two are still distinguishable;
 #   - MA0004 stays silent against a construct that violates it, with the assembly loaded;
-#   - the packed config's CA tier matches its derivation too, and neither AnalysisMode nor
-#     AnalysisLevel is set anywhere in this repository or the package — they cannot reach past the
-#     blanket, so setting one would document an intent the build does not honour;
-#   - the StyleCop tier is exactly SA1201-SA1204 and nothing else;
-#   - the IDE tier's eleven IDs are enumerated at the severities they were chosen at, the naming
-#     and qualification options are the frozen verbatim port, and the whole file totals 150 rules
-#     — the check that no rule arrived outside a tier;
+#   - neither AnalysisMode nor AnalysisLevel is set anywhere in this repository or the package —
+#     they cannot reach past the blanket, so setting one would document an intent the build does
+#     not honour;
 #   - IDE1006 and IDE0040 fire in the fixture, twice each. These are the rows that prove the most:
 #     under the blanket an IDE naming rule whose severity is not set explicitly is *silently*
 #     unenforced (#4), so their firing is the only available evidence that enumeration-by-ID
@@ -241,17 +240,44 @@ while IFS= read -r HELP_LINK; do
   info "the help link fragment '#$HELP_FRAGMENT' is a heading in the packed README.md"
 done <<< "$HELP_LINKS"
 
-# --- Assertion: the packed config's Meziantou tier matches the derivation --------------------
+# --- Assertion: the packed config is exactly the expected ruleset ----------------------------
 # Read out of the .nupkg, not out of src/: the source file is what was written, the packed one is
-# what a consumer receives, and only the second is worth asserting on. The derivation is spec §2.3
-# step 1 — every Meziantou.Analyzer 3.0.123 rule that is enabled by default at a build-gating
-# severity, minus MA0004, plus MA0032 — and it is frozen, so these numbers are constants rather
-# than something to recompute. Changing one is a deliberate act under ADR-0004, and this assertion
-# is what makes it deliberate.
+# what a consumer receives, and only the second is worth asserting on.
 PACKED_CONFIG="$WORK/packed.globalconfig"
 read_entry "$NUPKG" 'build/Aprbrown.Analyzers.globalconfig' "$PACKED_CONFIG" \
   || fail "could not read build/Aprbrown.Analyzers.globalconfig out of the package"
 [ -s "$PACKED_CONFIG" ] || fail "the packed build/Aprbrown.Analyzers.globalconfig is empty"
+
+# Which rules are on, at which severity, with which options: one fact, recorded once more in
+# tests/expected-ruleset.txt so that it has an expectation independent of the file under test
+# (#51). Every derivation behind it is frozen (spec §2.3), so a difference is either drift or a
+# deliberate change under ADR-0004 that was made to one file and not the other — and either way the
+# lines that differ are what a failure prints, not a count or a digest that only says something
+# did. Why individual lines are pinned as they are — the vendor Errors kept at error, MA0004, CA2007
+# and CA1707 kept out — is recorded beside those lines in the expected ruleset.
+EXPECTED_RULESET="$REPO_ROOT/tests/expected-ruleset.txt"
+if ! RULESET_DIFF="$("$REPO_ROOT/scripts/ruleset-diff.sh" "$PACKED_CONFIG" "$EXPECTED_RULESET" 2>&1)"; then
+  echo "--- + only in the packed config, - only in tests/expected-ruleset.txt ---" >&2
+  echo "$RULESET_DIFF" >&2
+  fail "the packed config is not the expected ruleset; if the change was deliberate, make it in tests/expected-ruleset.txt too"
+fi
+info "the packed config is exactly the expected ruleset"
+
+# The diff above says the two files agree; what follows says the shape they agree on is still a
+# sealed allowlist (ADR-0002). These are claims about the shape rather than about the ruleset, so a
+# change made deliberately to both files can still break them, and these are what refuse it.
+
+# The blanket has to come first. Global config precedence does not depend on line order today, but
+# a reader of the file does: the sealed allowlist reads as "everything off, then these back on".
+# One awk over the file rather than a pipe into head, which pipefail turns into a SIGPIPE failure.
+FIRST_SETTINGS="$(awk '
+  { sub(/^[[:space:]]+/, ""); sub(/[[:space:]]+$/, "") }
+  /^(#|$)/ { next }
+  { sub(/[[:space:]]*=[[:space:]]*/, " = "); printf "%s|", $0; if (++n == 2) exit }
+' "$PACKED_CONFIG")"
+[ "$FIRST_SETTINGS" = "is_global = true|dotnet_analyzer_diagnostic.severity = none|" ] \
+  || fail "the shipped config does not open with is_global and the blanket; found: $FIRST_SETTINGS"
+info "the shipped config opens with the blanket"
 
 # A category re-enable admits default-off rules and rules upstream adds later, which is exactly
 # what the seal exists to prevent (ADR-0002 decision 4). Nothing in the shipped config may use one.
@@ -260,146 +286,6 @@ if grep -qE '^[[:space:]]*dotnet_analyzer_diagnostic\.category-' "$PACKED_CONFIG
   fail "the shipped config re-enables by category; the seal only holds when every rule is enumerated by ID"
 fi
 info "no category re-enable in the shipped config"
-
-MA_COUNT="$(grep -cE '^dotnet_diagnostic\.MA[0-9]+\.severity' "$PACKED_CONFIG" || true)"
-[ "$MA_COUNT" -eq 103 ] \
-  || fail "expected 103 Meziantou rules (103 default-on, minus MA0004, plus MA0032), found $MA_COUNT"
-info "Meziantou tier enumerates 103 rules"
-
-# A count alone is a weak seal: a mistyped or duplicated ID still totals 103 and passes every
-# assertion around it. So each block of the config also pins its identity — which lines, with which
-# values — with a digest over its sorted contents. Each derivation is frozen, so each digest is a
-# constant; when a rule is deliberately added, removed or re-levelled under ADR-0004, regenerate it
-# with
-#   grep -E '<pattern>' <config> | LC_ALL=C sort | sha256sum
-# and let the diff on that one line be the thing a reviewer sees.
-#
-# Five blocks pin themselves this way — the four ID tiers and the IDE tier's option half, which is
-# why the pattern is the argument rather than a rule-ID prefix. The name is what a failure prints,
-# which is why it is spelled out at each call rather than derived from the pattern.
-assert_digest() {
-  local pattern="$1" expected="$2" name="$3"
-  local actual
-  actual="$(grep -E "$pattern" "$PACKED_CONFIG" | LC_ALL=C sort | sha256sum | cut -d' ' -f1)"
-  if [ "$actual" != "$expected" ]; then
-    grep -nE "$pattern" "$PACKED_CONFIG" >&2
-    echo "--- expected $expected ---" >&2
-    echo "--- actual   $actual ---"   >&2
-    fail "$name is not the frozen derivation; if the change was deliberate, update its expected digest"
-  fi
-}
-
-assert_digest '^dotnet_diagnostic\.MA[0-9]+\.severity' \
-  "0731fdb59880741fcbe3c7d59bb919ee4e4350427f95bba553c86e62b21f2649" "the Meziantou tier"
-info "Meziantou tier matches the frozen derivation digest"
-
-if grep -qE '^dotnet_diagnostic\.MA0004\.severity' "$PACKED_CONFIG"; then
-  fail "MA0004 is enumerated; it is the sole universality-test exclusion and must stay out"
-fi
-grep -qE '^dotnet_diagnostic\.MA0032\.severity[[:space:]]*=[[:space:]]*warning$' "$PACKED_CONFIG" \
-  || fail "MA0032 is missing or not at warning; it is default-off upstream and added deliberately"
-info "MA0004 excluded, MA0032 present at warning"
-
-# The three rules Meziantou defaults to Error. Recording them at warning would be a silent
-# downgrade of the vendor's own judgement, which §2.3 forbids: read the severity, do not assume it.
-for RULE in MA0037 MA0039 MA0049; do
-  grep -qE "^dotnet_diagnostic\.$RULE\.severity[[:space:]]*=[[:space:]]*error$" "$PACKED_CONFIG" \
-    || fail "$RULE is not recorded at error; the vendor defaults it to Error and the config must say so"
-done
-info "the three Error-severity Meziantou rules are recorded at error"
-
-# --- Assertion: the packed config's CA tier matches the derivation ---------------------------
-# Spec §2.3 step 2, measured against the SDK 10.0.110 the spec pins: of the 317 rules the SDK's
-# NetAnalyzers ship, 171 are enabled by default and 29 of those default to a build-gating severity
-# — 27 Warning and two Error. Frozen from there, so these are constants; changing one is a
-# deliberate act under ADR-0004 and this assertion is what makes it deliberate.
-#
-# 29, where step 2 says 27. The 27 is the Warning subset; see spec §10 for why the two Error rules
-# are carried rather than dropped to reach the stated count.
-CA_COUNT="$(grep -cE '^dotnet_diagnostic\.CA[0-9]+\.severity' "$PACKED_CONFIG" || true)"
-[ "$CA_COUNT" -eq 29 ] \
-  || fail "expected 29 SDK CA rules (27 default-on at Warning, two at Error), found $CA_COUNT"
-
-assert_digest '^dotnet_diagnostic\.CA[0-9]+\.severity' \
-  "2ce6f012e1db6b3b7efad423b38f548a553aa86a5e4d5b26b88acb1011060937" "the CA tier"
-info "CA tier enumerates 29 rules and matches the frozen derivation digest"
-
-# The two the SDK defaults to Error. Recording either at warning would be the silent downgrade of
-# the vendor's judgement §2.3 forbids — and they are the reason this tier is 29 rather than 27, so
-# they are the last thing that should quietly drift back to warning.
-for RULE in CA1856 CA2252; do
-  grep -qE "^dotnet_diagnostic\.$RULE\.severity[[:space:]]*=[[:space:]]*error$" "$PACKED_CONFIG" \
-    || fail "$RULE is not recorded at error; the SDK defaults it to Error and the config must say so"
-done
-info "the two Error-severity CA rules are recorded at error"
-
-# The two rules that would fight the house style. Neither may be enumerated: CA2007 is
-# enabled-by-default false and contradicts the MA0004 exclusion, CA1707 bans the underscores the
-# house _camelCase convention requires. Both stay off under the blanket by not being named here,
-# and the fixture build below proves the silence behaviourally.
-for RULE in CA2007 CA1707; do
-  if grep -qE "^dotnet_diagnostic\.$RULE\.severity" "$PACKED_CONFIG"; then
-    fail "$RULE is enumerated; it contradicts the house ruleset and must stay off under the blanket"
-  fi
-done
-info "CA2007 and CA1707 are not enumerated"
-
-# --- Assertion: the StyleCop tier is exactly the four ordering rules -------------------------
-# Four rules and only four (spec §2.3 step 3). This is not a StyleCop adoption, and the eight
-# category-StyleCop.CSharp.* switch-offs the source repository carried are redundant under the
-# blanket — the category check above already refuses them, this one refuses any other SA rule
-# arriving on.
-SA_ACTUAL_IDS="$(grep -oE '^dotnet_diagnostic\.SA[0-9]+\.severity' "$PACKED_CONFIG" \
-  | sed -E 's/^dotnet_diagnostic\.(SA[0-9]+)\.severity$/\1/' | LC_ALL=C sort | tr '\n' ' ')"
-[ "$SA_ACTUAL_IDS" = "SA1201 SA1202 SA1203 SA1204 " ] \
-  || fail "the StyleCop tier is not exactly SA1201-SA1204; found: $SA_ACTUAL_IDS"
-assert_digest '^dotnet_diagnostic\.SA[0-9]+\.severity' \
-  "c1b0666a0969156bab864bd8b7c879ee65f8b87cef8e5262878316c9bdc7a264" "the StyleCop tier"
-info "StyleCop tier is exactly SA1201-SA1204 at the vendor's severities"
-
-# --- Assertion: the IDE, naming and style tier ----------------------------------------------
-# Spec §2.3 step 4, and the tier where enumeration-by-ID stops being a stylistic preference and
-# becomes the whole mechanism: under the blanket a naming rule whose dotnet_diagnostic severity is
-# not set explicitly is *silently unenforced* — it neither fires nor warns that it is inactive
-# (#4). There is no vendor default to fall back on here, so an ID missing from this file is a rule
-# that quietly does nothing, which is the failure mode these assertions exist to catch.
-#
-# Eleven IDs: IDE1006 (every dotnet_naming_rule violation reports under it), IDE0003/IDE0009 (the
-# two halves of `this.` qualification), IDE0040 (accessibility modifiers), and the seven
-# expression-bodied preferences.
-IDE_COUNT="$(grep -cE '^dotnet_diagnostic\.IDE[0-9]+\.severity' "$PACKED_CONFIG" || true)"
-[ "$IDE_COUNT" -eq 11 ] \
-  || fail "expected 11 IDE rules (IDE1006, IDE0003, IDE0009, IDE0040 and seven expression-bodied), found $IDE_COUNT"
-
-assert_digest '^dotnet_diagnostic\.IDE[0-9]+\.severity' \
-  "f95edfd1d4196b5b80f82c22b70e9a9eb8e98ada5c0a6d0b75e30a86acdef46f" "the IDE tier"
-info "IDE tier enumerates 11 rules and matches the frozen derivation digest"
-
-# The four that gate. Recorded at warning, which TreatWarningsAsErrors turns into a build error —
-# the same bar as every rule in the tiers above.
-for RULE in IDE1006 IDE0003 IDE0009 IDE0040; do
-  grep -qE "^dotnet_diagnostic\.$RULE\.severity[[:space:]]*=[[:space:]]*warning$" "$PACKED_CONFIG" \
-    || fail "$RULE is not recorded at warning; the naming and accessibility rules are meant to gate"
-done
-info "IDE1006, IDE0003, IDE0009 and IDE0040 are recorded at warning"
-
-# The seven that deliberately do not gate. `suggestion` is the point of them: six repositories
-# agree on shape without a disagreement failing anyone's build. A drift to warning here would turn
-# a nudge into a fleet-wide build break, so it is pinned by value rather than left to the digest.
-for RULE in IDE0021 IDE0022 IDE0025 IDE0026 IDE0027 IDE0053 IDE0061; do
-  grep -qE "^dotnet_diagnostic\.$RULE\.severity[[:space:]]*=[[:space:]]*suggestion$" "$PACKED_CONFIG" \
-    || fail "$RULE is not recorded at suggestion; the expression-bodied preferences must not gate a build"
-done
-info "the seven expression-bodied preferences are recorded at suggestion"
-
-# The option half of the tier. A severity alone enforces nothing here — IDE1006 needs the naming
-# rule/symbol/style triples to have something to enforce, and IDE0003/IDE0009/IDE0040 need their
-# dotnet_style_* options to know which way round they point. The triples are ported verbatim from
-# the source repository, and #2 verified they work byte-identically in a global config; the digest
-# is what keeps them that way.
-assert_digest '^(dotnet_naming_(rule|symbols|style)|dotnet_style_(qualification_for_|require_accessibility_modifiers)|csharp_style_expression_bodied_)' \
-  "cbfc960cc2edba205b8a5978e396e9ff337ceb043d4ecbe3115140115eeec725" "the naming and style option block"
-info "the naming, qualification and expression-bodied options match the frozen derivation digest"
 
 # `option = value:severity` is the .editorconfig shorthand that sets both at once, and the source
 # repository used it throughout. It is not used here: a reader looking for what a rule is set to
@@ -413,31 +299,27 @@ if grep -E '^(dotnet_style_|csharp_style_|dotnet_naming_style\.)' "$PACKED_CONFI
 fi
 info "no style option carries an inline :severity"
 
-# The exceptions to "one place to look", pinned rather than waved at. Exactly three severity keys
-# in this file are not dotnet_diagnostic entries, and each has no dotnet_diagnostic form at all:
+# The exceptions to "one place to look", pinned rather than waved at. The only severity keys in
+# this file that are not dotnet_diagnostic entries are ones with no dotnet_diagnostic form at all:
 #   - the blanket, which is the whole point of dotnet_analyzer_diagnostic — a per-ID entry cannot
 #     switch off a rule that does not exist yet, which is what makes the allowlist sealed;
-#   - the two naming rules, because Roslyn reports every dotnet_naming_rule violation under IDE1006
-#     and dotnet_naming_rule.<name>.severity is the only way to say what one of them is set to.
-# Asserting the set rather than describing it means a fourth cannot appear and be read as house
-# style — the failure above is a claim about the file, and this is what keeps the claim true.
-NON_DIAGNOSTIC_SEVERITIES="$(grep -oE '^[a-z_.]*\.severity' "$PACKED_CONFIG" \
-  | grep -v '^dotnet_diagnostic\.' | LC_ALL=C sort -u | tr '\n' ' ')"
-EXPECTED_NON_DIAGNOSTIC="dotnet_analyzer_diagnostic.severity dotnet_naming_rule.private_fields_are_underscored.severity dotnet_naming_rule.private_static_fields_are_pascal_case.severity "
-[ "$NON_DIAGNOSTIC_SEVERITIES" = "$EXPECTED_NON_DIAGNOSTIC" ] \
-  || fail "the only severities outside dotnet_diagnostic should be the blanket and the two naming rules'; found: $NON_DIAGNOSTIC_SEVERITIES"
-info "the only non-dotnet_diagnostic severities are the blanket and the two naming rules'"
+#   - naming rules, because Roslyn reports every dotnet_naming_rule violation under IDE1006 and
+#     dotnet_naming_rule.<name>.severity is the only way to say what one of them is set to.
+# Which naming rules exist is the expected ruleset's business; this asserts only the kinds of key,
+# so a severity of any other kind cannot appear and be read as house style.
+STRAY_SEVERITIES="$(grep -oE '^[^#[:space:]=]+\.severity' "$PACKED_CONFIG" \
+  | grep -vE '^dotnet_diagnostic\.' \
+  | grep -vxE 'dotnet_analyzer_diagnostic\.severity|dotnet_naming_rule\.[^.]+\.severity' || true)"
+[ -z "$STRAY_SEVERITIES" ] \
+  || fail "the only severities outside dotnet_diagnostic should be the blanket and the naming rules'; found: $STRAY_SEVERITIES"
+info "the only non-dotnet_diagnostic severities are the blanket and the naming rules'"
 
-# --- Assertion: the shipped config is complete ----------------------------------------------
-# Step 4 was the last tier, so this total is now the whole house ruleset rather than a waypoint:
-# 3 APB + 103 Meziantou + 29 CA + 4 StyleCop + 11 IDE. Spec §1 and §2.2 say "~131", written before
-# any tier was measured; see spec §10 for why the measured figure is what ships. The per-tier
-# counts above already pin each part, so what this adds is the guarantee that no rule arrived in
-# the file outside a tier — a stray ID belonging to no derivation at all.
-TOTAL_COUNT="$(grep -cE '^dotnet_diagnostic\.[A-Za-z]+[0-9]+\.severity' "$PACKED_CONFIG" || true)"
-[ "$TOTAL_COUNT" -eq 150 ] \
-  || fail "expected 150 enumerated rules (3 APB + 103 MA + 29 CA + 4 SA + 11 IDE), found $TOTAL_COUNT"
-info "the shipped config enumerates 150 rules under the blanket"
+# The tier sizes, reported rather than asserted: the expected ruleset already pins every line, so a
+# count here would be a third copy of the same fact. What it is for is the reader of a CI log.
+TIER_COUNTS="$(grep -oE '^dotnet_diagnostic\.[A-Za-z]+[0-9]+\.severity' "$PACKED_CONFIG" \
+  | sed -E 's/^dotnet_diagnostic\.([A-Za-z]+)[0-9]+\.severity$/\1/' | LC_ALL=C sort | uniq -c \
+  | awk '{ printf "%s%s %s", sep, $2, $1; sep = " · "; total += $1 } END { printf " · %d rules", total }')"
+info "the shipped config enumerates $TIER_COUNTS under the blanket"
 
 # --- Assertion: neither AnalysisMode nor AnalysisLevel is set anywhere -----------------------
 # Measured on this SDK, neither reaches past the blanket at any value, All and latest-all included
@@ -496,8 +378,8 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 # default-on Warning sweep (MA0026), the one rule added against a vendor default of off (MA0032),
 # and one of the three the vendor defaults to Error (MA0037). They fire only because a config
 # shipped by this package bound to an assembly this package does not depend on, which is the claim
-# under test. What the other 100 get is weaker and worth naming: the digest above pins that they
-# are present at the right severities, but nothing here observes them fire. Proving 103 rules
+# under test. What the other 100 get is weaker and worth naming: the expected ruleset above pins
+# that they are present at the right severities, but nothing here observes them fire. Proving 103 rules
 # behaviourally would mean 103 violations in the fixture, and the binding they would each
 # re-demonstrate is the same one these three already establish.
 #
@@ -567,7 +449,7 @@ info "no expression-bodied preference failed the build, with the IDE analyzers r
 # 2 as 4 and make the assertion a test of MSBuild's log format rather than of the ruleset.
 #
 # Both counts in this section want the same thing — "this rule fired exactly N times in this file"
-# — so it is a function, like the digest comparison above. The reason is the argument because it is
+# — so it is a function. The reason is the argument because it is
 # what a failure has to explain: the count alone says nothing about which of the two was lost.
 assert_diagnostic_count() {
   local file="$1" rule="$2" expected="$3" reason="$4"

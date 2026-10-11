@@ -99,7 +99,8 @@ dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj -c 
 ```
 
 `./scripts/tests/verify-package-tests.sh` checks, in seconds and without the SDK, that the gate
-refuses deliberately broken packages.
+refuses deliberately broken packages, and `./scripts/tests/ruleset-diff-tests.sh` that its comparison
+with the expected ruleset names every line that differs.
 
 `tests/Fixture.Consumer` is outside the solution because it only builds once the package has been
 packed, so the smoke script drives it rather than `dotnet build`.
@@ -115,7 +116,9 @@ packed, so the smoke script drives it rather than `dotnet build`.
 4. Specify the rule in [`docs/spec.md`](docs/spec.md) §3 — ID, category, default severity, rationale,
    what it must *not* flag, and the required test cases — and add it to `AnalyzerReleases.Unshipped.md`.
 5. Add it to the shipped configuration by ID. A rule absent from that allowlist is off, however the
-   analyzer is written.
+   analyzer is written. Add the same line to [`tests/expected-ruleset.txt`](tests/expected-ruleset.txt),
+   the expected ruleset the packed config is compared against line for line; any change to the
+   house ruleset is made in both files.
 6. Document it in [`docs/consuming.md`](docs/consuming.md) — that document is where a consumer learns
    what a rule does, and every diagnostic's IDE help link points at it.
 7. Record it in [`CHANGELOG.md`](CHANGELOG.md) under the version it will ship in, classified by build

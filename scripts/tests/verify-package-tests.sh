@@ -122,6 +122,20 @@ assert_refused 'matches no heading in the packed README.md' \
   'a package whose README has lost the help-link heading is refused' \
   "$ANCHORLESS"
 
+# --- the expected ruleset --------------------------------------------------------------------------
+# One rule switched on in the shipped config and not in the expected ruleset (#51): the change
+# ADR-0004 calls a versioned act, made to one file only. The package carries the real config and
+# README so every earlier check passes, and the refusal must name the rule rather than say "differs".
+DRIFTED_CONFIG="$WORK/drifted.globalconfig"
+cp "$REPO_ROOT/src/Aprbrown.Analyzers.Package/build/Aprbrown.Analyzers.globalconfig" "$DRIFTED_CONFIG"
+echo 'dotnet_diagnostic.MA0099.severity = warning' >> "$DRIFTED_CONFIG"
+DRIFTED="$WORK/drifted.nupkg"
+make_nupkg "$DRIFTED" "${ALLOWLISTED[@]/#build\/Aprbrown.Analyzers.globalconfig=*/build/Aprbrown.Analyzers.globalconfig=$DRIFTED_CONFIG}" \
+  "README.md=$GOOD_README"
+assert_refused '+ dotnet_diagnostic.MA0099.severity = warning' \
+  'a package whose config enumerates a rule the expected ruleset does not is refused, naming it' \
+  "$DRIFTED"
+
 echo
 echo "verify-package tests: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1
