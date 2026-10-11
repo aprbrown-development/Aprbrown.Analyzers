@@ -123,7 +123,10 @@ at; any line without one must stay silent. A new fixture case is the violating l
    the expected ruleset the shipped config is compared against line for line; any change to the
    house ruleset is made in both files.
 6. Document it in [`docs/consuming.md`](docs/consuming.md) — that document is where a consumer learns
-   what a rule does, and every diagnostic's IDE help link points at it.
+   what a rule does, and every diagnostic's IDE help link points at it. The descriptor contract test
+   (`tests/Aprbrown.Analyzers.Tests/DescriptorContractTests.cs`) picks the new rule up unedited and
+   fails `dotnet test` unless its help link lands on a heading there and its default severity is the
+   one step 5 shipped.
 7. Record it in [`CHANGELOG.md`](CHANGELOG.md) under the version it will ship in, classified by build
    impact. A new rule can fail a build that was green on the previous version, and the changelog is the
    only place that says so — release tracking covers the rule table, not the consequence.

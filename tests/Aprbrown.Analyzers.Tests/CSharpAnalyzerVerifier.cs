@@ -12,8 +12,15 @@ namespace Aprbrown.Analyzers.Tests;
 internal static class CSharpAnalyzerVerifier<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
+    // At the severity the analyzer's own descriptor declares, rather than a copied literal; the
+    // descriptor contract test holds that default to the shipped config. An ID the analyzer does not
+    // support fails here, at Single.
     public static DiagnosticResult Diagnostic(string diagnosticId)
-        => new(diagnosticId, Microsoft.CodeAnalysis.DiagnosticSeverity.Warning);
+        => new(
+            diagnosticId,
+            new TAnalyzer().SupportedDiagnostics
+                .Single(d => string.Equals(d.Id, diagnosticId, StringComparison.Ordinal))
+                .DefaultSeverity);
 
     public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
     {

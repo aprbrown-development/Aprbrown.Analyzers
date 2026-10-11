@@ -8,7 +8,7 @@
 #
 # Only the cheap refusals are pinned here — the ones that fail before any fixture build, so this
 # file runs in seconds and needs no SDK. The packages are synthetic zips rather than real packs:
-# every case below is refused on entry names or README text, which a synthetic package carries as
+# every case below is refused on entry names or packed config text, which a synthetic package carries as
 # faithfully as a real one. A synthetic package would of course fail *some* later assertion too,
 # so each case checks the failure message as well as the exit code — a refusal for the wrong
 # reason is not a pass. The positive case is the full run against a real package, which ci.yml
@@ -106,28 +106,13 @@ assert_refused 'packed contents do not match the §4.2 allowlist' \
   'a package carrying a file the allowlist does not name is refused' \
   "$EXTRA_ENTRY"
 
-# --- the help-link anchor ------------------------------------------------------------------------
-# The silent breakage #43 describes: the heading every APB help link deep-links to is reworded,
-# GitHub serves the page anyway, and a consumer lands at the top of a long document. Here the README
-# keeps every heading but that one, so only the anchor check has a reason to refuse it.
-ANCHORLESS_README="$WORK/anchorless-README.md"
-grep -vE '^#+[[:space:]]+The three custom rules[[:space:]]*$' "$GOOD_README" > "$ANCHORLESS_README"
-if cmp -s "$GOOD_README" "$ANCHORLESS_README"; then
-  not_ok 'the anchorless README fixture removed the help-link heading' \
-    "no '## The three custom rules' heading found in docs/consuming.md to remove"
-fi
-ANCHORLESS="$WORK/anchorless.nupkg"
-make_nupkg "$ANCHORLESS" "${ALLOWLISTED[@]}" "README.md=$ANCHORLESS_README"
-assert_refused 'matches no heading in the packed README.md' \
-  'a package whose README has lost the help-link heading is refused' \
-  "$ANCHORLESS"
-
 # --- the expected ruleset --------------------------------------------------------------------------
 # One rule switched on in the shipped config and not in the expected ruleset (#51): the change
 # ADR-0004 calls a versioned act, made to one file only. MA0004 because it is the rule most worth
 # refusing — the sole universality-test exclusion — and because it is not enumerated, so the line
 # is new rather than a duplicate of one already there. The package carries the real config and
-# README so every earlier check passes, and the refusal must name the rule rather than say "differs".
+# every allowlisted entry so the earlier checks pass, and the refusal must name the rule rather than
+# say "differs".
 SHIPPED_CONFIG="$REPO_ROOT/src/Aprbrown.Analyzers.Package/build/Aprbrown.Analyzers.globalconfig"
 if grep -qE '^[[:space:]]*dotnet_diagnostic\.MA0004\.' "$SHIPPED_CONFIG"; then
   not_ok 'the drifted config fixture adds a rule the shipped config does not enumerate' \

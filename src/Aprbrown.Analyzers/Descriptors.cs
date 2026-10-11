@@ -7,11 +7,16 @@ namespace Aprbrown.Analyzers;
 /// analyzer", step 1), so a rule's public identity — ID, category, default severity, message —
 /// reads as one table as more rules land.
 /// </summary>
+/// <remarks>
+/// Diagnostic IDs are public API (ADR-0004): consumers reference them by string in configuration
+/// they own, so a rename is a breaking change. Each is written once, here; the code fix reads it back
+/// through the descriptor's <see cref="DiagnosticDescriptor.Id"/>.
+/// </remarks>
 internal static class Descriptors
 {
     /// <summary>APB0001 — do not use primary constructors on classes or structs (spec §3.1).</summary>
     public static readonly DiagnosticDescriptor PrimaryConstructor = new(
-        id: DiagnosticIds.PrimaryConstructor,
+        id: "APB0001",
         title: "Do not use primary constructors on classes or structs",
         messageFormat: "'{0}' declares a primary constructor; use an explicit constructor with readonly fields",
         category: "Design",
@@ -24,7 +29,7 @@ internal static class Descriptors
 
     /// <summary>APB0002 — do not give a CancellationToken parameter a default value (spec §3.2).</summary>
     public static readonly DiagnosticDescriptor CancellationTokenDefault = new(
-        id: DiagnosticIds.CancellationTokenDefault,
+        id: "APB0002",
         title: "Do not give a CancellationToken parameter a default value",
         messageFormat: "Parameter '{0}' defaults its CancellationToken; make every caller pass one",
         category: "Design",
@@ -37,7 +42,7 @@ internal static class Descriptors
 
     /// <summary>APB0003 — parameter names should match the implemented interface member (spec §3.3).</summary>
     public static readonly DiagnosticDescriptor InterfaceParameterName = new(
-        id: DiagnosticIds.InterfaceParameterName,
+        id: "APB0003",
         title: "Parameter names should match the implemented interface member",
         messageFormat: "Parameter '{0}' should be named '{1}' to match {2}",
         category: "Naming",

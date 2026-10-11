@@ -32,4 +32,15 @@
     <ProjectReference Include="..\..\src\Aprbrown.Analyzers.CodeFixes\Aprbrown.Analyzers.CodeFixes.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- What the descriptor contract test holds every descriptor to: the guide its help link lands
+         in (packed byte-for-byte as the package README) and the shipped config that sets its
+         severity. Copied beside the test assembly so the dependency is declared here rather than
+         found by walking up to the repository root. -->
+    <None Include="..\..\docs\consuming.md"
+          Link="Contract\consuming.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\Aprbrown.Analyzers.Package\build\Aprbrown.Analyzers.globalconfig"
+          Link="Contract\Aprbrown.Analyzers.globalconfig" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
