@@ -87,12 +87,19 @@ dotnet test  Aprbrown.Analyzers.slnx
 ```
 
 Unit tests test the analyzers; they cannot test the *package*. The pack-consume smoke test does — it
-packs to a temp feed, restores `tests/Fixture.Consumer` against it, builds, and asserts an exact
-diagnostic set. Run it on any dev machine:
+takes a packed package, restores `tests/Fixture.Consumer` against it from a temp feed, builds, and
+asserts an exact diagnostic set. It never packs one itself, so the package a release pushes is the
+one it gated ([ADR-0003](docs/adr/0003-tag-triggered-trusted-publishing-with-pr-time-gates.md)
+amendment 3). Run it on any dev machine by packing a smoke version first:
 
 ```bash
-./scripts/verify-package.sh
+dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj -c Release \
+  -o artifacts -p:Version=0.0.1-smoke
+./scripts/verify-package.sh artifacts/Aprbrown.Analyzers.0.0.1-smoke.nupkg
 ```
+
+`./scripts/tests/verify-package-tests.sh` checks, in seconds and without the SDK, that the gate
+refuses deliberately broken packages.
 
 `tests/Fixture.Consumer` is outside the solution because it only builds once the package has been
 packed, so the smoke script drives it rather than `dotnet build`.

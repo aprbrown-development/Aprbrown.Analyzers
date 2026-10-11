@@ -18,8 +18,8 @@
     <PackageId>Aprbrown.Analyzers</PackageId>
     <!-- No <Version> here, and none anywhere else in the repository (ADR-0003 decision 2). The git
          tag is the sole source of a version number: release.yml packs with
-         -p:Version=${GITHUB_REF_NAME#v} and verify-package.sh passes its own throwaway
-         0.0.1-smoke. Given the first push is unrevocable, nothing in this repository should mint a
+         -p:Version=${GITHUB_REF_NAME#v}, and ci.yml packs a throwaway 0.0.1-smoke for the smoke
+         test. Given the first push is unrevocable, nothing in this repository should mint a
          publishable version number on its own — a version exists only when one is typed into
          `git tag`. A hand-edited property here would also make a release a three-part ritual (edit
          this, edit AnalyzerReleases.Shipped.md, tag) in which two parts can silently disagree with

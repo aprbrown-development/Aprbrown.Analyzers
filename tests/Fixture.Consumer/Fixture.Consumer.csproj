@@ -13,9 +13,10 @@
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
 
-    <!-- Overridden by verify-package.sh (-p:AprbrownAnalyzersVersion=…) to match the packed
-         version; the default keeps the project self-describing. -->
-    <AprbrownAnalyzersVersion Condition="'$(AprbrownAnalyzersVersion)'==''">0.0.1-smoke</AprbrownAnalyzersVersion>
+    <!-- No default version, deliberately (ADR-0003 amendment 3). verify-package.sh passes
+         -p:AprbrownAnalyzersVersion=… read from the package it was handed; a default here would be
+         a second copy of a version string only the caller who packs should hold, and a restore
+         that forgot the property would quietly match it. Without one, that restore fails. -->
 
     <!--
       SA0001 reports "XML comment analysis disabled" once per project when no documentation file is

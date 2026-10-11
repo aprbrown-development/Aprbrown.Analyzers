@@ -13,9 +13,10 @@
 
 ## Amendments
 
-Made while writing the consumption spec
-([#8](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/8)). The decisions below
-stand; two statements in them did not.
+The first two were made while writing the consumption spec
+([#8](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/8)), and the third in an
+architecture review ([#50](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/50)).
+The decisions below stand; three statements in them did not.
 
 1. **There is no `AnalysisMode` tier** (decision 5's assertion table). #4 assumed the SDK's 27
    default-on `CA` rules could be restored past the blanket by an `AnalysisMode` tier, and left
@@ -31,6 +32,18 @@ stand; two statements in them did not.
    reviews, not to environment protection rules.) The push is unrevocable and a mistyped tag spends a
    version number permanently; one click is cheap insurance. The trusted publishing policy is scoped
    to the same environment.
+3. **The smoke test inspects the package it is handed; it does not pack its own** (decision 5,
+   [#50](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/50)). As first built,
+   `scripts/verify-package.sh` packed a private `0.0.1-smoke` copy and asserted against that, while
+   `release.yml` packed a *second* package at the tag version and pushed it. The one unrevocable
+   artifact was never inspected, and decisions 4 and 5 were true only of a sibling. The script now
+   takes the path of a `.nupkg` as its single required argument and reads the version from the
+   package's own `.nuspec`. `release.yml` packs once at the tag version, gates that file and pushes
+   that same file. `ci.yml` packs a smoke version and gates it. The fixture carries no default
+   version, so the smoke version string lives only with whichever caller packs.
+   The trade accepted is dev-machine ergonomics: running the gate locally is now two commands, pack
+   then verify, rather than one. Folding packing back into the script would restore the one-command
+   run and reopen the gap. This amendment exists so that nobody does that as a simplification.
 
 ## Context
 
@@ -134,7 +147,8 @@ delivery research
 built clean and **enforced nothing**, because `<None Include="build\**" Pack="true" />` silently omits
 dotfiles. Nothing in an analyzer unit test suite catches that.
 
-`scripts/verify-package.sh` packs to a temporary folder feed, restores a fixture consumer project
+`scripts/verify-package.sh` ~~packs to~~ **takes an already-packed package and places it in** a
+temporary folder feed (amendment 3), restores a fixture consumer project
 against it, builds, and asserts the exact diagnostic ID set. The fixture covers one case per failure
 class the design can produce:
 

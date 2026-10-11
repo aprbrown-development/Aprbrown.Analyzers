@@ -55,3 +55,8 @@ _Avoid_: migration, rollout, adoption ramp
 A change that makes an existing rule catch a case it previously missed. The rule table is unchanged,
 so it is invisible to release tracking, yet it can turn a consumer's green build red.
 _Avoid_: bug fix, improvement
+
+**Pack-consume smoke test**:
+The gate that proves an already-built package delivers the house ruleset intact to a consumer. It
+inspects the package it is handed and never makes its own.
+_Avoid_: package verification, smoke script, pack test

@@ -32,8 +32,8 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
-  # ADR-0003 decision 10. Set as an environment variable rather than a `-p:` flag so it also reaches
-  # the `dotnet pack` inside verify-package.sh, mirroring ci.yml — these are the duplicated setup
+  # ADR-0003 decision 10. Set as an environment variable rather than a `-p:` flag so the build and
+  # the pack below cannot disagree about it, mirroring ci.yml — these are the duplicated setup
   # lines the ADR accepts deliberately over a reusable-workflow indirection that could confuse the
   # OIDC claim. If they ever grow enough to warrant sharing, the answer is a local composite action
   # under .github/actions/, which runs inside the calling job and leaves the claim untouched.
@@ -82,17 +82,20 @@ jobs:
       - name: Test
         run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
 
-      # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5).
-      - name: Pack-consume smoke test
-        run: ./scripts/verify-package.sh
-
-      # The artifact that is published is the artifact that was gated. Packing here rather than in
-      # the publish job also keeps that job free of a checkout, an SDK restore and a build — the
-      # less that happens under `id-token: write`, the smaller the thing a reviewer has to trust.
+      # Packed once, before the smoke test rather than after it, and that ordering is the point: the
+      # file the smoke test inspects is the file the publish job pushes, not a sibling packed for
+      # the purpose (ADR-0003 amendment 3). Packing here rather than in the publish job also keeps
+      # that job free of a checkout, an SDK restore and a build — the less that happens under
+      # `id-token: write`, the smaller the thing a reviewer has to trust.
       - name: Pack
         run: |
           dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj \
             -c Release --no-build -o artifacts -p:Version="${GITHUB_REF_NAME#v}"
+
+      # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5). The
+      # artifact that is published is the artifact that was gated.
+      - name: Pack-consume smoke test
+        run: ./scripts/verify-package.sh "artifacts/Aprbrown.Analyzers.${GITHUB_REF_NAME#v}.nupkg"
 
       # The release body, cut from CHANGELOG.md's section for this version (ADR-0003 decision 9), so
       # there is exactly one authored source and the release page cannot disagree with the

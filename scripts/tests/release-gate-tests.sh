@@ -2,11 +2,12 @@
 #
 # Tests for the two release-time gates (ADR-0003 decisions 8 and 9).
 #
-# verify-package.sh needs no tests of its own: it *is* an assertion over a real artifact, and its
-# failure mode is loud. These two are different in kind. They are text parsers over Markdown, and a
-# text parser that quietly matches nothing looks exactly like a gate that passed — which is the
-# failure shape #2 produced a package for (built clean, enforced nothing) and the one this
-# repository has spent the most effort refusing to repeat.
+# verify-package.sh is an assertion over a real artifact and its failure mode is loud; its few
+# tests, in verify-package-tests.sh, pin only that it refuses a broken package it is handed. These
+# two are different in kind. They are text parsers over Markdown, and a text parser that quietly
+# matches nothing looks exactly like a gate that passed — which is the failure shape #2 produced a
+# package for (built clean, enforced nothing) and the one this repository has spent the most effort
+# refusing to repeat.
 #
 # What is worth pinning is precisely what a hand-check would not notice:
 #   - a rule row in Unshipped.md is detected, and the table furniture around it is not mistaken for
