@@ -99,11 +99,14 @@ dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj -c 
 ```
 
 `./scripts/tests/verify-package-tests.sh` checks, in seconds and without the SDK, that the gate
-refuses deliberately broken packages, and `./scripts/tests/ruleset-diff-tests.sh` that its comparison
-with the expected ruleset names every line that differs.
+refuses deliberately broken packages, `./scripts/tests/ruleset-diff-tests.sh` that its comparison
+with the expected ruleset names every line that differs, and `./scripts/tests/diagnostic-diff-tests.sh`
+that its comparison of a fixture build against the fixture's expectation markers does the same.
 
 `tests/Fixture.Consumer` is outside the solution because it only builds once the package has been
-packed, so the smoke script drives it rather than `dotnet build`.
+packed, so the smoke script drives it rather than `dotnet build`. Each line in it that should raise a
+diagnostic says so in a trailing `// expect: <ID> <severity>` comment, at the severity the rule ships
+at; any line without one must stay silent. A new fixture case is the violating line and its marker.
 
 ### Adding an analyzer
 
