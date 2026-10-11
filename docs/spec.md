@@ -463,7 +463,8 @@ the ruleset functions.
 
 ADR-0003 and ADR-0004 settle these; the deliverables are listed here so nothing is missed.
 
-- `.github/workflows/ci.yml` — PR and `main` pushes. Build, test, and run `verify-package.sh`.
+- `.github/workflows/ci.yml` — PR and `main` pushes. Build, test, pack a smoke version, and run
+  `verify-package.sh` against it.
 - `.github/workflows/release.yml` — `v*` tags only; the sole workflow holding `id-token: write`.
   Packs with `-p:Version=${GITHUB_REF_NAME#v}` — the tag is the only source of a version number. No
   `NUGET_API_KEY` exists; `NuGet/login@v1` exchanges an OIDC token for a one-hour single-use key.

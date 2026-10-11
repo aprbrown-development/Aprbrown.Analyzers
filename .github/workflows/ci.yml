@@ -51,6 +51,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    # A throwaway version for the package the smoke test gates, named once so the pack step and
+    # the path handed to the script cannot disagree. Never pushed anywhere.
+    env:
+      SMOKE_VERSION: 0.0.1-smoke
+
     steps:
       - name: Check out
         uses: actions/checkout@v7
@@ -102,14 +107,14 @@ jobs:
       - name: Pack a smoke version
         run: |
           dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj \
-            -c Release --no-build -o "$RUNNER_TEMP/smoke" -p:Version=0.0.1-smoke
+            -c Release --no-build -o "$RUNNER_TEMP/smoke" -p:Version="$SMOKE_VERSION"
 
       # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5). The
       # gate has to be runnable on a dev machine to be worth anything, and a YAML copy of it would
       # be a second set of assertions free to disagree with the first — with CI's copy the only
       # one anybody runs. A failing assertion inside the script exits non-zero and fails this step.
       - name: Pack-consume smoke test
-        run: ./scripts/verify-package.sh "$RUNNER_TEMP/smoke/Aprbrown.Analyzers.0.0.1-smoke.nupkg"
+        run: ./scripts/verify-package.sh "$RUNNER_TEMP/smoke/Aprbrown.Analyzers.$SMOKE_VERSION.nupkg"
 
       # The gate's refusals: handed a deliberately broken package, it must fail, and for the right
       # reason. Only possible since it stopped packing its own (amendment 3).

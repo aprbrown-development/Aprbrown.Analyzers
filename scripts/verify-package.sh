@@ -115,9 +115,9 @@ VERSION="$(awk 'match($0, /<version>[^<]*<\/version>/) {
 # Copied, not pointed at: a feed is a directory, and the caller's directory may hold other packages
 # (a dev's stale artifacts/) or other files (release.yml's release notes). The copy is
 # byte-for-byte, so the package asserted on below is the package the caller goes on to push.
-mkdir -p "$FEED"
+mkdir -p "$FEED" || fail "could not create the temp feed at $FEED"
 NUPKG="$FEED/Aprbrown.Analyzers.$VERSION.nupkg"
-cp "$GIVEN" "$NUPKG"
+cp "$GIVEN" "$NUPKG" || fail "could not copy $GIVEN into the temp feed"
 info "verifying $GIVEN (version $VERSION)"
 
 cat > "$CONFIG" <<EOF

@@ -57,7 +57,6 @@ so it is invisible to release tracking, yet it can turn a consumer's green build
 _Avoid_: bug fix, improvement
 
 **Pack-consume smoke test**:
-The gate that takes one already-built package, installs it into a consumer fixture the way a consumer
-would, and proves the house ruleset arrives intact. It inspects the package it is handed and never
-makes its own, so the package a release publishes is the package that was gated.
+The gate that proves an already-built package delivers the house ruleset intact to a consumer. It
+inspects the package it is handed and never makes its own.
 _Avoid_: package verification, smoke script, pack test
