@@ -74,11 +74,11 @@ jobs:
           # enumerated 29 of them, so that premise is gone and what replaces it is narrower.
           #
           # A floating patch is still the right trade, because nothing this workflow asserts is
-          # patch-sensitive. The tier digests are taken over the shipped config file, not over the
-          # SDK, so they cannot drift with the runner. The behavioural assertions are that CA2200
-          # and CA2252 fire and that CA2007 and CA1707 do not — properties of rules that have been
-          # stable for releases, and a newer patch adding a default-on rule would simply leave it
-          # off under the blanket, which is the seal working rather than failing.
+          # patch-sensitive. The expected ruleset is compared with the shipped config file, not with
+          # anything the SDK reports, so it cannot drift with the runner. The behavioural assertions
+          # are that CA2200 and CA2252 fire and that CA2007 and CA1707 do not — properties of rules
+          # that have been stable for releases, and a newer patch adding a default-on rule would
+          # simply leave it off under the blanket, which is the seal working rather than failing.
           #
           # What would break is narrow and loud: a patch that retires an enumerated ID, or changes
           # one of those four rules' default severity or enabled state. The smoke test fails on the
@@ -120,6 +120,12 @@ jobs:
       # reason. Only possible since it stopped packing its own (amendment 3).
       - name: Smoke test refusal tests
         run: ./scripts/tests/verify-package-tests.sh
+
+      # The comparison the smoke test makes against the expected ruleset (#51), over canned pairs:
+      # that it passes the same ruleset however it is commented or spaced, and that it names every
+      # line a different one adds, drops, re-levels or duplicates.
+      - name: Expected ruleset comparison tests
+        run: ./scripts/tests/ruleset-diff-tests.sh
 
       # The release-time gates are the one pair of checks that cannot run at PR time — neither has
       # anything to check until a version number exists — but the *scripts* implementing them can,

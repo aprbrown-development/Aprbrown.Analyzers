@@ -16,6 +16,12 @@ The global AnalyzerConfig file packed inside the package (`Aprbrown.Analyzers.gl
 sets a severity for every rule in the house ruleset.
 _Avoid_: globalconfig, editorconfig, ruleset file, .ruleset
 
+**Expected ruleset**:
+The independent, checked-in record of every setting the shipped config must contain, against which
+the shipped config is compared exactly, as a consumer receives it. Deliberately a second copy: a change to the house ruleset is
+made in both, and any line where they disagree is named.
+_Avoid_: oracle, golden file, snapshot, baseline
+
 **Sealed allowlist**:
 The shape of the shipped config: a blanket `none` followed by an explicit enumeration of every rule
 that is on. Sealed because a rule not named in it is off, including rules that do not exist yet.
