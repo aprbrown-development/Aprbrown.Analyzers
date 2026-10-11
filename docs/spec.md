@@ -266,6 +266,16 @@ every rule in the set.
 - Anything at all, in a compilation where `System.Threading.CancellationToken` cannot be resolved —
   the analyzer must produce no diagnostics rather than fail.
 - A parameter whose type is merely *named* `CancellationToken` in some other namespace.
+- A defaulted parameter on a method that overrides a base member, or implements an interface member
+  implicitly or explicitly, when the **corresponding parameter** (same ordinal) of that member has
+  an explicit default value. A call site binds to the declared type, so that member's default
+  applies whatever the override says, and `MA0061` demands the override keep it — flagging it would
+  leave no edit that satisfies both rules. The default is reported once, on the member that chose
+  it. Compare an override only with the member it directly overrides, not the root of the chain;
+  an implementation of several interface members at once is exempt if any of them defaults. An
+  override or implementation that *introduces* a default its member lacks is still flagged, and
+  so is an interface member redeclared on a derived interface, which is a declaration rather than
+  an implementation.
 
 **Out of scope in v1, deliberately:** local functions and delegates. This is a recorded boundary, not
 an oversight — do not "fix" it without a version bump under ADR-0004.
@@ -293,6 +303,13 @@ rejects that shape outright, so a second diagnostic on the same construct would 
 | A `CancellationToken` declared in a namespace other than `System.Threading` | 0 |
 | `void Local(CancellationToken ct = default)` (local function) | 0 — out of scope |
 | `delegate void D(CancellationToken ct = default)` | 0 — out of scope |
+| Override of `Stream.ReadAsync(Memory<byte>, CancellationToken = default)` keeping `= default` | 0 — inherited default |
+| Implicit implementation of `I.M(CancellationToken ct = default)` keeping `= default` | 0 on the implementation; 1 on `I.M` |
+| Explicit implementation `I.M(CancellationToken ct = default)` keeping `= default` | 0 on the implementation; 1 on `I.M` |
+| Override of an abstract `RunAsync(CancellationToken ct)` adding `= default` | 1 diagnostic |
+| Override adding `= default` to a middle override that dropped the root's default | 1 on the leaf; 1 on the root |
+| `interface J : I { new Task M(CancellationToken ct = default); }` | 1 on `J.M`; 1 on `I.M` |
+| One method implementing `IPlain.M(CancellationToken ct)` and `IDefaulted.M(CancellationToken ct = default)`, keeping `= default` | 0 on the implementation; 1 on `IDefaulted.M` |
 
 ### 3.3 `APB0003` — Parameter names should match the implemented interface member
 

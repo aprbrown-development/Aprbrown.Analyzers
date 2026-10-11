@@ -190,7 +190,8 @@ other rule in the table above gates.
   *Records are exempt* — positional parameters are the point of a record. No code fix.
 - **`APB0002` — no default value on a `CancellationToken` parameter.** A defaulted token lets a caller
   drop cancellation without saying so, invisibly at the call site. `MA0032` polices the call site;
-  this is the declaration half. No code fix.
+  this is the declaration half. An override or implementation keeping a default its base or
+  interface member already declares is exempt, since `MA0061` requires it. No code fix.
 - **`APB0003` — an interface implementation's parameter names must match the interface's.** `CA1725`
   requires this for base-class overrides but is blind to interface implementations; this is the missing
   half. **Ships with a code fix**, which renames the symbol rather than the token, so every reference

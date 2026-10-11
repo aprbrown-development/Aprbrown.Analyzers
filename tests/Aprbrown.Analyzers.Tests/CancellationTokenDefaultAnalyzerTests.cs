@@ -158,6 +158,119 @@ public sealed class CancellationTokenDefaultAnalyzerTests
     }
 
     [Fact]
+    public async Task Override_keeping_a_default_its_base_declares_is_not_flagged()
+    {
+        // The case MA0061 forces: a call site binds to the declared type, so the base's default
+        // applies whatever the override says, and MA0061 demands the override keep it. The base
+        // is a framework member here, so the default is not the author's to remove.
+        const string source = Usings + """
+            using System;
+            using System.IO;
+            abstract class S : Stream
+            {
+                public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+                    => new(0);
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(source);
+    }
+
+    [Fact]
+    public async Task Override_introducing_a_default_its_base_lacks_is_flagged()
+    {
+        // The exemption follows the base's default; it is not a blanket pass for overrides. Here
+        // dropping the default satisfies both APB0002 and MA0061, so the rule must keep reporting.
+        const string source = Usings + """
+            abstract class B { public abstract Task RunAsync(CancellationToken ct); }
+            class D : B { public override Task RunAsync({|#0:CancellationToken ct = default|}) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Implicit_implementation_keeping_the_interface_default_is_not_flagged()
+    {
+        // The interface declaration carries its own APB0002, so the default is reported once,
+        // where the author chose it, and not again on every implementation MA0061 makes keep it.
+        const string source = Usings + """
+            interface I { Task M({|#0:CancellationToken ct = default|}); }
+            class C : I { public Task M(CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Explicit_implementation_keeping_the_interface_default_is_not_flagged()
+    {
+        // The compiler already warns (CS1066) that a default here has no effect. That is the
+        // compiler's concern, not this rule's: the exemption holds on the same terms as above.
+        const string source = Usings + """
+            interface I { Task M({|#0:CancellationToken ct = default|}); }
+            class C : I { Task I.M(CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Override_of_an_override_answers_to_the_member_it_directly_overrides()
+    {
+        // The middle override drops the default, so it is the last word a call through B sees.
+        // The leaf re-adding it is introducing a default, not keeping one, even though the root of
+        // the chain declares it. The root, declared in the same source, carries its own APB0002.
+        const string source = Usings + """
+            abstract class A { public abstract Task RunAsync({|#0:CancellationToken ct = default|}); }
+            abstract class B : A { public override Task RunAsync(CancellationToken ct) => Task.CompletedTask; }
+            class C : B { public override Task RunAsync({|#1:CancellationToken ct = default|}) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"),
+            VerifyCS.Diagnostic("APB0002").WithLocation(1).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Interface_member_redeclared_on_a_derived_interface_is_flagged()
+    {
+        // A redeclaration is a declaration, not an implementation, so it answers for its own default.
+        const string source = Usings + """
+            interface I { Task M({|#0:CancellationToken ct = default|}); }
+            interface J : I { new Task M({|#1:CancellationToken ct = default|}); }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"),
+            VerifyCS.Diagnostic("APB0002").WithLocation(1).WithArguments("ct"));
+    }
+
+    [Fact]
+    public async Task Implementing_several_members_at_once_is_exempt_if_any_of_them_defaults()
+    {
+        // MA0061 fires when any implemented member's parameter is defaulted, so that is when
+        // APB0002 must stand aside.
+        const string source = Usings + """
+            interface IPlain { Task M(CancellationToken ct); }
+            interface IDefaulted { Task M({|#0:CancellationToken ct = default|}); }
+            class C : IPlain, IDefaulted { public Task M(CancellationToken ct = default) => Task.CompletedTask; }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            source,
+            VerifyCS.Diagnostic("APB0002").WithLocation(0).WithArguments("ct"));
+    }
+
+    [Fact]
     public async Task Compilation_without_CancellationToken_reports_nothing_and_does_not_crash()
     {
         // The verifier always supplies reference assemblies, so this case is built by hand: a
