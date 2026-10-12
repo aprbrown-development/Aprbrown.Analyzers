@@ -154,10 +154,20 @@ runnable locally:
    it. A prerelease tag reads the section of the version it prefixes: `v1.0.0-preview.1` is a rehearsal
    for `1.0.0` and carries that version's build impact.
 
-To cut a release: promote `AnalyzerReleases.Unshipped.md`'s rows into `AnalyzerReleases.Shipped.md` under
-a `## Release X.Y` heading, author the `CHANGELOG.md` section, merge, then tag. Publishing pauses on the
-`release` environment for an approval click before anything reaches nuget.org, and uses a single-use
-OIDC-issued key valid for one hour — there is no long-lived nuget.org credential in this repository.
+To cut a release:
+
+1. In a pull request, promote `AnalyzerReleases.Unshipped.md`'s rows into `AnalyzerReleases.Shipped.md`
+   under a `## Release X.Y` heading, and author the `CHANGELOG.md` section at the top of the file. That
+   heading is where the version is chosen, by build impact (see the table at the head of the changelog).
+2. Merge it.
+3. Run `scripts/deploy.sh` (or `/deploy` in Claude Code) from any checkout. It releases the version the
+   changelog's top section names: runs `verify-release.sh`, pushes the annotated tag, follows
+   `release.yml`, then confirms the version is listed on nuget.org and the GitHub Release exists. A
+   rerun resumes a tag it already pushed.
+
+Publishing pauses on the `release` environment for an approval click before anything reaches nuget.org,
+and uses a single-use OIDC-issued key valid for one hour — there is no long-lived nuget.org credential
+in this repository.
 
 The one repository secret involved is **`NUGET_USER`**, holding the nuget.org *profile name* — not the
 email address. It is what the trusted publishing policy is matched against; there is no `NUGET_API_KEY`,
