@@ -74,6 +74,13 @@ missed on `1.0.0`._
   `_camelCase` private fields and `PascalCase` private statics are kept, since they held on
   every repository measured — see [the consumer docs](docs/consuming.md#3-build-and-fix-what-it-reports). The rule and its
   option are unchanged.
+- **The consumer docs (the package README) now warn that the StyleCop ordering tier has no code
+  fix.** `StyleCop.Analyzers` exports no fix for `SA1201`–`SA1204`, so
+  `dotnet format analyzers --diagnostics SA1201 SA1202 SA1203 SA1204` answers `Unable to fix
+  SA120x. No associated code fix found.` for each, and every violation is reordered by hand: one
+  repository onboarded so far had 149 in production code. The docs now say so before onboarding,
+  with a command to count the violations first — see
+  [the consumer docs](docs/consuming.md#3-build-and-fix-what-it-reports). The tier is unchanged.
 
 ## 1.0.0
 
