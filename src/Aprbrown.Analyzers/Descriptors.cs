@@ -37,7 +37,8 @@ internal static class Descriptors
         isEnabledByDefault: true,
         description: "The caller always decides cancellation. A defaulted token lets a caller "
             + "silently opt out, and the opting-out is invisible at the call site. MA0032 polices "
-            + "the call site; this rule is the declaration half.",
+            + "the call site; this rule is the declaration half. An override or implementation that "
+            + "keeps a default its base or interface member already declares is exempt.",
         helpLinkUri: HelpLinkUri);
 
     /// <summary>APB0003 — parameter names should match the implemented interface member (spec §3.3).</summary>

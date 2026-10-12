@@ -30,8 +30,8 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 
 ## 1.0.1
 
-Documentation only. No analyzer's behaviour, no configuration entry and no MSBuild property
-changed, so every answer below is the same one.
+One false positive removed from `APB0002`; the rest is documentation. No configuration entry and
+no MSBuild property changed, and no rule reports anything it did not report on `1.0.0`.
 
 ### Fails a green build — by design
 
@@ -39,9 +39,19 @@ _Nothing. No rule was added and no severity was raised._
 
 ### Fails a green build — silently
 
-_Nothing. No analyzer changed, so nothing catches a case it missed on `1.0.0`._
+_Nothing. The one analyzer change only stops `APB0002` reporting, so nothing catches a case it
+missed on `1.0.0`._
 
 ### Cannot fail a green build
+
+- **`APB0002` no longer reports an override or implementation that keeps a default its base or
+  interface member already declares.** Overriding `Stream.ReadAsync`, or implementing
+  `IHealthCheck.CheckHealthAsync`, left no edit that satisfied both `APB0002` and `MA0061`: keep
+  `= default` and `APB0002` fired, drop it and `MA0061` fired. A call site binds to the declared
+  type, so the base's default applies whatever the override says, and the base is where the
+  diagnostic belongs. An override or implementation that *introduces* a default its member lacks
+  is still reported. A carve-out taken for this can be dropped after upgrading — see
+  [the consumer docs](docs/consuming.md#the-three-custom-rules).
 
 - **The README records that ReSharper offers to introduce the primary constructor `APB0001`
   forbids.** The conversion is offered on a type the build has just rejected, which reads like a

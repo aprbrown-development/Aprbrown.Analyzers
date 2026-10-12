@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,6 +33,14 @@ namespace Aprbrown.Analyzers;
 /// and no rule in the set catches it. Class and struct primary constructors are deliberately not
 /// covered: APB0001 already rejects that shape outright, so a second diagnostic on the same
 /// construct would only be noise.
+/// </para>
+/// <para>
+/// Inherited defaults: a parameter is exempt when its method overrides or implements a member
+/// whose corresponding parameter is itself defaulted. A call site binds to the declared type, so
+/// that member's default applies whatever the override says, and <c>MA0061</c> demands the
+/// override keep it — reporting here would leave no edit that satisfies both rules. The default is
+/// reported once, on the member that chose it. An override or implementation that introduces a
+/// default its member lacks is still reported.
 /// </para>
 /// <para>
 /// Resolvability: the token type is looked up once per compilation. In a compilation where
@@ -115,10 +125,71 @@ public sealed class CancellationTokenDefaultAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
+            if (InheritsDefault(parameterSymbol))
+            {
+                continue;
+            }
+
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptors.CancellationTokenDefault,
                 parameter.GetLocation(),
                 parameterSymbol.Name));
         }
     }
+
+    private static bool InheritsDefault(IParameterSymbol parameter)
+    {
+        if (parameter.ContainingSymbol is not IMethodSymbol method)
+        {
+            return false;
+        }
+
+        // Only the member directly overridden: if a middle override dropped the default, a call
+        // through it binds without one, and re-adding it further down is introducing a default.
+        if (HasDefaultAt(method.OverriddenMethod, parameter.Ordinal))
+        {
+            return true;
+        }
+
+        return ImplementedInterfaceMembers(method).Any(member => HasDefaultAt(member, parameter.Ordinal));
+    }
+
+    private static IEnumerable<IMethodSymbol> ImplementedInterfaceMembers(IMethodSymbol method)
+    {
+        // An explicit implementation names its interface member outright. Its own name is the
+        // qualified "I.M", so the name lookup below would never find it anyway.
+        if (!method.ExplicitInterfaceImplementations.IsEmpty)
+        {
+            return method.ExplicitInterfaceImplementations;
+        }
+
+        return ImplicitlyImplementedInterfaceMembers(method);
+    }
+
+    private static IEnumerable<IMethodSymbol> ImplicitlyImplementedInterfaceMembers(IMethodSymbol method)
+    {
+        // An implicit implementation carries no back-pointer to the interface member it satisfies,
+        // so the question is asked from the type, as APB0003 asks it.
+        var type = method.ContainingType;
+
+        foreach (var @interface in type.AllInterfaces)
+        {
+            foreach (var member in @interface.GetMembers(method.Name))
+            {
+                if (member is IMethodSymbol interfaceMethod
+                    && SymbolEqualityComparer.Default.Equals(type.FindImplementationForInterfaceMember(interfaceMethod), method))
+                {
+                    yield return interfaceMethod;
+                }
+            }
+        }
+    }
+
+    // An override or implementation always has the arity of its member. The bounds check is for
+    // half-typed code in the IDE, where error recovery can hand back a pair that does not agree,
+    // and an out-of-range index would take the whole analysis down — APB0003 clamps for the same.
+    private static bool HasDefaultAt(IMethodSymbol? member, int ordinal)
+        => member is not null
+            && ordinal < member.Parameters.Length
+            && member.Parameters[ordinal].HasExplicitDefaultValue;
 }
