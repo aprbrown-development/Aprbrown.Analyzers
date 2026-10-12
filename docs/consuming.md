@@ -129,11 +129,10 @@ onboarded so far scored 0, 20 and 259. The fix is mechanical and purely additive
 [the note on `dotnet_style_require_accessibility_modifiers`](#the-rules).
 
 **The StyleCop ordering tier has no code fix, so size it before you commit to the pass.**
-`SA1201`–`SA1204` ship no fix that `dotnet format` or an IDE can apply, so every violation is a
-member moved by hand, or by a tool your repository supplies itself. One of the three repositories
-onboarded so far had 149 of them. You can confirm there is no fix: on a project with an ordering
-violation, this changes nothing and prints `Unable to fix SA120x. No associated code fix found.` for
-each rule:
+Every `SA1201`–`SA1204` violation is a member moved by hand, or by a tool your repository supplies
+itself; one of the three repositories onboarded so far had 149 in production code alone. To confirm
+it, run this on a project with an ordering violation. It changes nothing and prints
+`Unable to fix SA120x. No associated code fix found.` for each rule:
 
 ```sh
 dotnet format analyzers --diagnostics SA1201 SA1202 SA1203 SA1204
@@ -141,11 +140,13 @@ dotnet format analyzers --diagnostics SA1201 SA1202 SA1203 SA1204
 
 To count what you would be taking on, build once with the package installed and count the ordering
 diagnostics. Turning `TreatWarningsAsErrors` off for this one build stops a failing project from
-hiding the ones that depend on it; `--no-incremental` makes an up-to-date project report again, and
-`sort -u` drops the repeat of each diagnostic in the build summary:
+hiding the ones that depend on it, and `--no-incremental` makes an up-to-date project report again.
+The `sed` and `sort -u` count each violation once, although the build summary repeats it and a
+multi-targeted project reports it once per target framework:
 
 ```sh
-dotnet build --no-incremental -p:TreatWarningsAsErrors=false 2>&1 | grep -E 'SA120[1-4]' | sort -u | wc -l
+dotnet build --no-incremental -p:TreatWarningsAsErrors=false 2>&1 \
+  | grep -E 'SA120[1-4]' | sed 's/ \[.*//' | sort -u | wc -l
 ```
 
 If your repository already has an `.editorconfig`, see
@@ -181,7 +182,7 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 | `APB` | 3 | The three custom rules below |
 | `Meziantou.Analyzer` | 103 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
 | .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
-| `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it before onboarding](#3-build-and-fix-what-it-reports) |
+| `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
 
 150 rules in total. **138 are warnings, seven are suggestions, and five are errors.**
