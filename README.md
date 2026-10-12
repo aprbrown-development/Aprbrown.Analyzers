@@ -165,9 +165,11 @@ and nothing to rotate.
 
 ### Repository tooling
 
-Agent skills come from the globally installed `mattpocock-skills` plugin rather than from this
-repository. `docs/agents/` configures them for this repository: the issue tracker, the triage labels
-and the domain docs. None of it is part of the shipped package.
+Agent skills come from the globally installed `mattpocock-skills` plugin, with one exception:
+`/write-changelog` (`.claude/skills/write-changelog/`) prepares a release's `CHANGELOG.md` section,
+version number and release tracking from the commits since the last tag. `docs/agents/` configures
+the plugin's skills for this repository: the issue tracker, the triage labels and the domain docs.
+None of it is part of the shipped package.
 
 ## Licence
 
