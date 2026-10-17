@@ -32,9 +32,9 @@ dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisPerformance.severity = 
 # from there. `dotnet format` does not. It acts only on a severity it finds in an .editorconfig and
 # ignores one delivered through GlobalAnalyzerConfigFiles, so without these lines
 # `dotnet format style --diagnostics IDE0022` reports nothing to fix while the build fails on it.
-# The options themselves stay in the shipped config; only the severity has to be here. Keep the
-# seven in step with it: this file outranks the global config, so a value changed there and not
-# here would be silently overridden in this repository.
+# The options themselves stay in the shipped config; only the severity has to be here. This file
+# outranks the global config, so a value changed there and not here would be silently overridden in
+# this repository — EditorConfigDriftTests fails the build when any IDE severity here disagrees.
 dotnet_diagnostic.IDE0021.severity = warning
 dotnet_diagnostic.IDE0022.severity = warning
 dotnet_diagnostic.IDE0025.severity = warning
