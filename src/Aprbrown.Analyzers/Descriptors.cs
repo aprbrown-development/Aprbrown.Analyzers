@@ -54,15 +54,28 @@ internal static class Descriptors
             + "names survive into every type that implements it.",
         helpLinkUri: HelpLinkUri);
 
+    /// <summary>APB0004 — put an expression body's arrow at the end of the declaration line.</summary>
+    public static readonly DiagnosticDescriptor ExpressionBodyArrow = new(
+        id: "APB0004",
+        title: "Put an expression body's arrow at the end of the declaration line",
+        messageFormat: "Move '=>' to the end of the previous line",
+        category: "Style",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "A wrapped expression-bodied member ends its declaration line with '=>' and puts "
+            + "the expression on the next line, so the line that declares the member also says it "
+            + "has an expression body. Lambdas and switch-expression arms are not expression bodies "
+            + "and are not covered.",
+        helpLinkUri: HelpLinkUri);
+
     // Below the descriptors rather than above them, because SA1202 orders members by access before
     // it considers const-ness and this is the only private member of the type. The rule arrived
     // with the StyleCop ordering tier; fixed here rather than deviated, per spec §7.
     //
     // This is what an IDE opens when a consumer clicks APB000n on a squiggle, so it points at the
-    // section that explains the three rules rather than at the repository root — consuming.md is
+    // section that explains the custom rules rather than at the repository root — consuming.md is
     // the one place a consumer learns what a rule does (spec §4.2). Deep-linked to a heading rather
-    // than per-rule: all three are one short list, and one anchor cannot drift out of step with
-    // three.
+    // than per-rule: they are one short list, and one anchor cannot drift out of step with several.
     private const string HelpLinkUri =
         "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-three-custom-rules";
 }

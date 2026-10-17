@@ -2,8 +2,8 @@
 
 One .NET coding standard, delivered as a NuGet package.
 
-It ships two things: three custom Roslyn analyzers (`APB0001`–`APB0003`), and — the larger half — a
-configuration that decides which **206 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+It ships two things: four custom Roslyn analyzers (`APB0001`–`APB0004`), and — the larger half — a
+configuration that decides which **207 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -185,14 +185,14 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 
 | Tier | Count | What is on |
 |---|---|---|
-| `APB` | 3 | The three custom rules below |
+| `APB` | 4 | The four custom rules below |
 | `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
 | .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
 | Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
 
-206 rules in total. **201 are warnings and five are errors.**
+207 rules in total. **202 are warnings and five are errors.**
 
 The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
 `IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.
@@ -239,6 +239,16 @@ other rule in the table above gates.
   requires this for base-class overrides but is blind to interface implementations; this is the missing
   half. **Ships with a code fix**, which renames the symbol rather than the token, so every reference
   follows.
+- **`APB0004` — a wrapped expression body's `=>` ends the declaration line.** `int M() =>` then the
+  expression on the next line, not `int M()` then `=> expression`. Covers methods, constructors,
+  operators, properties, indexers, accessors and local functions; lambdas and switch-expression arms
+  are not covered. **Ships with a code fix** that supports fix-all, so one "Fix all occurrences in
+  Solution" clears it. A comment that ended the declaration line stays on it, after the arrow. No fix
+  is offered when a preprocessor directive sits between the declaration and the arrow; move that one
+  by hand.
+
+The heading above still says three. It is the anchor every rule's help link points at, so renaming
+it would break the links already shipped; it changes in the next major version.
 
 ### Two rules you might expect that are deliberately off
 

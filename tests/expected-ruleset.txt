@@ -22,11 +22,12 @@
 is_global = true
 dotnet_analyzer_diagnostic.severity = none
 
-# --- APB: the three custom rules -----------------------------------------------------------------
+# --- APB: the four custom rules -----------------------------------------------------------------
 
 dotnet_diagnostic.APB0001.severity = warning
 dotnet_diagnostic.APB0002.severity = warning
 dotnet_diagnostic.APB0003.severity = warning
+dotnet_diagnostic.APB0004.severity = warning
 
 # --- Meziantou: 106 rules -----------------------------------------------------------------------
 # Every rule enabled by default at a build-gating severity, minus MA0004, plus MA0032. MA0220, MA0240

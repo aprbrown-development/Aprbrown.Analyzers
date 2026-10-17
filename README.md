@@ -2,9 +2,9 @@
 
 One .NET coding standard, delivered as a NuGet package.
 
-It ships three custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
-(`APB0001`–`APB0003`, one with a code fix) and — the larger half — a configuration that decides which
-**206 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and the .NET SDK's own `CA` and `IDE`
+It ships four custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
+(`APB0001`–`APB0004`, two with a code fix) and — the larger half — a configuration that decides which
+**207 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and the .NET SDK's own `CA` and `IDE`
 analyzers are switched on. There is a single universal ruleset: no profiles, no presets, nothing to
 configure. Anything you disagree with, you override in your own `.editorconfig`, which always wins.
 
@@ -27,7 +27,7 @@ The package takes no dependency on the other two: it configures their rules with
 assemblies, so your repository pins the versions. Adopting it switches `TreatWarningsAsErrors` on by
 default, so it will fail builds that currently pass — read the install guide before starting.
 
-## The three custom rules
+## The four custom rules
 
 - **`APB0001`** — no primary constructors on classes or structs. Injected dependencies belong in an
   explicit constructor assigning readonly fields. Records are exempt.
@@ -36,6 +36,8 @@ default, so it will fail builds that currently pass — read the install guide b
 - **`APB0003`** — an interface implementation's parameter names must match the interface's. `CA1725`
   covers base-class overrides but is blind to interface implementations; this is the missing half.
   Ships with a code fix.
+- **`APB0004`** — a wrapped expression body's `=>` ends the declaration line rather than starting the
+  next one. Lambdas and switch-expression arms are not covered. Ships with a code fix.
 
 Full detail, including the other 203 rules and everything deliberately left off, is in
 [`docs/consuming.md`](docs/consuming.md#the-rules).
@@ -46,15 +48,15 @@ Full detail, including the other 203 rules and everything deliberately left off,
 |---|---|
 | [`docs/consuming.md`](docs/consuming.md) | **Consumers.** Install, configure, override, troubleshoot. Packed as the package README, so it is also the nuget.org page. |
 | [`CHANGELOG.md`](CHANGELOG.md) | **Upgraders.** What each version does to a consumer's build, grouped by build impact. Each GitHub Release body is cut from it. |
-| [`docs/spec.md`](docs/spec.md) | **Contributors.** The implementation spec: what v1 ships, how the configuration is derived, the three analyzers specified by behaviour, packaging. |
+| [`docs/spec.md`](docs/spec.md) | **Contributors.** The implementation spec: what v1 ships, how the configuration is derived, the four analyzers specified by behaviour, packaging. |
 | [`GLOSSARY.md`](GLOSSARY.md) | Vocabulary used across the other documents. |
 | [`docs/adr/`](docs/adr/) | The decisions behind all of the above, and why. |
 
 ## Repository status
 
-The three analyzers and the `APB0003` code fix are proven end to end from a packed `.nupkg` by
-`scripts/verify-package.sh`, and the shipped configuration is complete at 206 enumerated rules. This
-repository is held to that ruleset itself, and CI gates every pull request against it.
+The four analyzers and the `APB0003` and `APB0004` code fixes are proven end to end from a packed
+`.nupkg` by `scripts/verify-package.sh`, and the shipped configuration is complete at 207 enumerated
+rules. This repository is held to that ruleset itself, and CI gates every pull request against it.
 
 The release pipeline is in place: a `v*` tag builds, tests, runs the same pack-consume gate, waits for
 an approval click, and publishes to nuget.org with a keyless one-hour credential.
