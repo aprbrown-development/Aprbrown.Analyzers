@@ -190,12 +190,12 @@ day one.
 
 ---
 
-## 3. The three APB analyzers
+## 3. The four APB analyzers
 
 Specified by behaviour: what each rule flags, what it must **not** flag, and the test cases that prove
 it. Implement to the behaviour, not to a described implementation.
 
-`MIX0001`–`MIX0003` in `Mixologist` are the same three rules and remain in that repository's git
+`MIX0001`–`MIX0003` in `Mixologist` are the same rules as `APB0001`–`APB0003` and remain in that repository's git
 history after section 8 deletes them — useful as a cross-check, not as a source to copy.
 
 ### 3.1 `APB0001` — Do not use primary constructors on classes or structs
@@ -382,6 +382,103 @@ that a body reference to the old name was updated.
 
 Note "trivial fix" from map Note 8 describes the *user-visible* change, not the implementation.
 
+### 3.5 `APB0004` — Put an expression body's arrow at the end of the declaration line
+
+| | |
+|---|---|
+| Category | `Style` |
+| Default severity | `Warning` |
+| Code fix | **Yes**, with fix-all |
+| Message | `Move '=>' to the end of the previous line` |
+
+Added in 1.1.0, as a minor bump under ADR-0004.
+
+**Rationale.** A wrapped expression-bodied member ends its declaration line with `=>` and puts the
+expression on the next line:
+
+```csharp
+public void SomeFunction(string aParameter) =>
+    the.thing.that.this.does.with.aParameter;
+```
+
+so the line that declares the member also says it has an expression body. Nothing else enforces the
+layout: `IDE2006` enforces the opposite one, and `dotnet format whitespace` has no option for it.
+
+**Flags** an `ArrowExpressionClauseSyntax` whose `=>` token is the first token on its line, meaning a
+line break separates it from the previous token, with or without blank lines, comments or directives
+in between. Report at the **`=>` token**. That covers methods, constructors, finalizers, operators,
+conversion operators, properties, indexers, accessors and local functions.
+
+**Must not flag:**
+
+- An arrow at the end of the declaration line.
+- A single-line member, `int M() => 1;`.
+- A lambda's `=>`, however it is wrapped. Lambdas are out of scope; a lambda rule would get its own ID.
+- A switch-expression arm's `=>`, however it is wrapped.
+
+Neither of the last two is an `ArrowExpressionClauseSyntax`, so an analyzer registered on that node
+kind never sees them.
+
+**Code fix.** Title `Move '=>' to the end of the previous line`. One trivia edit in one document:
+` =>` goes directly after the previous token, and every piece of trivia that sat between that token
+and the arrow now follows the arrow. The expression keeps its indentation and comments keep their
+place relative to the code, so a trailing comment stays inline:
+
+```csharp
+int M() // why
+    => x;
+```
+
+becomes
+
+```csharp
+int M() => // why
+    x;
+```
+
+Moving such a comment onto its own line is a separate rule (#71). Fix-all uses the batch fixer,
+which is safe here, unlike §3.4, because no two fixes touch the same tokens.
+
+**No fix across a directive.** When any preprocessor directive (`#if`, `#else`, `#region`, …) lies
+between the previous token and the arrow, the diagnostic is still reported but no fix is offered,
+and fix-all skips it. Moving the arrow across a directive changes which conditional region it
+belongs to:
+
+```csharp
+int M()
+#if DEBUG
+    => 1;
+#else
+    => 2;
+#endif
+```
+
+Only the active branch is parsed, so this reports one diagnostic, on that branch's arrow; moving it
+up would leave the other branch's arrow stranded under the `#if`.
+
+**Known wart.** The help link of every `APB` rule, this one included, lands on the `consuming.md`
+heading "The three custom rules". The heading keeps that wording although there are now four,
+because renaming it changes its anchor and breaks every help link already shipped (#43). Renaming
+it waits for a major version.
+
+**Required tests**
+
+| Input | Expected |
+|---|---|
+| `int M()` then `=> 1;` on the next line | 1 diagnostic, on `=>` |
+| The same arrow-first layout on a constructor, finalizer, operator, conversion operator, property, indexer, `get` accessor and local function | 1 diagnostic each |
+| `int M() =>` then `1;` | 0 |
+| `int M() => 1;` | 0 |
+| An arrow-first lambda | 0 |
+| An arrow-first switch-expression arm | 0 |
+| A wrapped parameter list, arrow first on the line after `)` | 1 diagnostic; fixed to `) =>` |
+| `int M() // why` then `=> x;` | fixed to exactly `int M() => // why` then `x;` |
+| A comment line between the declaration and the arrow | the comment ends up after `=>`, still above the expression |
+| The `#if DEBUG` / `#else` example above | 1 diagnostic, no fix offered |
+| A `#region` between the declaration and the arrow | 1 diagnostic, no fix offered |
+| An arrow-first member whose expression is a raw string literal | 1 diagnostic; fixed, the literal unchanged |
+| Several arrow-first members in one document | fix-all fixes every one in a single pass |
+
 ---
 
 ## 4. Package layout and delivery
@@ -390,8 +487,8 @@ Note "trivial fix" from map Note 8 describes the *user-visible* change, not the 
 
 | Path | TFM | Purpose |
 |---|---|---|
-| `src/Aprbrown.Analyzers/` | `netstandard2.0` | The three `DiagnosticAnalyzer`s |
-| `src/Aprbrown.Analyzers.CodeFixes/` | `netstandard2.0` | The `APB0003` `CodeFixProvider` |
+| `src/Aprbrown.Analyzers/` | `netstandard2.0` | The four `DiagnosticAnalyzer`s |
+| `src/Aprbrown.Analyzers.CodeFixes/` | `netstandard2.0` | The `APB0003` and `APB0004` `CodeFixProvider`s |
 | `src/Aprbrown.Analyzers.Package/` | — | Packaging project; produces the `.nupkg` |
 | `tests/Aprbrown.Analyzers.Tests/` | current .NET | Analyzer + code fix tests |
 | `tests/Fixture.Consumer/` | `net10.0` | Consumer fixture for the pack-consume smoke test |
