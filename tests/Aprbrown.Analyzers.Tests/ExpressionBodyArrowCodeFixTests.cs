@@ -151,8 +151,71 @@ public sealed class ExpressionBodyArrowCodeFixTests
         await VerifyCS.VerifyCodeFixAsync(source, fixedSource, VerifyCS.Diagnostic("APB0004").WithLocation(0));
     }
 
-    // Only the active branch parses, so there is one arrow to report; the other branch is disabled
-    // text that a moved arrow would leave on the wrong side of the #if.
+    [Fact]
+    public async Task Arrow_alone_on_its_line_leaves_no_blank_line_behind()
+    {
+        const string source = """
+            class C
+            {
+                int M()
+                    {|#0:=>|}
+                    1;
+            }
+            """;
+
+        const string fixedSource = """
+            class C
+            {
+                int M() =>
+                    1;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(source, fixedSource, VerifyCS.Diagnostic("APB0004").WithLocation(0));
+    }
+
+    [Fact]
+    public async Task Arrow_alone_on_its_line_below_a_trailing_comment_keeps_the_comment_inline()
+    {
+        const string source = """
+            class C
+            {
+                int M() // why
+                    {|#0:=>|}
+                    1;
+            }
+            """;
+
+        const string fixedSource = """
+            class C
+            {
+                int M() => // why
+                    1;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(source, fixedSource, VerifyCS.Diagnostic("APB0004").WithLocation(0));
+    }
+
+    [Fact]
+    public async Task No_fix_is_offered_across_the_active_conditional_branch()
+    {
+        const string source = """
+            #define DEBUG
+            class C
+            {
+                int M()
+            #if DEBUG
+                    {|#0:=>|} 1;
+            #else
+                    => 2;
+            #endif
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(source, source, VerifyCS.Diagnostic("APB0004").WithLocation(0));
+    }
+
     [Fact]
     public async Task No_fix_is_offered_across_a_conditional_directive()
     {

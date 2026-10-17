@@ -30,6 +30,8 @@ README. Do not duplicate them here.
 - **Release tracking and a changelog** — `AnalyzerReleases.Shipped.md`, `.Unshipped.md`,
   `CHANGELOG.md`.
 
+1.1.0 adds a fourth analyzer, `APB0004`, with its own code fix (section 3.5).
+
 The package takes **no dependency** on `Meziantou.Analyzer` or `StyleCop.Analyzers` (ADR-0002).
 
 ---
@@ -475,6 +477,8 @@ it waits for a major version.
 | `int M() // why` then `=> x;` | fixed to exactly `int M() => // why` then `x;` |
 | A comment line between the declaration and the arrow | the comment ends up after `=>`, still above the expression |
 | The `#if DEBUG` / `#else` example above | 1 diagnostic, no fix offered |
+| The same example with `DEBUG` defined | 1 diagnostic, on the other arrow, no fix offered |
+| The arrow alone on its line, the expression on the line below | fixed to `int M() =>` then the expression, with no blank line left behind |
 | A `#region` between the declaration and the arrow | 1 diagnostic, no fix offered |
 | An arrow-first member whose expression is a raw string literal | 1 diagnostic; fixed, the literal unchanged |
 | Several arrow-first members in one document | fix-all fixes every one in a single pass |

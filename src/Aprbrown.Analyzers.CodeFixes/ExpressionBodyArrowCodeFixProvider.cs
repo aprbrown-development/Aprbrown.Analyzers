@@ -71,8 +71,16 @@ public sealed class ExpressionBodyArrowCodeFixProvider : CodeFixProvider
     private static SyntaxNode MoveArrowUp(SyntaxNode root, SyntaxToken arrow)
     {
         var previous = arrow.GetPreviousToken();
-        var movedTrivia = WithoutWhitespaceBeforeLineBreak(TriviaBefore(arrow))
-            .AddRange(arrow.TrailingTrivia.SkipWhile(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)));
+        var before = WithoutWhitespaceBeforeLineBreak(TriviaBefore(arrow));
+        var after = SyntaxFactory.TriviaList(
+            arrow.TrailingTrivia.SkipWhile(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)));
+
+        if (after.FirstOrDefault().IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            before = WithoutFinalLineBreak(before);
+        }
+
+        var movedTrivia = before.AddRange(after);
 
         return root.ReplaceTokens(
             [previous, arrow],
@@ -87,4 +95,21 @@ public sealed class ExpressionBodyArrowCodeFixProvider : CodeFixProvider
             && trivia[1].IsKind(SyntaxKind.EndOfLineTrivia)
                 ? trivia.RemoveAt(0)
                 : trivia;
+
+    private static SyntaxTriviaList WithoutFinalLineBreak(SyntaxTriviaList trivia)
+    {
+        var end = trivia.Count;
+
+        while (end > 0 && trivia[end - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            end--;
+        }
+
+        if (end > 0 && trivia[end - 1].IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            end--;
+        }
+
+        return SyntaxFactory.TriviaList(trivia.Take(end));
+    }
 }

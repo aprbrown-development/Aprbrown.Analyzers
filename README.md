@@ -54,9 +54,9 @@ Full detail, including the other 203 rules and everything deliberately left off,
 
 ## Repository status
 
-The four analyzers and the `APB0003` and `APB0004` code fixes are proven end to end from a packed `.nupkg` by
-`scripts/verify-package.sh`, and the shipped configuration is complete at 207 enumerated rules. This
-repository is held to that ruleset itself, and CI gates every pull request against it.
+The four analyzers and the `APB0003` and `APB0004` code fixes are proven end to end from a packed
+`.nupkg` by `scripts/verify-package.sh`, and the shipped configuration is complete at 207 enumerated
+rules. This repository is held to that ruleset itself, and CI gates every pull request against it.
 
 The release pipeline is in place: a `v*` tag builds, tests, runs the same pack-consume gate, waits for
 an approval click, and publishes to nuget.org with a keyless one-hour credential.
