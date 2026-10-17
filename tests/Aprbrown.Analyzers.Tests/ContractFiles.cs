@@ -8,13 +8,13 @@ namespace Aprbrown.Analyzers.Tests;
 /// </summary>
 internal static partial class ContractFiles
 {
-    public static string Read(string name)
-        => File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Contract", name));
+    public static string Read(string name) =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Contract", name));
 
     // Every `dotnet_diagnostic.<id>.severity = <value>` line of a config file, by ID. Section headers
     // are not tracked, so an ID set in two sections is refused at ToDictionary rather than resolved.
-    public static Dictionary<string, string> Severities(string name)
-        => Read(name)
+    public static Dictionary<string, string> Severities(string name) =>
+        Read(name)
             .Split('\n')
             .Select(line => SeverityLine().Match(line))
             .Where(m => m.Success)

@@ -24,14 +24,14 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFix : CodeFixProvider, new()
 {
-    public static DiagnosticResult Diagnostic(string diagnosticId)
-        => CSharpAnalyzerVerifier<TAnalyzer>.Diagnostic(diagnosticId);
+    public static DiagnosticResult Diagnostic(string diagnosticId) =>
+        CSharpAnalyzerVerifier<TAnalyzer>.Diagnostic(diagnosticId);
 
     public static Task VerifyCodeFixAsync(
         string source,
         string fixedSource,
-        params DiagnosticResult[] expected)
-        => RunAsync(source, fixedSource, expectedTitle: null, expected);
+        params DiagnosticResult[] expected) =>
+        RunAsync(source, fixedSource, expectedTitle: null, expected);
 
     /// <summary>
     /// As <see cref="VerifyCodeFixAsync(string, string, DiagnosticResult[])"/>, and additionally
@@ -42,8 +42,8 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         string source,
         string fixedSource,
         string expectedTitle,
-        params DiagnosticResult[] expected)
-        => RunAsync(source, fixedSource, expectedTitle, expected);
+        params DiagnosticResult[] expected) =>
+        RunAsync(source, fixedSource, expectedTitle, expected);
 
     private static async Task RunAsync(
         string source,
@@ -82,8 +82,8 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            CancellationToken cancellationToken)
-            => base.CreateCodeFixContext(
+            CancellationToken cancellationToken) =>
+            base.CreateCodeFixContext(
                 document,
                 span,
                 diagnostics,

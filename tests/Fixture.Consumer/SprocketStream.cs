@@ -5,6 +5,6 @@ namespace Fixture.Consumer;
 // same line were the default dropped, so this is the one shape where both rules must agree.
 public abstract class SprocketStream : Stream
 {
-    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(0);
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+        ValueTask.FromResult(0);
 }

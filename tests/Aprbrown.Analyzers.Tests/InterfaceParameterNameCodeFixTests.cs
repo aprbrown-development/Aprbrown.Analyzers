@@ -58,8 +58,8 @@ public sealed class InterfaceParameterNameCodeFixTests
     // conflict or clobber each other, so the fix is single-invocation only in v1. Null here is
     // what keeps "Fix all occurrences" out of the IDE's light-bulb menu.
     [Fact]
-    public void No_batch_fix_all_provider_is_registered()
-        => Assert.Null(new InterfaceParameterNameCodeFixProvider().GetFixAllProvider());
+    public void No_batch_fix_all_provider_is_registered() =>
+        Assert.Null(new InterfaceParameterNameCodeFixProvider().GetFixAllProvider());
 
     [Fact]
     public async Task Explicit_implementation_is_fixed()

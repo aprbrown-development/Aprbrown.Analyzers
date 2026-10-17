@@ -83,21 +83,21 @@ public sealed class DescriptorContractTests
         Assert.Equal(defined, configured);
     }
 
-    private static DiagnosticDescriptor Descriptor(string id)
-        => AnalyzerDescriptors().Single(d => string.Equals(d.Id, id, StringComparison.Ordinal));
+    private static DiagnosticDescriptor Descriptor(string id) =>
+        AnalyzerDescriptors().Single(d => string.Equals(d.Id, id, StringComparison.Ordinal));
 
     // Every concrete analyzer the package ships, read through the interface a host reads it through.
     // Deduplicated by the descriptor's own value equality, not by ID: one descriptor shared by two
     // analyzers is one rule, but two that claim the same ID and differ are a conflict, which
     // Descriptor(id) refuses at Single.
-    private static IEnumerable<DiagnosticDescriptor> AnalyzerDescriptors()
-        => typeof(PrimaryConstructorAnalyzer).Assembly.GetTypes()
+    private static IEnumerable<DiagnosticDescriptor> AnalyzerDescriptors() =>
+        typeof(PrimaryConstructorAnalyzer).Assembly.GetTypes()
             .Where(t => !t.IsAbstract
                 && typeof(DiagnosticAnalyzer).IsAssignableFrom(t)
                 && t.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
             .SelectMany(t => ((DiagnosticAnalyzer)Activator.CreateInstance(t)!).SupportedDiagnostics)
             .Distinct();
 
-    private static Dictionary<string, string> ShippedSeverities()
-        => ContractFiles.Severities("Aprbrown.Analyzers.globalconfig");
+    private static Dictionary<string, string> ShippedSeverities() =>
+        ContractFiles.Severities("Aprbrown.Analyzers.globalconfig");
 }
