@@ -7,12 +7,13 @@
 #
 # The house ruleset is complete as of spec §2.3 step 4: APB0001-APB0003, the Meziantou tier, the
 # SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier are all
-# enumerated below — 153 rules under the blanket. Everything else is off, including rules that do
-# not exist yet, and adding one from here is a deliberate act under ADR-0004.
+# enumerated below, along with the performance tier — 206 rules under the blanket. Everything else
+# is off, including rules that do not exist yet, and adding one from here is a deliberate act
+# under ADR-0004.
 #
-# 153, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
-# measured; each tier's count is the one its derivation produced, and spec §10 correction 13
-# records the arithmetic rather than reconciling it by deletion.
+# 206, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
+# measured; each tier's count is the one its derivation or, for the performance tier, its rule
+# by rule selection produced.
 #
 # Nothing here sets AnalysisMode or AnalysisLevel, and nothing in this package does either.
 # Measured on SDK 10.0.110: neither reaches past the blanket at any value, All and latest-all
@@ -399,6 +400,128 @@ dotnet_diagnostic.CA2261.severity = warning
 dotnet_diagnostic.CA2264.severity = warning
 # CA2265 — Do not compare Span<T> to 'null' or 'default'
 dotnet_diagnostic.CA2265.severity = warning
+
+# ---------------------------------------------------------------------------------------------
+# The performance tier — Meziantou.Analyzer 3.0.305 and the NetAnalyzers in .NET SDK 10.0.112.
+#
+# Not a sweep. Each rule here is from a vendor's Performance category and was picked because its
+# rewrite keeps behaviour and costs less at run time, mostly through a code fix. Most default to
+# Info and are raised to warning here. Rules whose rewrite changes semantics, reshapes an API, or
+# trades readability for a gain that matters only on a hot path are left off.
+#
+# Meziantou stays silent on a pattern while its CA counterpart is enabled, so each pattern is named
+# once: the Meziantou rule where it covers the case, the CA rule only where nothing in Meziantou
+# does. Naming both would hand the pattern to the CA rule, which in some cases is less careful —
+# CA1866 rewrites a culture-sensitive StartsWith("a") as an ordinal char comparison.
+# ---------------------------------------------------------------------------------------------
+
+# MA0020 — Use direct methods instead of LINQ methods
+dotnet_diagnostic.MA0020.severity = warning
+# MA0028 — Optimize StringBuilder usage
+dotnet_diagnostic.MA0028.severity = warning
+# MA0029 — Combine LINQ methods
+dotnet_diagnostic.MA0029.severity = warning
+# MA0031 — Optimize Enumerable.Count() usage
+dotnet_diagnostic.MA0031.severity = warning
+# MA0044 — Remove useless ToString call
+dotnet_diagnostic.MA0044.severity = warning
+# MA0052 — Replace constant Enum.ToString with nameof
+dotnet_diagnostic.MA0052.severity = warning
+# MA0063 — Use Where before OrderBy
+dotnet_diagnostic.MA0063.severity = warning
+# MA0089 — Optimize string method usage
+dotnet_diagnostic.MA0089.severity = warning
+# MA0098 — Use indexer instead of LINQ methods
+dotnet_diagnostic.MA0098.severity = warning
+# MA0105 — Use the lambda parameters instead of using a closure
+dotnet_diagnostic.MA0105.severity = warning
+# MA0106 — Avoid closure by using an overload with the 'factoryArgument' parameter
+dotnet_diagnostic.MA0106.severity = warning
+# MA0110 — Use the Regex source generator
+dotnet_diagnostic.MA0110.severity = warning
+# MA0111 — Use string.Create instead of FormattableString
+dotnet_diagnostic.MA0111.severity = warning
+# MA0112 — Use 'Count > 0' instead of 'Any()'
+dotnet_diagnostic.MA0112.severity = warning
+# MA0120 — Use InvokeVoidAsync when the returned value is not used
+dotnet_diagnostic.MA0120.severity = warning
+# MA0152 — Use Unwrap instead of using await twice
+dotnet_diagnostic.MA0152.severity = warning
+# MA0159 — Use 'Order' instead of 'OrderBy'
+dotnet_diagnostic.MA0159.severity = warning
+# MA0160 — Use ContainsKey instead of TryGetValue
+dotnet_diagnostic.MA0160.severity = warning
+# MA0176 — Optimize guid creation
+dotnet_diagnostic.MA0176.severity = warning
+# MA0179 — Use Attribute.IsDefined instead of GetCustomAttribute(s)
+dotnet_diagnostic.MA0179.severity = warning
+# MA0185 — Simplify string.Create when all parameters are culture invariant
+dotnet_diagnostic.MA0185.severity = warning
+# MA0227 — Avoid using 'Enumerable.Contains' on a set
+dotnet_diagnostic.MA0227.severity = warning
+# MA0242 — Use a value factory to compute the value only when the key is not in the ConcurrentDictionary
+dotnet_diagnostic.MA0242.severity = warning
+
+# CA1824 — Mark assemblies with NeutralResourcesLanguageAttribute
+dotnet_diagnostic.CA1824.severity = warning
+# CA1828 — Do not use CountAsync() or LongCountAsync() when AnyAsync() can be used
+dotnet_diagnostic.CA1828.severity = warning
+# CA1832 — Use AsSpan or AsMemory instead of Range-based indexers when appropriate
+dotnet_diagnostic.CA1832.severity = warning
+# CA1833 — Use AsSpan or AsMemory instead of Range-based indexers when appropriate
+dotnet_diagnostic.CA1833.severity = warning
+# CA1835 — Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+dotnet_diagnostic.CA1835.severity = warning
+# CA1836 — Prefer IsEmpty over Count
+dotnet_diagnostic.CA1836.severity = warning
+# CA1837 — Use 'Environment.ProcessId'
+dotnet_diagnostic.CA1837.severity = warning
+# CA1839 — Use 'Environment.ProcessPath'
+dotnet_diagnostic.CA1839.severity = warning
+# CA1840 — Use 'Environment.CurrentManagedThreadId'
+dotnet_diagnostic.CA1840.severity = warning
+# CA1841 — Prefer Dictionary.Contains methods
+dotnet_diagnostic.CA1841.severity = warning
+# CA1842 — Do not use 'WhenAll' with a single task
+dotnet_diagnostic.CA1842.severity = warning
+# CA1843 — Do not use 'WaitAll' with a single task
+dotnet_diagnostic.CA1843.severity = warning
+# CA1845 — Use span-based 'string.Concat'
+dotnet_diagnostic.CA1845.severity = warning
+# CA1846 — Prefer 'AsSpan' over 'Substring'
+dotnet_diagnostic.CA1846.severity = warning
+# CA1847 — Use char literal for a single character lookup
+dotnet_diagnostic.CA1847.severity = warning
+# CA1850 — Prefer static 'HashData' method over 'ComputeHash'
+dotnet_diagnostic.CA1850.severity = warning
+# CA1852 — Seal internal types
+dotnet_diagnostic.CA1852.severity = warning
+# CA1853 — Unnecessary call to 'Dictionary.ContainsKey(key)'
+dotnet_diagnostic.CA1853.severity = warning
+# CA1854 — Prefer the 'IDictionary.TryGetValue(TKey, out TValue)' method
+dotnet_diagnostic.CA1854.severity = warning
+# CA1855 — Prefer 'Clear' over 'Fill'
+dotnet_diagnostic.CA1855.severity = warning
+# CA1858 — Use 'StartsWith' instead of 'IndexOf'
+dotnet_diagnostic.CA1858.severity = warning
+# CA1862 — Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
+dotnet_diagnostic.CA1862.severity = warning
+# CA1864 — Prefer the 'IDictionary.TryAdd(TKey, TValue)' method
+dotnet_diagnostic.CA1864.severity = warning
+# CA1868 — Unnecessary call to 'Contains(item)'
+dotnet_diagnostic.CA1868.severity = warning
+# CA1869 — Cache and reuse 'JsonSerializerOptions' instances
+dotnet_diagnostic.CA1869.severity = warning
+# CA1870 — Use a cached 'SearchValues' instance
+dotnet_diagnostic.CA1870.severity = warning
+# CA1871 — Do not pass a nullable struct to 'ArgumentNullException.ThrowIfNull'
+dotnet_diagnostic.CA1871.severity = warning
+# CA1872 — Prefer 'Convert.ToHexString' and 'Convert.ToHexStringLower' over call chains based on 'BitConverter.ToString'
+dotnet_diagnostic.CA1872.severity = warning
+# CA1874 — Use 'Regex.IsMatch'
+dotnet_diagnostic.CA1874.severity = warning
+# CA1875 — Use 'Regex.Count'
+dotnet_diagnostic.CA1875.severity = warning
 
 # ---------------------------------------------------------------------------------------------
 # The StyleCop ordering tier — StyleCop.Analyzers 1.2.0-beta.556 (spec §2.3 step 3).

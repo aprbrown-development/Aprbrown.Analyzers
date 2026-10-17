@@ -3,7 +3,7 @@
 One .NET coding standard, delivered as a NuGet package.
 
 It ships two things: three custom Roslyn analyzers (`APB0001`–`APB0003`), and — the larger half — a
-configuration that decides which **153 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+configuration that decides which **206 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -128,6 +128,12 @@ onboarded so far scored 0, 20 and 259. The fix is mechanical and purely additive
 `dotnet format style --diagnostics IDE0040` — and the reason it fires at all is
 [the note on `dotnet_style_require_accessibility_modifiers`](#the-rules).
 
+**The performance tier is mostly mechanical.** 50 of its 53 rules ship a code fix, such as
+`GetOrAdd(key, _ => value)` for `MA0242` or `Contains('#')` for `CA1847`. `dotnet format analyzers`
+applies them, but only for rules whose severity it finds in an `.editorconfig`: the package's
+configuration does not count. Add a `dotnet_diagnostic.<ID>.severity = warning` line for each rule
+you want to sweep, run `dotnet format analyzers --diagnostics <IDs>`, then delete the lines.
+
 **The StyleCop ordering tier has no code fix, so size it before you commit to the pass.**
 Every `SA1201`–`SA1204` violation is a member moved by hand, or by a tool your repository supplies
 itself; one of the three repositories onboarded so far had 149 in production code alone. To confirm
@@ -182,10 +188,11 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 | `APB` | 3 | The three custom rules below |
 | `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
 | .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
+| Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
 
-153 rules in total. **148 are warnings and five are errors.**
+206 rules in total. **201 are warnings and five are errors.**
 
 The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
 `IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.

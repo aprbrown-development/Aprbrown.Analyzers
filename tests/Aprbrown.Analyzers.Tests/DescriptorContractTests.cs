@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
@@ -94,7 +93,7 @@ public sealed class DescriptorContractTests
         typeof(PrimaryConstructorAnalyzer).Assembly.GetTypes()
             .Where(t => !t.IsAbstract
                 && typeof(DiagnosticAnalyzer).IsAssignableFrom(t)
-                && t.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
+                && Attribute.IsDefined(t, typeof(DiagnosticAnalyzerAttribute)))
             .SelectMany(t => ((DiagnosticAnalyzer)Activator.CreateInstance(t)!).SupportedDiagnostics)
             .Distinct();
 
