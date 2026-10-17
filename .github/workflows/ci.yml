@@ -82,8 +82,8 @@ jobs:
           #
           # What would break is narrow and loud: a patch that retires an enumerated ID, or changes
           # one of those four rules' default severity or enabled state. The smoke test fails on the
-          # spot if so — it does not degrade quietly — and the remedy is unchanged: a global.json,
-          # which pins dev machines and CI to the same SDK, not a version typed into this file where
+          # spot if so — it does not degrade quietly — and the remedy is unchanged: an `sdk` section in
+          # global.json, which pins dev machines and CI to the same SDK, not a version typed into this file where
           # only CI would honour it.
           dotnet-version: '10.0.x'
 
@@ -99,7 +99,7 @@ jobs:
         run: dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
+        run: dotnet test --solution Aprbrown.Analyzers.slnx -c Release --no-build
 
       # The smoke test never packs; its caller does (ADR-0003 amendment 3). release.yml packs the
       # tag version here instead, so this file holds the smoke version and nothing else does. Into
