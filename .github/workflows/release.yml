@@ -66,7 +66,7 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           # Floating patch, for the reasons ci.yml sets out at length: nothing asserted here is
-          # patch-sensitive, and the remedy if that ever changes is a global.json pinning dev
+          # patch-sensitive, and the remedy if that ever changes is a global.json `sdk` pinning dev
           # machines and CI alike, not a version typed into a workflow only CI honours.
           dotnet-version: '10.0.x'
 

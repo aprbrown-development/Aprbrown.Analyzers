@@ -20,8 +20,7 @@
          would run against Roslyn 1.0. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
 
-    <!-- The testing harness reaches this through NuGet.Packaging at 9.0.6, a version with known
-         vulnerabilities; this lifts it to a patched release. -->
+    <!-- Lifts the copy the testing harness reaches through NuGet.Packaging to a patched release. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 

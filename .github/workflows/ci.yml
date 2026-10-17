@@ -82,8 +82,8 @@ jobs:
           #
           # What would break is narrow and loud: a patch that retires an enumerated ID, or changes
           # one of those four rules' default severity or enabled state. The smoke test fails on the
-          # spot if so — it does not degrade quietly — and the remedy is unchanged: a global.json,
-          # which pins dev machines and CI to the same SDK, not a version typed into this file where
+          # spot if so — it does not degrade quietly — and the remedy is unchanged: an `sdk` section in
+          # global.json, which pins dev machines and CI to the same SDK, not a version typed into this file where
           # only CI would honour it.
           dotnet-version: '10.0.x'
 
