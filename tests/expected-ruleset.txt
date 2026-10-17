@@ -191,6 +191,66 @@ dotnet_diagnostic.CA2265.severity = warning
 dotnet_diagnostic.CA1856.severity = error
 dotnet_diagnostic.CA2252.severity = error
 
+# --- Performance: 53 rules ----------------------------------------------------------------------
+# Meziantou and CA rules from the vendors' Performance category whose rewrite keeps behaviour and
+# costs less, raised to warning whatever their default. Where a Meziantou rule and a CA rule cover
+# the same pattern only one is named: Meziantou stays silent while its CA counterpart is enabled.
+
+dotnet_diagnostic.MA0020.severity = warning
+dotnet_diagnostic.MA0028.severity = warning
+dotnet_diagnostic.MA0029.severity = warning
+dotnet_diagnostic.MA0031.severity = warning
+dotnet_diagnostic.MA0044.severity = warning
+dotnet_diagnostic.MA0052.severity = warning
+dotnet_diagnostic.MA0063.severity = warning
+dotnet_diagnostic.MA0089.severity = warning
+dotnet_diagnostic.MA0098.severity = warning
+dotnet_diagnostic.MA0105.severity = warning
+dotnet_diagnostic.MA0106.severity = warning
+dotnet_diagnostic.MA0110.severity = warning
+dotnet_diagnostic.MA0111.severity = warning
+dotnet_diagnostic.MA0112.severity = warning
+dotnet_diagnostic.MA0120.severity = warning
+dotnet_diagnostic.MA0152.severity = warning
+dotnet_diagnostic.MA0159.severity = warning
+dotnet_diagnostic.MA0160.severity = warning
+dotnet_diagnostic.MA0176.severity = warning
+dotnet_diagnostic.MA0179.severity = warning
+dotnet_diagnostic.MA0185.severity = warning
+dotnet_diagnostic.MA0227.severity = warning
+dotnet_diagnostic.MA0242.severity = warning
+
+dotnet_diagnostic.CA1824.severity = warning
+dotnet_diagnostic.CA1828.severity = warning
+dotnet_diagnostic.CA1832.severity = warning
+dotnet_diagnostic.CA1833.severity = warning
+dotnet_diagnostic.CA1835.severity = warning
+dotnet_diagnostic.CA1836.severity = warning
+dotnet_diagnostic.CA1837.severity = warning
+dotnet_diagnostic.CA1839.severity = warning
+dotnet_diagnostic.CA1840.severity = warning
+dotnet_diagnostic.CA1841.severity = warning
+dotnet_diagnostic.CA1842.severity = warning
+dotnet_diagnostic.CA1843.severity = warning
+dotnet_diagnostic.CA1845.severity = warning
+dotnet_diagnostic.CA1846.severity = warning
+dotnet_diagnostic.CA1847.severity = warning
+dotnet_diagnostic.CA1850.severity = warning
+dotnet_diagnostic.CA1852.severity = warning
+dotnet_diagnostic.CA1853.severity = warning
+dotnet_diagnostic.CA1854.severity = warning
+dotnet_diagnostic.CA1855.severity = warning
+dotnet_diagnostic.CA1858.severity = warning
+dotnet_diagnostic.CA1862.severity = warning
+dotnet_diagnostic.CA1864.severity = warning
+dotnet_diagnostic.CA1868.severity = warning
+dotnet_diagnostic.CA1869.severity = warning
+dotnet_diagnostic.CA1870.severity = warning
+dotnet_diagnostic.CA1871.severity = warning
+dotnet_diagnostic.CA1872.severity = warning
+dotnet_diagnostic.CA1874.severity = warning
+dotnet_diagnostic.CA1875.severity = warning
+
 # --- StyleCop: the four ordering rules, and only those ----------------------------------------------
 # Not a StyleCop adoption (spec §2.3 step 3).
 

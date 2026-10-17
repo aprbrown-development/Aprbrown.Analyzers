@@ -30,21 +30,34 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 
 ## 1.1.0
 
-The prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, and three rules that version
-adds are switched on. **Bump your own `Meziantou.Analyzer` reference to `3.0.305`** alongside this
-package: the package takes no dependency on it, so nothing moves your pin for you — see
+The prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, three rules that version adds
+are switched on, and a performance tier of 53 rules joins the ruleset, which is now 206 rules.
+**Bump your own `Meziantou.Analyzer` reference to `3.0.305`** alongside this package: the package
+takes no dependency on it, so nothing moves your pin for you — see
 [the consumer docs](docs/consuming.md#1-reference-three-packages).
 
 ### Fails a green build — by design
 
 - **`MA0220`, `MA0240` and `MA0241` are on, at warning.** They are the three rules `3.0.305` adds
   that are enabled by default at a build-gating severity, the criterion the rest of the Meziantou
-  tier was chosen by, and the tier is now 106 rules and the ruleset 153. None of them fires until
-  your repository configures something: `MA0220` reports a regular-expression option for `MA0003`,
-  `MA0048` or `MA0104` that does not parse, and so would be silently ignored; `MA0240` reports the
-  syntax a `BannedSyntaxes.txt` bans; `MA0241` reports a line of that file that cannot be applied.
-  On an older `Meziantou.Analyzer` that lacks them they are inert. The other 26 rules `3.0.305` adds
-  are off by default or default to `Info` or `Hidden`, and stay off.
+  tier was chosen by, and the tier is now 106 rules. None of them fires until your repository
+  configures something: `MA0220` reports a regular-expression option for `MA0003`, `MA0048` or
+  `MA0104` that does not parse, and so would be silently ignored; `MA0240` reports the syntax a
+  `BannedSyntaxes.txt` bans; `MA0241` reports a line of that file that cannot be applied. On an
+  older `Meziantou.Analyzer` that lacks them they are inert. Of the other 26 rules `3.0.305` adds,
+  `MA0227` and `MA0242` join the performance tier below and the remaining 24 stay off.
+- **A performance tier: 53 rules at warning, most of them `Info` until now.** 23 are
+  `Meziantou.Analyzer` rules and 30 are the SDK's `CA` rules, chosen from each vendor's Performance
+  category because the rewrite they ask for keeps behaviour and costs less: a value factory for
+  `ConcurrentDictionary.GetOrAdd` (`MA0242`), `Contains('#')` over `Contains("#")` (`CA1847`),
+  `TryGetValue` over `ContainsKey` plus the indexer (`CA1854`), sealing internal types (`CA1852`),
+  and so on. Expect hits in LINQ, string and dictionary code. 50 of the 53 ship a code fix that
+  `dotnet format analyzers` applies, once the severities are in your `.editorconfig` for the run —
+  see [the consumer docs](docs/consuming.md#3-build-and-fix-what-it-reports). Rules whose rewrite
+  changes behaviour, such as `CA1866`'s ordinal rewrite of a culture-sensitive `StartsWith`, are
+  left off. Where a `Meziantou.Analyzer` rule and a `CA` rule cover the same pattern only one is on,
+  so nothing is reported twice. `MA0227` and `MA0242` arrive with `3.0.305` and are inert on an
+  older pin.
 
 ### Fails a green build — silently
 
