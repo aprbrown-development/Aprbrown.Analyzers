@@ -80,7 +80,7 @@ jobs:
         run: dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
+        run: dotnet test --solution Aprbrown.Analyzers.slnx -c Release --no-build
 
       # Packed once, before the smoke test rather than after it, and that ordering is the point: the
       # file the smoke test inspects is the file the publish job pushes, not a sibling packed for

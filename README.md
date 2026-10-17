@@ -83,7 +83,7 @@ newer host, never the reverse. Test and packaging projects target current .NET.
 
 ```bash
 dotnet build Aprbrown.Analyzers.slnx
-dotnet test  Aprbrown.Analyzers.slnx
+dotnet test  --solution Aprbrown.Analyzers.slnx
 ```
 
 Unit tests test the analyzers; they cannot test the *package*. The pack-consume smoke test does — it

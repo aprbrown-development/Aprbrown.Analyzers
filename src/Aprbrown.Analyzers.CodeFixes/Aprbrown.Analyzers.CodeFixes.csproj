@@ -19,7 +19,7 @@
     <!-- Roslyn pinned to 4.14.0 (spec §4.1), Workspaces included: the APB0003 fix renames a
          symbol rather than rewriting a token, and Renamer lives in Workspaces (spec §3.4). -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

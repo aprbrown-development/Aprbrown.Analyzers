@@ -99,7 +99,7 @@ jobs:
         run: dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test Aprbrown.Analyzers.slnx -c Release --no-build
+        run: dotnet test --solution Aprbrown.Analyzers.slnx -c Release --no-build
 
       # The smoke test never packs; its caller does (ADR-0003 amendment 3). release.yml packs the
       # tag version here instead, so this file holds the smoke version and nothing else does. Into
