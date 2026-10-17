@@ -235,9 +235,9 @@ dotnet_style_qualification_for_method = false
 dotnet_style_qualification_for_event = false
 dotnet_style_require_accessibility_modifiers = always
 
-# The seven expression-bodied preferences, and their options. These deliberately do not gate:
-# `suggestion` is the point of them, so six repositories agree on shape without a disagreement
-# failing anyone's build. A drift to warning would turn a nudge into a fleet-wide build break.
+# The seven expression-bodied preferences, and their options. These gate like everything else:
+# expression bodies are enforced, not nudged, and a suggestion reaches Sonar but never the build.
+# A drift back to suggestion would leave Sonar failing quality gates on what the build lets pass.
 
 csharp_style_expression_bodied_constructors = when_on_single_line
 csharp_style_expression_bodied_methods = true
@@ -247,10 +247,10 @@ csharp_style_expression_bodied_indexers = true
 csharp_style_expression_bodied_lambdas = true
 csharp_style_expression_bodied_local_functions = when_on_single_line
 
-dotnet_diagnostic.IDE0021.severity = suggestion
-dotnet_diagnostic.IDE0022.severity = suggestion
-dotnet_diagnostic.IDE0025.severity = suggestion
-dotnet_diagnostic.IDE0027.severity = suggestion
-dotnet_diagnostic.IDE0026.severity = suggestion
-dotnet_diagnostic.IDE0053.severity = suggestion
-dotnet_diagnostic.IDE0061.severity = suggestion
+dotnet_diagnostic.IDE0021.severity = warning
+dotnet_diagnostic.IDE0022.severity = warning
+dotnet_diagnostic.IDE0025.severity = warning
+dotnet_diagnostic.IDE0027.severity = warning
+dotnet_diagnostic.IDE0026.severity = warning
+dotnet_diagnostic.IDE0053.severity = warning
+dotnet_diagnostic.IDE0061.severity = warning

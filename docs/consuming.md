@@ -185,11 +185,26 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
 
-150 rules in total. **138 are warnings, seven are suggestions, and five are errors.**
+150 rules in total. **145 are warnings and five are errors.**
 
-The **seven suggestions** are the expression-bodied-member preferences (`IDE0021`, `IDE0022`,
-`IDE0025`, `IDE0026`, `IDE0027`, `IDE0053`, `IDE0061`). They are nudges: they show as squiggles and
-never fail a build, whatever you set `TreatWarningsAsErrors` to.
+The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
+`IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.
+`csharp_style_expression_bodied_methods` is `true`, not `when_on_single_line`, so a method whose
+body is one statement spread over several lines is reported too. `dotnet format style` fixes every
+case, but only acts on a rule whose `dotnet_diagnostic.<ID>.severity` it finds in an
+`.editorconfig` — the package's configuration does not count — so add the seven
+`dotnet_diagnostic.IDE00xx.severity = warning` lines to your root `.editorconfig` for the run and
+delete them after:
+
+```sh
+dotnet format style --diagnostics IDE0021 IDE0022 IDE0025 IDE0026 IDE0027 IDE0053 IDE0061
+```
+
+Review the diff: where a comment sat above the single statement, the fix leaves it between `=>` and
+the expression, and it reads better moved above the member. If your own `.editorconfig` sets one of
+the `csharp_style_expression_bodied_*` options with an inline severity, such as
+`csharp_style_expression_bodied_methods = when_on_single_line:suggestion`, delete the line: it
+overrides the house setting.
 
 The **five errors** are `MA0037`, `MA0039`, `MA0049`, `CA1856` and `CA2252`. These are the vendors' own
 default severities, kept rather than softened, and they fail a build even if you turn

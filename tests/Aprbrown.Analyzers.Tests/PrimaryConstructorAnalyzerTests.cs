@@ -29,24 +29,18 @@ public sealed class PrimaryConstructorAnalyzerTests
             VerifyCS.Diagnostic("APB0001").WithLocation(0).WithArguments("S"));
     }
 
+    // 537 positional records fleet-wide must stay silent.
     [Fact]
     public async Task Record_is_never_flagged()
-    {
-        // 537 positional records fleet-wide must stay silent.
-        await VerifyCS.VerifyAnalyzerAsync("record R(int X);");
-    }
+        => await VerifyCS.VerifyAnalyzerAsync("record R(int X);");
 
     [Fact]
     public async Task Record_struct_is_never_flagged()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("record struct RS(int X);");
-    }
+        => await VerifyCS.VerifyAnalyzerAsync("record struct RS(int X);");
 
     [Fact]
     public async Task Class_with_explicit_constructor_is_not_flagged()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("class C { public C(int x) { } }");
-    }
+        => await VerifyCS.VerifyAnalyzerAsync("class C { public C(int x) { } }");
 
     [Fact]
     public async Task Generic_class_with_primary_constructor_is_flagged()
@@ -60,7 +54,5 @@ public sealed class PrimaryConstructorAnalyzerTests
 
     [Fact]
     public async Task Class_with_no_parameter_list_is_not_flagged()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("class C { }");
-    }
+        => await VerifyCS.VerifyAnalyzerAsync("class C { }");
 }
