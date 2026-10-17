@@ -8,7 +8,9 @@ public sealed class Hopper
 {
     private readonly ConcurrentDictionary<int, int[]> _bins = new();
 
-    public static bool IsLabelled(string name) => name.Contains("#"); // expect: CA1847 warning
+    // expect: CA1847 warning
+    public static bool IsLabelled(string name) => name.Contains("#");
 
-    public int[] Bin(int size) => _bins.GetOrAdd(size, new int[size]); // expect: MA0242 warning
+    // expect: MA0242 warning
+    public int[] Bin(int size) => _bins.GetOrAdd(size, new int[size]);
 }

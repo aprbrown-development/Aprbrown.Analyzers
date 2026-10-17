@@ -10,9 +10,13 @@
 # declares, `- row` for one a marker declares and the build did not raise. A row is
 # `<file>:<line> <ID> <severity>`, with the file relative to the fixture directory.
 #
-# An expectation marker is a comment on the line the diagnostic is reported on:
+# An expectation marker is a comment on its own line, declaring the diagnostics the line directly
+# below it raises:
 #
-#   public class Widget(int size) // expect: APB0001 warning
+#   // expect: APB0001 warning
+#   public class Widget(int size)
+#
+# A `// expect:` comment trailing code is not a marker, and declares nothing.
 #
 # A marker carries the shipped severity: what a build without TreatWarningsAsErrors prints. Pass
 # --warnings-as-errors for a build with it, and every declared severity is expected as `error`.
@@ -70,7 +74,8 @@ actual() {
 
 # Every diagnostic the fixture's markers declare, one row each.
 #
-# A marker that could never match is refused rather than compared: exit 2, naming the file and line.
+# A marker that could never match is refused rather than compared: exit 2, naming the file and the
+# marker's own line.
 # Each row must be exactly an analyzer ID and `error` or `warning` — not `suggestion`, which never
 # reaches a build log, so a marker for one would be a missing row no fixture change could fix.
 expected() {
@@ -78,17 +83,16 @@ expected() {
   ( cd "$FIXTURE" && find . -name '*.cs' -not -path './obj/*' -not -path './bin/*' | LC_ALL=C sort ) \
     | while read -r path; do
         awk -v file="${path#./}" -v promoted="$PROMOTED" '{
-          comment = index($0, "//")
-          if (!comment) next
-          at = index(substr($0, comment), "expect:")
+          if ($0 !~ /^[[:space:]]*\/\//) next
+          at = index($0, "expect:")
           if (!at) next
-          n = split(substr($0, comment + at + 6), rows, ",")
+          n = split(substr($0, at + 7), rows, ",")
           for (k = 1; k <= n; k++) {
             if (split(rows[k], word, " ") != 2 || word[1] !~ /^[A-Za-z]+[0-9]+$/ || word[2] !~ /^(error|warning)$/) {
               print "diagnostic-diff: malformed expectation marker at " file ":" NR ": [" rows[k] "]; want <ID> error|warning" > "/dev/stderr"
               exit 2
             }
-            print file ":" NR " " word[1] " " (promoted == "true" ? "error" : word[2])
+            print file ":" (NR + 1) " " word[1] " " (promoted == "true" ? "error" : word[2])
           }
         }' "$FIXTURE/$path" || exit 2
       done \
