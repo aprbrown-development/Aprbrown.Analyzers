@@ -49,7 +49,7 @@ public sealed class InterfaceParameterNameDiagnosticTests
 
         var blanked = Recreated(
             created,
-            properties: created.Properties.ToImmutableDictionary(property => property.Key, _ => (string?)string.Empty));
+            properties: created.Properties.ToImmutableDictionary(property => property.Key, _ => (string?)string.Empty, StringComparer.Ordinal));
 
         Assert.Null(InterfaceParameterNameDiagnostic.Read(blanked, root));
     }

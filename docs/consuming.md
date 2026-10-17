@@ -3,7 +3,7 @@
 One .NET coding standard, delivered as a NuGet package.
 
 It ships two things: three custom Roslyn analyzers (`APB0001`–`APB0003`), and — the larger half — a
-configuration that decides which **150 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+configuration that decides which **153 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -38,7 +38,7 @@ every project you have now and every one you add later.
 <Project>
   <ItemGroup>
     <PackageReference Include="Aprbrown.Analyzers"  Version="1.0.0"          PrivateAssets="all" />
-    <PackageReference Include="Meziantou.Analyzer"  Version="3.0.123"        PrivateAssets="all" />
+    <PackageReference Include="Meziantou.Analyzer"  Version="3.0.305"        PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers"  Version="1.2.0-beta.556" PrivateAssets="all" />
   </ItemGroup>
 </Project>
@@ -180,12 +180,12 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 | Tier | Count | What is on |
 |---|---|---|
 | `APB` | 3 | The three custom rules below |
-| `Meziantou.Analyzer` | 103 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
+| `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
 | .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
 
-150 rules in total. **145 are warnings and five are errors.**
+153 rules in total. **148 are warnings and five are errors.**
 
 The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
 `IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.

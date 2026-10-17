@@ -28,8 +28,9 @@ dotnet_diagnostic.APB0001.severity = warning
 dotnet_diagnostic.APB0002.severity = warning
 dotnet_diagnostic.APB0003.severity = warning
 
-# --- Meziantou: 103 rules -----------------------------------------------------------------------
-# Every rule enabled by default at a build-gating severity, minus MA0004, plus MA0032.
+# --- Meziantou: 106 rules -----------------------------------------------------------------------
+# Every rule enabled by default at a build-gating severity, minus MA0004, plus MA0032. MA0220, MA0240
+# and MA0241 meet that criterion only from 3.0.305 onwards.
 #
 # MA0004 (ConfigureAwait) is deliberately absent. It is the sole universality-test exclusion: its
 # rationale is false for a library such as EveEsiClient (ADR-0002 decision 2).
@@ -133,6 +134,9 @@ dotnet_diagnostic.MA0202.severity = warning
 dotnet_diagnostic.MA0203.severity = warning
 dotnet_diagnostic.MA0207.severity = warning
 dotnet_diagnostic.MA0208.severity = warning
+dotnet_diagnostic.MA0220.severity = warning
+dotnet_diagnostic.MA0240.severity = warning
+dotnet_diagnostic.MA0241.severity = warning
 
 # MA0032 is default-off upstream and added deliberately, at warning.
 
