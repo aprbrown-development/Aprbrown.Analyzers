@@ -73,8 +73,9 @@ diagnostic it raises is declared in its own source, by expectation markers.
 _Avoid_: test project, sample consumer, fixture app
 
 **Expectation marker**:
-A comment on a consumer fixture line naming a diagnostic, at its shipped severity, that the line must
-raise. A line or file without one must raise nothing, so silence is asserted as exactly as firing.
+A comment on its own line in a consumer fixture, naming each diagnostic, at its shipped severity,
+that the line directly below must raise. A line or file without one must raise nothing, so silence is
+asserted as exactly as firing.
 _Avoid_: annotation, expect comment, assertion
 
 **Descriptor contract test**:
@@ -82,6 +83,22 @@ The test that holds every rule the package defines to what a consumer is told ab
 link lands on a heading of the consumer documentation, and its default severity is the one the
 shipped config sets. A rule added later is covered without the test being edited.
 _Avoid_: descriptor test, metadata test, help-link check
+
+**Documentation**:
+The XML doc on a member, written for its caller: complete enough that an editor's tooltip explains
+the member without its body being read. Welcome wherever it is complete.
+_Avoid_: doc comments, comments, XML comments
+
+**Comment**:
+Any note in source code that is not documentation. Rare by design: justified only where the code
+cannot explain itself, and then it explains the code, never the decision, ticket or document behind
+it.
+_Avoid_: remark, note, inline documentation
+
+**Trailing comment**:
+A comment that shares its line with code before it, rather than sitting on its own line above the
+code it describes.
+_Avoid_: inline comment, end-of-line comment, same-line comment
 
 **Diagnostic contract**:
 What a rule's diagnostic promises its code fix: where it is reported and the conclusion it carries,
