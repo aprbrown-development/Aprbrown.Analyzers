@@ -153,8 +153,9 @@ nor warns that it is inactive.
   triples verbatim; #2 verified they work byte-identically in a global config.
 - `dotnet_style_require_accessibility_modifiers = always`.
 - `dotnet_style_qualification_for_field` / `_property` / `_method` / `_event` = `false`.
-- Seven `csharp_style_expression_bodied_*` entries at **`suggestion`** — non-gating nudges so six
-  repositories agree on shape without failing builds.
+- Seven `csharp_style_expression_bodied_*` entries, their IDs at **`warning`**. They first shipped
+  at `suggestion` as non-gating nudges; #67 raised them, because a suggestion never reaches a build
+  log but SonarQube imports it, so a quality gate failed on code every build had passed.
 
 > **Note while porting the naming block:** `Mixologist`'s `.editorconfig` carries a comment claiming
 > naming rules are matched in declaration order and that a general rule would otherwise swallow a
@@ -523,7 +524,7 @@ Analyzer unit tests test the analyzer; they cannot test the package. This gate t
 | An IDE naming violation fires | Enumeration-by-ID works — these are silently unenforced otherwise |
 | A *second* IDE naming violation fires, on a private static named `_created` | Naming rules resolve by **specificity**, not declaration order. The general private-fields rule is satisfied by that name and only the specific private-statics rule objects, so this row is the one that makes the source repository's declaration-order comment demonstrably false rather than merely unported |
 | A missing accessibility modifier fires, twice | `IDE0040` is enumerated and reachable; the second is on an *interface member*, which is exactly what `always` buys over `for_non_interface_members` |
-| None of the seven expression-bodied IDs fires as an error | `suggestion` survives the trip. Measured in the `TreatWarningsAsErrors=true` build, the only one where a preference wrongly recorded at `warning` would show |
+| `IDE0022` fires | The raised severity of the seven expression-bodied IDs survives the trip — an error in the `TreatWarningsAsErrors=true` build, a warning without it |
 | `IDE0003` does **not** fire | Not a seal assertion but a pinned limitation — it is IDE-only, see section 10 correction 12. The one assertion in the file that should eventually break |
 | The config totals 150 enumerated rules | No rule arrived outside a tier; the per-tier counts cannot catch that on their own — section 10 correction 13 |
 | `MA0004` does **not** fire | The sole deliberate exclusion stays excluded |

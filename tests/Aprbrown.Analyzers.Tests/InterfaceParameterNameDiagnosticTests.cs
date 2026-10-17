@@ -102,8 +102,8 @@ public sealed class InterfaceParameterNameDiagnosticTests
         Diagnostic diagnostic,
         DiagnosticDescriptor? descriptor = null,
         Location? location = null,
-        ImmutableDictionary<string, string?>? properties = null)
-        => Diagnostic.Create(
+        ImmutableDictionary<string, string?>? properties = null) =>
+        Diagnostic.Create(
             descriptor ?? diagnostic.Descriptor,
             location ?? diagnostic.Location,
             properties ?? diagnostic.Properties,

@@ -41,6 +41,11 @@
           Link="Contract\consuming.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\Aprbrown.Analyzers.Package\build\Aprbrown.Analyzers.globalconfig"
           Link="Contract\Aprbrown.Analyzers.globalconfig" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The repository's own .editorconfig, for the drift test on the severities it restates from
+         the shipped config. Renamed on the way so nothing mistakes the copy for a live
+         .editorconfig. -->
+    <None Include="..\..\.editorconfig"
+          Link="Contract\repository.editorconfig" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

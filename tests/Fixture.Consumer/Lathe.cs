@@ -51,13 +51,11 @@ public sealed class Lathe
         void Tighten(); // expect: IDE0040 warning
     }
 
-    // IDE0022 (suggestion) — a block body wrapping a single expression. One of the seven
-    // expression-bodied preferences, which ship at `suggestion` precisely so six repositories can
-    // agree on shape without a disagreement failing anyone's build. A suggestion never reaches the
-    // build log, so this line carries no marker: if IDE0022 ever appears here, at warning or
-    // error, the smoke test fails on it as unexpected — with IDE0040 and IDE1006 firing in the same
-    // file as the control.
-    public int Describe()
+    // IDE0022 — a block body wrapping a single expression. One of the seven expression-bodied
+    // preferences, which ship at `warning` and gate like any other rule. The marker sits on the
+    // declaration, where IDE0022 reports, so the two-build diff proves the raised severity survives
+    // packing — an error under TreatWarningsAsErrors, a warning without it.
+    public int Describe() // expect: IDE0022 warning
     {
         return count + _size + _created + Produced;
     }

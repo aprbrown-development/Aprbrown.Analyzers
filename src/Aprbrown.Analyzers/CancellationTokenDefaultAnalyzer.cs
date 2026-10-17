@@ -188,8 +188,8 @@ public sealed class CancellationTokenDefaultAnalyzer : DiagnosticAnalyzer
     // An override or implementation always has the arity of its member. The bounds check is for
     // half-typed code in the IDE, where error recovery can hand back a pair that does not agree,
     // and an out-of-range index would take the whole analysis down — APB0003 clamps for the same.
-    private static bool HasDefaultAt(IMethodSymbol? member, int ordinal)
-        => member is not null
+    private static bool HasDefaultAt(IMethodSymbol? member, int ordinal) =>
+        member is not null
             && ordinal < member.Parameters.Length
             && member.Parameters[ordinal].HasExplicitDefaultValue;
 }

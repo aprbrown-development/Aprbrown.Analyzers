@@ -507,34 +507,36 @@ dotnet_style_qualification_for_event = false
 # member is held to the same rule as any other.
 dotnet_style_require_accessibility_modifiers = always
 
-# Expression bodies wherever the member is a single expression — and the only rules in this file
-# that do not gate. `suggestion` is the whole point of them: six repositories agree on shape
-# without a disagreement failing anyone's build, which is a different bargain from the naming and
-# accessibility rules above and is why the severities differ rather than the list being shorter.
+# Expression bodies wherever the member is a single expression, enforced like the naming and
+# accessibility rules above. They once shipped at `suggestion`, but a suggestion never reaches a
+# build log while SonarQube still imports it, so a quality gate failed on code every build had
+# passed. At `warning` the build and Sonar agree, and `dotnet format style` fixes every case.
+# `methods = true` rather than `when_on_single_line`, so a single statement spread over several
+# lines converts too.
 csharp_style_expression_bodied_constructors = when_on_single_line
 # IDE0021 — Use expression body for constructors
-dotnet_diagnostic.IDE0021.severity = suggestion
+dotnet_diagnostic.IDE0021.severity = warning
 
 csharp_style_expression_bodied_methods = true
 # IDE0022 — Use expression body for methods
-dotnet_diagnostic.IDE0022.severity = suggestion
+dotnet_diagnostic.IDE0022.severity = warning
 
 csharp_style_expression_bodied_properties = true
 # IDE0025 — Use expression body for properties
-dotnet_diagnostic.IDE0025.severity = suggestion
+dotnet_diagnostic.IDE0025.severity = warning
 
 csharp_style_expression_bodied_accessors = true
 # IDE0027 — Use expression body for accessors
-dotnet_diagnostic.IDE0027.severity = suggestion
+dotnet_diagnostic.IDE0027.severity = warning
 
 csharp_style_expression_bodied_indexers = true
 # IDE0026 — Use expression body for indexers
-dotnet_diagnostic.IDE0026.severity = suggestion
+dotnet_diagnostic.IDE0026.severity = warning
 
 csharp_style_expression_bodied_lambdas = true
 # IDE0053 — Use expression body for lambdas
-dotnet_diagnostic.IDE0053.severity = suggestion
+dotnet_diagnostic.IDE0053.severity = warning
 
 csharp_style_expression_bodied_local_functions = when_on_single_line
 # IDE0061 — Use expression body for local functions
-dotnet_diagnostic.IDE0061.severity = suggestion
+dotnet_diagnostic.IDE0061.severity = warning

@@ -37,9 +37,9 @@
 #     builds: once with the TreatWarningsAsErrors default, where every declared diagnostic must
 #     arrive as an error and the build must fail, and once without it, where each must arrive at
 #     the severity it ships at. A line or file with no marker must stay silent, so the seal's
-#     silences (CA2007, CA1707, MA0004), the IDE-only IDE0003, the expression-bodied preferences
-#     that must never gate, and a failed analyzer load or colliding global config are all
-#     asserted by the same comparison. Which file proves what, and why, is written in the fixture.
+#     silences (CA2007, CA1707, MA0004), the IDE-only IDE0003, and a failed analyzer load or
+#     colliding global config are all asserted by the same comparison. Which file proves what,
+#     and why, is written in the fixture.
 #
 # A new fixture case is a change to the fixture alone: the violating line and its marker.
 

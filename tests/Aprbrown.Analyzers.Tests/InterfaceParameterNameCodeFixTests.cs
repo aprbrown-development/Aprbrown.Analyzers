@@ -54,14 +54,12 @@ public sealed class InterfaceParameterNameCodeFixTests
             VerifyCS.Diagnostic("APB0003").WithLocation(0).WithArguments("beta", "alpha", "I.M"));
     }
 
+    // Spec §3.4: two renames applied to one document from a stale solution snapshot can
+    // conflict or clobber each other, so the fix is single-invocation only in v1. Null here is
+    // what keeps "Fix all occurrences" out of the IDE's light-bulb menu.
     [Fact]
-    public void No_batch_fix_all_provider_is_registered()
-    {
-        // Spec §3.4: two renames applied to one document from a stale solution snapshot can
-        // conflict or clobber each other, so the fix is single-invocation only in v1. Null here is
-        // what keeps "Fix all occurrences" out of the IDE's light-bulb menu.
+    public void No_batch_fix_all_provider_is_registered() =>
         Assert.Null(new InterfaceParameterNameCodeFixProvider().GetFixAllProvider());
-    }
 
     [Fact]
     public async Task Explicit_implementation_is_fixed()

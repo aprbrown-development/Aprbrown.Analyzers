@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
@@ -11,7 +10,7 @@ namespace Aprbrown.Analyzers.Tests;
 /// public <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>, is held to what a consumer is told
 /// about it. A rule added later is covered without this class being edited.
 /// </summary>
-public sealed partial class DescriptorContractTests
+public sealed class DescriptorContractTests
 {
     // Written out rather than read from the descriptors, so a descriptor pointing at the wrong
     // repository, branch or file has something independent to disagree with.
@@ -36,7 +35,7 @@ public sealed partial class DescriptorContractTests
             + "lands a consumer at the top of the document rather than at the rule.");
 
         var fragment = link[(ConsumingGuideUrl.Length + 1)..];
-        var headings = MarkdownHeadings.Slugs(ReadContractFile("consuming.md"));
+        var headings = MarkdownHeadings.Slugs(ContractFiles.Read("consuming.md"));
         Assert.True(
             headings.Contains(fragment, StringComparer.Ordinal),
             $"{id}'s help link fragment '#{fragment}' matches no heading in docs/consuming.md. Either "
@@ -84,32 +83,21 @@ public sealed partial class DescriptorContractTests
         Assert.Equal(defined, configured);
     }
 
-    private static DiagnosticDescriptor Descriptor(string id)
-        => AnalyzerDescriptors().Single(d => string.Equals(d.Id, id, StringComparison.Ordinal));
+    private static DiagnosticDescriptor Descriptor(string id) =>
+        AnalyzerDescriptors().Single(d => string.Equals(d.Id, id, StringComparison.Ordinal));
 
     // Every concrete analyzer the package ships, read through the interface a host reads it through.
     // Deduplicated by the descriptor's own value equality, not by ID: one descriptor shared by two
     // analyzers is one rule, but two that claim the same ID and differ are a conflict, which
     // Descriptor(id) refuses at Single.
-    private static IEnumerable<DiagnosticDescriptor> AnalyzerDescriptors()
-        => typeof(PrimaryConstructorAnalyzer).Assembly.GetTypes()
+    private static IEnumerable<DiagnosticDescriptor> AnalyzerDescriptors() =>
+        typeof(PrimaryConstructorAnalyzer).Assembly.GetTypes()
             .Where(t => !t.IsAbstract
                 && typeof(DiagnosticAnalyzer).IsAssignableFrom(t)
                 && t.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
             .SelectMany(t => ((DiagnosticAnalyzer)Activator.CreateInstance(t)!).SupportedDiagnostics)
             .Distinct();
 
-    // Every `dotnet_diagnostic.<id>.severity = <value>` line of the shipped config, by ID.
-    private static Dictionary<string, string> ShippedSeverities()
-        => ReadContractFile("Aprbrown.Analyzers.globalconfig")
-            .Split('\n')
-            .Select(line => SeverityLine().Match(line))
-            .Where(m => m.Success)
-            .ToDictionary(m => m.Groups["id"].Value, m => m.Groups["severity"].Value, StringComparer.Ordinal);
-
-    private static string ReadContractFile(string name)
-        => File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Contract", name));
-
-    [GeneratedRegex(@"^dotnet_diagnostic\.(?<id>[^.\s]+)\.severity[ \t]*=[ \t]*(?<severity>[a-z]+)", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
-    private static partial Regex SeverityLine();
+    private static Dictionary<string, string> ShippedSeverities() =>
+        ContractFiles.Severities("Aprbrown.Analyzers.globalconfig");
 }

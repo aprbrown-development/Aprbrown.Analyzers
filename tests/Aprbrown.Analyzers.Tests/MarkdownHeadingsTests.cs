@@ -9,10 +9,10 @@ namespace Aprbrown.Analyzers.Tests;
 public sealed class MarkdownHeadingsTests
 {
     [Fact]
-    public void Heading_becomes_its_lowercase_hyphenated_slug()
-    {
-        Assert.Equal(["the-three-custom-rules"], MarkdownHeadings.Slugs("### The three custom rules\n"));
-    }
+    public void Heading_becomes_its_lowercase_hyphenated_slug() =>
+        Assert.Equal(
+            ["the-three-custom-rules"],
+            MarkdownHeadings.Slugs("### The three custom rules\n"));
 
     [Fact]
     public void Punctuation_is_dropped_but_hyphens_and_underscores_survive()
@@ -75,10 +75,8 @@ public sealed class MarkdownHeadingsTests
     }
 
     [Fact]
-    public void Closing_hashes_trailing_space_and_carriage_returns_are_not_part_of_the_slug()
-    {
+    public void Closing_hashes_trailing_space_and_carriage_returns_are_not_part_of_the_slug() =>
         Assert.Equal(
             ["versioning", "links"],
             MarkdownHeadings.Slugs("## Versioning ##\r\n## Links   \r\n"));
-    }
 }

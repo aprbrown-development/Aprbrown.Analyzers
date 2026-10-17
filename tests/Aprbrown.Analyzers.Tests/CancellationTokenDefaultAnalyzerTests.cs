@@ -80,10 +80,8 @@ public sealed class CancellationTokenDefaultAnalyzerTests
     }
 
     [Fact]
-    public async Task Record_positional_token_without_a_default_is_not_flagged()
-    {
+    public async Task Record_positional_token_without_a_default_is_not_flagged() =>
         await VerifyCS.VerifyAnalyzerAsync(Usings + "record R(CancellationToken Ct);");
-    }
 
     [Fact]
     public async Task Explicit_construction_is_a_default_value_like_any_other()
@@ -101,17 +99,13 @@ public sealed class CancellationTokenDefaultAnalyzerTests
     }
 
     [Fact]
-    public async Task Token_without_a_default_is_not_flagged()
-    {
+    public async Task Token_without_a_default_is_not_flagged() =>
         await VerifyCS.VerifyAnalyzerAsync(
             Usings + "class C { Task M(CancellationToken cancellationToken) => Task.CompletedTask; }");
-    }
 
     [Fact]
-    public async Task Defaulted_parameter_of_another_type_is_not_flagged()
-    {
+    public async Task Defaulted_parameter_of_another_type_is_not_flagged() =>
         await VerifyCS.VerifyAnalyzerAsync(Usings + "class C { void M(int x = 5) { } }");
-    }
 
     [Fact]
     public async Task Each_offending_parameter_gets_its_own_diagnostic()
@@ -142,20 +136,17 @@ public sealed class CancellationTokenDefaultAnalyzerTests
         await VerifyCS.VerifyAnalyzerAsync(source);
     }
 
+    // A recorded boundary (spec §3.2), not an oversight: changing it needs a version bump
+    // under ADR-0004.
     [Fact]
-    public async Task Local_function_is_out_of_scope_in_v1()
-    {
-        // A recorded boundary (spec §3.2), not an oversight: changing it needs a version bump
-        // under ADR-0004.
+    public async Task Local_function_is_out_of_scope_in_v1() =>
         await VerifyCS.VerifyAnalyzerAsync(
             Usings + "class C { void M() { void Local(CancellationToken ct = default) { } Local(); } }");
-    }
 
     [Fact]
-    public async Task Delegate_is_out_of_scope_in_v1()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(Usings + "delegate void D(CancellationToken ct = default);");
-    }
+    public async Task Delegate_is_out_of_scope_in_v1() =>
+        await VerifyCS.VerifyAnalyzerAsync(
+            Usings + "delegate void D(CancellationToken ct = default);");
 
     [Fact]
     public async Task Override_keeping_a_default_its_base_declares_is_not_flagged()
@@ -168,8 +159,8 @@ public sealed class CancellationTokenDefaultAnalyzerTests
             using System.IO;
             abstract class S : Stream
             {
-                public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-                    => new(0);
+                public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+                    new(0);
             }
             """;
 
