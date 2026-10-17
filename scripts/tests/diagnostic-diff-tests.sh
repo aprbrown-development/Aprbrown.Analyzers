@@ -175,7 +175,7 @@ diagnostic Widget.cs 5 20 warning APB0001 >> "$LOG"
 printf '%s\n' \
   "CSC : warning CS8032: An instance of analyzer X cannot be created [$FIXTURE/Fixture.Consumer.csproj]" \
   "CSC : warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key [$FIXTURE/Fixture.Consumer.csproj]" \
-  "$FIXTURE/Fixture.Consumer.csproj : warning NU1603: Meziantou.Analyzer 3.0.123 was not found [$FIXTURE/Fixture.Consumer.csproj]" \
+  "$FIXTURE/Fixture.Consumer.csproj : warning NU1603: Meziantou.Analyzer 3.0.305 was not found [$FIXTURE/Fixture.Consumer.csproj]" \
   >> "$LOG"
 assert_differs 'a diagnostic with no source location is always unexpected' -- \
   '+ CSC CS8032 warning' \

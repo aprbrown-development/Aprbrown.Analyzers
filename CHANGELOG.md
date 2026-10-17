@@ -28,6 +28,45 @@ matching its tag, so there is exactly one authored source and the release page c
 this file. A prerelease tag reads the section of the version it prefixes — `v1.0.0-preview.1` is a
 rehearsal for `1.0.0` and carries that version's build impact, because it has none of its own.
 
+## 1.1.0
+
+The prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, and three rules that version
+adds are switched on. **Bump your own `Meziantou.Analyzer` reference to `3.0.305`** alongside this
+package: the package takes no dependency on it, so nothing moves your pin for you — see
+[the consumer docs](docs/consuming.md#1-reference-three-packages).
+
+### Fails a green build — by design
+
+- **`MA0220`, `MA0240` and `MA0241` are on, at warning.** They are the three rules `3.0.305` adds
+  that are enabled by default at a build-gating severity, the criterion the rest of the Meziantou
+  tier was chosen by, and the tier is now 106 rules and the ruleset 153. None of them fires until
+  your repository configures something: `MA0220` reports a regular-expression option for `MA0003`,
+  `MA0048` or `MA0104` that does not parse, and so would be silently ignored; `MA0240` reports the
+  syntax a `BannedSyntaxes.txt` bans; `MA0241` reports a line of that file that cannot be applied.
+  On an older `Meziantou.Analyzer` that lacks them they are inert. The other 26 rules `3.0.305` adds
+  are off by default or default to `Info` or `Hidden`, and stay off.
+
+### Fails a green build — silently
+
+- **Bumping `Meziantou.Analyzer` to `3.0.305` makes rules already on catch more.** This happens when
+  you move your own pin, not when you upgrade this package, but it is the change the new prescribed
+  version asks of you. The widest are `MA0060`, which grew from `Stream.Read` alone to any ignored
+  return value of a pure method — `string.Trim`, `Replace` and friends, the immutable collections,
+  a `TryParse`-shaped method, anything marked `[Pure]` — and `MA0002`, which now reports collection
+  expressions, `ToImmutableDictionary` and `ImmutableDictionary.CreateBuilder` without a comparer.
+  Smaller ones: `MA0051` counts the expression bodies of properties, indexers and operators;
+  `MA0070` covers every declaration that can be obsolete; `MA0072` and `MA0086` cover throw
+  expressions; `MA0082` covers relational and generic-math `NaN` comparisons; `MA0124`–`MA0126`
+  read `[LoggerMessage(Message = …)]`; and `MA0054`, `MA0068`, `MA0130`, `MA0147` and `MA0153` each
+  reach a case they missed. No rule this package enables was removed, renamed, or had its default
+  severity changed.
+
+### Cannot fail a green build
+
+- **Many false positives removed upstream** in rules this package enables, among them `MA0002`,
+  `MA0005`, `MA0011`, `MA0046`, `MA0056`, `MA0065`, `MA0066`, `MA0091`, `MA0100`, `MA0139`,
+  `MA0150`, `MA0151`, `MA0158` and `MA0163`. These also arrive with your own `3.0.305` pin.
+
 ## 1.0.1
 
 One false positive removed from `APB0002`; the rest is documentation. No configuration entry and
