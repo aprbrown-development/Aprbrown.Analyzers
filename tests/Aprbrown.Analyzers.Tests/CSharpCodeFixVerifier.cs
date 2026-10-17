@@ -45,11 +45,23 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         params DiagnosticResult[] expected) =>
         RunAsync(source, fixedSource, expectedTitle, expected);
 
+    /// <summary>
+    /// As <see cref="VerifyCodeFixAsync(string, string, DiagnosticResult[])"/>, and additionally
+    /// asserts that fix-all, in the document and across the solution, reaches the fixed source in a
+    /// single pass.
+    /// </summary>
+    public static Task VerifyFixAllInOnePassAsync(
+        string source,
+        string fixedSource,
+        params DiagnosticResult[] expected) =>
+        RunAsync(source, fixedSource, expectedTitle: null, expected, fixAllIterations: 1);
+
     private static async Task RunAsync(
         string source,
         string fixedSource,
         string? expectedTitle,
-        DiagnosticResult[] expected)
+        DiagnosticResult[] expected,
+        int? fixAllIterations = null)
     {
         var test = new OfferedFixRecordingTest
         {
@@ -57,6 +69,12 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
             FixedCode = fixedSource,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         };
+
+        if (fixAllIterations is { } iterations)
+        {
+            test.NumberOfFixAllIterations = iterations;
+            test.NumberOfFixAllInDocumentIterations = iterations;
+        }
 
         test.ExpectedDiagnostics.AddRange(expected);
         await test.RunAsync(CancellationToken.None);

@@ -31,9 +31,9 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 ## 1.1.0
 
 The prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, three rules that version adds
-are switched on, a performance tier of 53 rules joins the ruleset, and a fourth custom rule,
-`APB0004`, puts a wrapped expression body's `=>` at the end of the declaration line. The ruleset is
-now 207 rules.
+are switched on, a performance tier of 53 rules joins the ruleset, and two custom rules arrive:
+`APB0004` puts a wrapped expression body's `=>` at the end of the declaration line, and `APB0005`
+moves trailing comments onto their own line. The ruleset is now 208 rules.
 **Bump your own `Meziantou.Analyzer` reference to `3.0.305`** alongside this package: the package
 takes no dependency on it, so nothing moves your pin for you — see
 [the consumer docs](docs/consuming.md#1-reference-three-packages).
@@ -49,6 +49,16 @@ takes no dependency on it, so nothing moves your pin for you — see
   clears the lot; the exception is an arrow with a preprocessor directive between it and the
   declaration, which is reported without a fix and moved by hand. See
   [the custom rules](docs/consuming.md#the-three-custom-rules).
+- **`APB0005` is a new rule, on at warning: a comment goes on its own line above the code it
+  describes.** Every `//` comment trailing code is reported, so expect hits wherever a statement,
+  field or list item carries a note at the end of its line. Block comments, documentation, comments
+  on preprocessor directive lines and tool directives (`NOSONAR`, `ReSharper `, `lang=`,
+  `language=`) are exempt. One fix-all pass of its code fix clears it, in the IDE or with
+  `dotnet format analyzers --diagnostics APB0005` once the severity is in your `.editorconfig` for
+  the run; the exceptions are a comment after the closing line of a multi-line string and one on a
+  line opened by a block comment, which are reported without a fix and moved by hand. Run it after
+  `APB0004`'s fix, which moves `=>` up to the end of the line above and with it any comment on that
+  line. See [the custom rules](docs/consuming.md#the-three-custom-rules).
 - **`MA0220`, `MA0240` and `MA0241` are on, at warning.** They are the three rules `3.0.305` adds
   that are enabled by default at a build-gating severity, the criterion the rest of the Meziantou
   tier was chosen by, and the tier is now 106 rules. None of them fires until your repository
