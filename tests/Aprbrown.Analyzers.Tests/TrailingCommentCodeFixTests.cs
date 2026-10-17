@@ -263,6 +263,34 @@ public sealed class TrailingCommentCodeFixTests
     }
 
     [Fact]
+    public async Task No_fix_is_offered_after_the_closing_line_of_a_multi_line_interpolated_raw_string()
+    {
+        const string source = """"
+            class C
+            {
+                string M(int count) => $"""
+                    {count}
+                    """; {|#0:// rendered|}
+            }
+            """";
+
+        await VerifyCS.VerifyCodeFixAsync(source, source, VerifyCS.Diagnostic("APB0005").WithLocation(0));
+    }
+
+    [Fact]
+    public async Task No_fix_is_offered_when_a_block_comment_opens_the_trailed_line()
+    {
+        const string source = """
+            class C
+            {
+                /* counter */ private int _count; {|#0:// how many|}
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(source, source, VerifyCS.Diagnostic("APB0005").WithLocation(0));
+    }
+
+    [Fact]
     public async Task Line_endings_of_the_document_are_kept()
     {
         const string source = "class C\r\n{\r\n    private int _count; {|#0:// how many|}\r\n}\r\n";

@@ -559,8 +559,9 @@ var users = await _dbContext
 ```
 
 **No fix** is offered when the trailed line does not begin with a token of its own, such as the
-closing line of a multi-line raw string literal. The diagnostic is still reported, and fix-all skips
-it.
+closing line of a multi-line raw string literal, or a line opened by a block comment
+(`/* a */ x; // b`), where the hoisted comment would land after the block comment and still trail
+it. The diagnostic is still reported, and fix-all skips it.
 
 **Required tests**: `x = 2; // Green` fixes to `// Green` above `x = 2;` at the same indentation; a
 list item's comment is hoisted inside its collection initializer; a documented declaration's
