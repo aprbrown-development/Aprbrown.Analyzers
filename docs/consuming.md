@@ -257,8 +257,6 @@ one of the rules Roslyn only runs inside an IDE, so an unwanted `this.` shows up
 one-key fix but will not stop a command-line build. `IDE0009`, the add-`this.` half, does gate. Every
 other rule in the table above gates.
 
-<a id="the-three-custom-rules"></a>
-
 ### The custom rules
 
 - **`APB0001` — no primary constructors on classes or structs.** Injected dependencies belong in an

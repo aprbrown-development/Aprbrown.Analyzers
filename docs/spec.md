@@ -501,8 +501,9 @@ up would leave the other branch's arrow stranded under the `#if`.
 
 **Help link.** The help link of every `APB` rule, this one included, lands on the `consuming.md`
 heading "The custom rules". Until 2.1.0 that heading read "The three custom rules", and every help
-link shipped before then points at its anchor, `#the-three-custom-rules`; an
-`<a id="the-three-custom-rules">` above the renamed heading keeps those links landing on it.
+link shipped before then points at its anchor, `#the-three-custom-rules`, which no longer exists, so
+those links open `consuming.md` at its top. An HTML anchor could keep them landing, but
+`consuming.md` is also the nuget.org page, and nuget.org does not render raw HTML.
 
 **Required tests**
 

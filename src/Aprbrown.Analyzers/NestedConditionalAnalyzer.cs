@@ -8,8 +8,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Aprbrown.Analyzers;
 
 /// <summary>
-/// APB0006 — flags a conditional expression nested inside another conditional expression.
+/// APB0006 — flags a conditional expression nested anywhere inside another conditional expression's
+/// condition or branches, reported at the inner conditional.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Every expression between the two is looked through, so a conditional wrapped in parentheses, a
+/// cast, an argument or a switch expression is still nested. A lambda, anonymous method or local
+/// function body is a scope of its own: nesting inside it is judged afresh, and a conditional
+/// enclosing the function does not count. A local function is a statement, so reaching any enclosing
+/// statement or member ends the search the same way.
+/// </para>
+/// <para>
+/// <c>?.</c>, <c>??</c>, <c>??=</c> and switch expressions are other syntax kinds, so none is
+/// reported and none counts as the outer conditional.
+/// </para>
+/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class NestedConditionalAnalyzer : DiagnosticAnalyzer
 {
@@ -35,11 +49,9 @@ public sealed class NestedConditionalAnalyzer : DiagnosticAnalyzer
 
     private static bool IsNestedInConditional(SyntaxNode conditional) =>
         conditional.Ancestors()
-            .TakeWhile(ancestor => !IsScopeBoundary(ancestor))
+            .TakeWhile(ancestor => !EndsNestingSearch(ancestor))
             .Any(ancestor => ancestor is ConditionalExpressionSyntax);
 
-    // An enclosing statement or member means the walk has left the expression the conditional sits
-    // in. A local function is itself a statement, so it ends the walk the same way.
-    private static bool IsScopeBoundary(SyntaxNode node) =>
+    private static bool EndsNestingSearch(SyntaxNode node) =>
         node is AnonymousFunctionExpressionSyntax or StatementSyntax or MemberDeclarationSyntax;
 }

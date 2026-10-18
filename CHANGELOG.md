@@ -68,7 +68,7 @@ _Nothing. No existing rule reports anything it did not report on `2.0.0`._
   and its tier table and totals count them.
 - **The custom rules' heading no longer counts them.** "The three custom rules" in the install guide
   listed five; it is now [the custom rules](docs/consuming.md#the-custom-rules), and every rule's
-  help link points there. Help links shipped by earlier versions still land on it.
+  help link points there. A help link from an earlier version now opens the guide at its top.
 
 ## 2.0.0
 

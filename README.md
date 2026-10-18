@@ -43,7 +43,7 @@ default, so it will fail builds that currently pass — read the install guide b
   Block comments, documentation, preprocessor lines and tool directives are exempt. Ships with a code
   fix that hoists the comment above the line it trailed.
 - **`APB0006`** — conditional expressions are not nested. A conditional inside a lambda, anonymous
-  method or local function is in a scope of its own; `?.`, `??` and switch expressions are not
+  method or local function is in a scope of its own; `?.`, `??`, `??=` and switch expressions are not
   conditionals.
 
 Full detail, including the other 209 rules and everything deliberately left off, is in
