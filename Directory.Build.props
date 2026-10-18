@@ -7,10 +7,12 @@
     in each project. The analyzer project cannot be its own analyzer, so it alone references the
     last published Aprbrown.Analyzers package instead, one release behind; Dependabot raises the pin.
     A released rule that misfires on that project's code is turned off for src/Aprbrown.Analyzers/
-    alone in the local .editorconfig until the pin reaches the fix.
+    alone in the local .editorconfig until the pin reaches the fix. A second difference: the
+    snippet pins each package inline, while every version here, that pin included, comes from
+    Directory.Packages.props.
 
-    tests/Fixture.Consumer deliberately opts out of this file — see the empty Directory.Build.props
-    in that directory for why.
+    tests/Fixture.Consumer deliberately opts out of this file and of Directory.Packages.props — see
+    the empty files of the same names in that directory for why.
   -->
 
   <!--
@@ -32,13 +34,14 @@
 
   <ItemGroup>
     <!--
-      The pins docs/consuming.md prescribes. The package takes no dependency on either, so a
-      consuming repository supplies them itself — this repository included.
+      The packages docs/consuming.md prescribes, at the versions Directory.Packages.props pins. The
+      package takes no dependency on either, so a consuming repository supplies them itself — this
+      repository included.
       PrivateAssets="all" does not cover the project declaring the reference, which is why this
       belongs in Directory.Build.props rather than one project.
     -->
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.305" PrivateAssets="all" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
+    <PackageReference Include="Meziantou.Analyzer" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
