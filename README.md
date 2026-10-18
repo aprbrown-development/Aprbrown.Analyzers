@@ -121,6 +121,21 @@ packed, so the pack-consume smoke test drives it rather than `dotnet build`. Eac
 diagnostic says so in a trailing `// expect: <ID> <severity>` comment, at the severity the rule ships
 at; any line without one must stay silent. A new fixture case is the violating line and its marker.
 
+### Triaging SonarQube rules
+
+`./scripts/sonar-untriaged.sh` lists the SonarQube C# rules firing in the fleet that have no row in
+the [`docs/spec.md`](docs/spec.md) §2.5 verdict table, and exits non-zero while any does; it also
+lists covered rules that still have open issues, which are detection gaps rather than newcomers
+([ADR-0008](docs/adr/0008-cover-sonarqube-findings-with-the-house-ruleset-not-sonaranalyzer.md)).
+It needs a machine that can reach the server, so it runs on demand rather than in CI:
+
+```bash
+SONAR_HOST_URL=https://sonarqube.example SONAR_TOKEN=<user token> ./scripts/sonar-untriaged.sh
+```
+
+`./scripts/tests/sonar-untriaged-tests.sh` checks its table parsing and comparison against canned
+API responses, without network access.
+
 ### Adding an analyzer
 
 1. Add the `DiagnosticAnalyzer` under `src/Aprbrown.Analyzers/`, with a unique diagnostic ID and a
