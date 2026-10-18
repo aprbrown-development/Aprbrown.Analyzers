@@ -132,6 +132,9 @@ jobs:
       - name: Fixture diagnostic comparison tests
         run: ./scripts/tests/diagnostic-diff-tests.sh
 
+      - name: Sonar triage listing tests
+        run: ./scripts/tests/sonar-untriaged-tests.sh
+
       # The release-time gates are the one pair of checks that cannot run at PR time — neither has
       # anything to check until a version number exists — but the *scripts* implementing them can,
       # and by the same reasoning: a parser that first proves itself at release time has already
