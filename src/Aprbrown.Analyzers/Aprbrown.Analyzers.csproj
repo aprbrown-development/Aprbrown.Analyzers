@@ -10,6 +10,9 @@
     <IsPackable>false</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
+    <!-- Not the published package's ID, so referencing that package below is no self-cycle (NU1108). -->
+    <PackageId>Aprbrown.Analyzers.Source</PackageId>
+
     <!-- Roslyn analyzer authoring rules (RS*), including release tracking (RS2008). -->
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -20,6 +23,17 @@
          Roslyn loads in a newer host, never the reverse. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Runs the published package's APB rules against this project, which cannot be its own
+         analyzer. PrivateAssets="all" keeps the package off every project that references this one, which
+         already runs the current rules from source and would otherwise report each diagnostic
+         twice. ExcludeAssets="build;buildTransitive" drops the package's props: Directory.Build.props
+         already supplies the shipped config, and a second copy would unset every shared key
+         (MultipleGlobalAnalyzerKeys). -->
+    <PackageReference Include="Aprbrown.Analyzers" Version="1.1.1"
+                      PrivateAssets="all" ExcludeAssets="build;buildTransitive" />
   </ItemGroup>
 
   <ItemGroup>
