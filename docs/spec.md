@@ -209,7 +209,6 @@ A rule that fires without a row here is untriaged, and gets one.
 |---|---|---|
 | `S6966` Awaitable method should be used | covered | `CA1849` |
 | `S3358` Ternary operators should not be nested | covered | `APB0006` |
-| `S2092` Cookies should have the "secure" flag | covered | `CA5382`, `CA5383` |
 | `S6618` "string.Create" should be used instead of "FormattableString" | covered | `MA0111` |
 | `S1118` Utility classes should not have public constructors | covered | `CA1052`, which asks for a `static` class rather than a private constructor |
 | `S1905` Redundant casts should not be used | covered | `IDE0004` |
@@ -217,6 +216,7 @@ A rule that fires without a row here is untriaged, and gets one.
 | `S107` Methods should not have too many parameters | rejected | Taste; `MA0051` already bounds method length |
 | `S3267` Loops should be simplified with LINQ expressions | rejected | Taste, and at odds with the performance tier |
 | `S2699` Tests should include assertions | signal | No equivalent; recognising every assertion library is SonarQube's strength |
+| `S2092` Cookies should have the "secure" flag | signal | `CA5382` and `CA5383` never fire on ASP.NET Core 3.0 or later: they only analyse calls through `Microsoft.AspNetCore.Http.Internal.ResponseCookies`, a type that version removed |
 | `S3330` Cookies should have the "HttpOnly" flag | signal | `CA5396` covers `System.Web` only |
 | `S8969` Null-forgiving operators should not be redundant | signal | `IDE0080` covers `!is` only; `MA0191` bans every `!` |
 | `S3218` Inner class members should not shadow outer class static or type members | signal | No equivalent; `MA0084` covers locals only |
@@ -225,8 +225,8 @@ A rule that fires without a row here is untriaged, and gets one.
 | `S108` Nested blocks of code should not be left empty | signal | Partial only: `MA0090` (Info), and `MA0037`/`SA1106` for empty statements |
 | `S4136` Method overloads should be grouped together | signal | No equivalent; `SA1201`–`SA1204` order by kind, not overload |
 
-`CA1849`, `CA5382`, `CA5383`, `CA1052`, `IDE0004`, `IDE0051`, `IDE0052` and `APB0006` join the house
-ruleset in 2.1.0; until then their rows are the plan, not the shipped config.
+`CA1849`, `CA1052`, `IDE0004`, `IDE0051`, `IDE0052` and `APB0006` join the house ruleset in 2.1.0;
+until then their rows are the plan, not the shipped config.
 
 ---
 

@@ -151,9 +151,9 @@ dotnet_diagnostic.MA0037.severity = error
 dotnet_diagnostic.MA0039.severity = error
 dotnet_diagnostic.MA0049.severity = error
 
-# --- SDK CA: 29 rules ---------------------------------------------------------------------------
+# --- SDK CA: 31 rules ---------------------------------------------------------------------------
 # The rules the SDK's NetAnalyzers enable by default at a build-gating severity: 27 at Warning and
-# the two below at Error.
+# the two below at Error. Then two default-off rules, named at the end of the tier.
 #
 # Two rules are deliberately absent, because each would fight the house style. CA2007 is
 # enabled-by-default false and contradicts the MA0004 exclusion; CA1707 bans the underscores the
@@ -192,6 +192,15 @@ dotnet_diagnostic.CA2265.severity = warning
 
 dotnet_diagnostic.CA1856.severity = error
 dotnet_diagnostic.CA2252.severity = error
+
+# Two default-off rules, raised to warning.
+
+dotnet_diagnostic.CA1849.severity = warning
+
+# CA1052 at every accessibility, as CA1725 is.
+
+dotnet_diagnostic.CA1052.severity = warning
+dotnet_code_quality.CA1052.api_surface = all
 
 # --- Performance: 53 rules ----------------------------------------------------------------------
 # Meziantou and CA rules from the vendors' Performance category whose rewrite keeps behaviour and
@@ -261,7 +270,7 @@ dotnet_diagnostic.SA1202.severity = warning
 dotnet_diagnostic.SA1203.severity = warning
 dotnet_diagnostic.SA1204.severity = warning
 
-# --- IDE, naming and style: 12 rules and the options they enforce ---------------------------------
+# --- IDE, naming and style: 15 rules and the options they enforce ---------------------------------
 # Under the blanket an IDE rule whose severity is not set explicitly is silently unenforced, so a
 # line missing here is a rule that quietly does nothing.
 #
@@ -273,6 +282,12 @@ dotnet_diagnostic.IDE1006.severity = warning
 dotnet_diagnostic.IDE0003.severity = warning
 dotnet_diagnostic.IDE0009.severity = warning
 dotnet_diagnostic.IDE0040.severity = warning
+
+# Three rules the SDK enables at Hidden, raised to warning.
+
+dotnet_diagnostic.IDE0004.severity = warning
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
 
 # CA1725 (override parameter names) at every accessibility, not only the public surface its option
 # defaults to.

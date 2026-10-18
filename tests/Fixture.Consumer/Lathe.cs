@@ -77,8 +77,8 @@ public sealed class Lathe
     // IDE0040 — no accessibility modifier, against
     // dotnet_style_require_accessibility_modifiers = always. C# would infer `private`; the house
     // rule is that access is always something the author chose rather than something the reader
-    // has to know the language rules to recover.
-    // expect: IDE0040 warning
+    // has to know the language rules to recover. Never called, so IDE0051 reports it too.
+    // expect: IDE0040 warning, IDE0051 warning
     void Idle()
     {
     }

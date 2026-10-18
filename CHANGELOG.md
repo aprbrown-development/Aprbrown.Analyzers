@@ -29,6 +29,36 @@ matching its tag, so there is exactly one authored source and the release page c
 this file. A prerelease tag reads the section of the version it prefixes — `v1.0.0-preview.1` is a
 rehearsal for `1.0.0` and carries that version's build impact, because it has none of its own.
 
+## 2.1.0
+
+Five rules join the ruleset, each the build-time counterpart of a SonarQube rule already reporting
+in the fleet: `CA1849`, `CA1052`, `IDE0004`, `IDE0051` and `IDE0052`. The ruleset is now 214 rules,
+209 of them warnings and five errors.
+
+### Fails a green build — by design
+
+- **`CA1849` reports a blocking call in an async method that has an awaitable counterpart**, such
+  as `stream.Flush()` where `await stream.FlushAsync(cancellationToken)` would do. It matches
+  SonarQube's `S6966`, which had 54 open across the fleet, so expect it to be the largest of the
+  five. See [the rules](docs/consuming.md#the-rules).
+- **`CA1052` asks a type holding only static members to be `static`**, at every accessibility,
+  since `dotnet_code_quality.CA1052.api_surface = all` reaches the internal holders the default
+  would skip. It matches `S1118` (5 open), but where `S1118` accepts a private constructor,
+  `CA1052` wants the class `static`.
+- **`IDE0004`, `IDE0051` and `IDE0052` are raised from `Hidden` to warning**: a redundant cast, an
+  unused private member, and a private member written but never read. They match `S1905` (2 open)
+  and `S1144` (5 open). `dotnet format style` fixes the first two once their severities are in your
+  `.editorconfig` for the run; `IDE0052` has no code fix.
+
+### Fails a green build — silently
+
+_Nothing. No existing rule reports anything it did not report on `2.0.0`._
+
+### Cannot fail a green build
+
+- **The install guide documents the five rules** under [the rules](docs/consuming.md#the-rules),
+  and its tier table and totals count them.
+
 ## 2.0.0
 
 The analyzers are now built against Roslyn 5.0 instead of 4.14, so the minimum toolchain rises to
