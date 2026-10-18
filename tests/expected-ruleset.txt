@@ -1,4 +1,4 @@
-# The expected ruleset (#51): every setting the shipped config must contain, and nothing else.
+# The expected ruleset: every setting the shipped config must contain, and nothing else.
 #
 # scripts/verify-package.sh reads build/Aprbrown.Analyzers.globalconfig out of the package it is
 # handed and scripts/ruleset-diff.sh compares the two as a multiset of `key = value` lines.
@@ -8,16 +8,16 @@
 #
 # This is deliberately a second copy of the shipped config. A test needs an expectation that does
 # not come from the thing under test, so a change to the house ruleset — a rule added, removed or
-# re-levelled, which ADR-0004 makes a versioned act — is made here and there both, and the diff on
+# re-levelled, each a versioned act — is made here and there both, and the diff on
 # this file is what a reviewer reads. Never regenerate it from the shipped config: a copy taken
 # from the file under test agrees with it by construction and checks nothing.
 #
-# The derivations behind each tier are frozen (spec §2.3), against Meziantou.Analyzer 3.0.123,
+# The derivations behind each tier are frozen, against Meziantou.Analyzer 3.0.123,
 # StyleCop.Analyzers 1.2.0-beta.556 and SDK 10.0.110. The shipped config explains each tier at
 # length; the comments here record only why individual lines are pinned as they are.
 
 # --- The blanket --------------------------------------------------------------------------------
-# Every analyzer diagnostic off, before any rule is enumerated back on (ADR-0002 decision 3).
+# Every analyzer diagnostic off, before any rule is enumerated back on.
 
 is_global = true
 dotnet_analyzer_diagnostic.severity = none
@@ -35,7 +35,7 @@ dotnet_diagnostic.APB0005.severity = warning
 # and MA0241 meet that criterion only from 3.0.305 onwards.
 #
 # MA0004 (ConfigureAwait) is deliberately absent. It is the sole universality-test exclusion: its
-# rationale is false for a library such as EveEsiClient (ADR-0002 decision 2).
+# rationale is false for a library such as EveEsiClient.
 
 dotnet_diagnostic.MA0002.severity = warning
 dotnet_diagnostic.MA0005.severity = warning
@@ -145,7 +145,7 @@ dotnet_diagnostic.MA0241.severity = warning
 dotnet_diagnostic.MA0032.severity = warning
 
 # The three rules Meziantou defaults to Error. Recording any of them at warning would be a silent
-# downgrade of the vendor's own judgement, which §2.3 forbids: read the severity, do not assume it.
+# downgrade of the vendor's own judgement: read the severity, do not assume it.
 
 dotnet_diagnostic.MA0037.severity = error
 dotnet_diagnostic.MA0039.severity = error
@@ -153,7 +153,7 @@ dotnet_diagnostic.MA0049.severity = error
 
 # --- SDK CA: 29 rules ---------------------------------------------------------------------------
 # The rules the SDK's NetAnalyzers enable by default at a build-gating severity: 27 at Warning and
-# the two below at Error (spec §10).
+# the two below at Error.
 #
 # Two rules are deliberately absent, because each would fight the house style. CA2007 is
 # enabled-by-default false and contradicts the MA0004 exclusion; CA1707 bans the underscores the
@@ -187,8 +187,8 @@ dotnet_diagnostic.CA2261.severity = warning
 dotnet_diagnostic.CA2264.severity = warning
 dotnet_diagnostic.CA2265.severity = warning
 
-# The two the SDK defaults to Error, and the reason this tier is 29 rather than 27. Recording either
-# at warning would be the silent downgrade §2.3 forbids.
+# The two the SDK defaults to Error. Recording either at warning would be the same silent downgrade
+# of the vendor's own judgement.
 
 dotnet_diagnostic.CA1856.severity = error
 dotnet_diagnostic.CA2252.severity = error
@@ -254,7 +254,7 @@ dotnet_diagnostic.CA1874.severity = warning
 dotnet_diagnostic.CA1875.severity = warning
 
 # --- StyleCop: the four ordering rules, and only those ----------------------------------------------
-# Not a StyleCop adoption (spec §2.3 step 3).
+# Not a StyleCop adoption: StyleCop is referenced only because it ships member-ordering rules.
 
 dotnet_diagnostic.SA1201.severity = warning
 dotnet_diagnostic.SA1202.severity = warning
@@ -263,7 +263,7 @@ dotnet_diagnostic.SA1204.severity = warning
 
 # --- IDE, naming and style: 12 rules and the options they enforce ---------------------------------
 # Under the blanket an IDE rule whose severity is not set explicitly is silently unenforced, so a
-# line missing here is a rule that quietly does nothing (#4).
+# line missing here is a rule that quietly does nothing.
 #
 # The four that gate, at warning, which TreatWarningsAsErrors turns into a build error: IDE1006
 # (every naming rule violation reports under it), IDE0003/IDE0009 (the two halves of `this.`
@@ -280,9 +280,9 @@ dotnet_diagnostic.IDE0040.severity = warning
 dotnet_diagnostic.CA1725.severity = warning
 dotnet_code_quality.CA1725.api_surface = all
 
-# The naming rule, symbol and style triples IDE1006 enforces, ported verbatim from the source
-# repository. The two dotnet_naming_rule severities are the only way to set one naming rule's
-# severity, since Roslyn reports them all under IDE1006.
+# The naming rule, symbol and style triples IDE1006 enforces. The two dotnet_naming_rule
+# severities are the only way to set one naming rule's severity, since Roslyn reports them all
+# under IDE1006.
 
 dotnet_naming_rule.private_static_fields_are_pascal_case.symbols = private_static_fields
 dotnet_naming_rule.private_static_fields_are_pascal_case.style = pascal_case

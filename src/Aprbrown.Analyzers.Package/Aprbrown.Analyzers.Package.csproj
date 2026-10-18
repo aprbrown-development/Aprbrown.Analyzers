@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Packaging project (spec §4.1). Produces the Aprbrown.Analyzers .nupkg. It builds no
-    shipped code of its own — IncludeBuildOutput=false — and instead packs an explicit
-    allowlist (spec §4.2): one <None> entry per packed file, each with an explicit
-    PackagePath. No build\** glob (it silently omits dotfiles and produced a package that
-    enforced nothing in #2).
+    Packaging project. Produces the Aprbrown.Analyzers .nupkg. It builds no shipped code of its
+    own — IncludeBuildOutput=false — and instead packs an explicit allowlist: one <None> entry
+    per packed file, each with an explicit PackagePath. No build\** glob: it silently omits
+    dotfiles, and a package that loses its config that way still packs and enforces nothing.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -16,11 +15,10 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>Aprbrown.Analyzers</PackageId>
-    <!-- No <Version> here, and none anywhere else in the repository (ADR-0003 decision 2). The git
-         tag is the sole source of a version number: release.yml packs with
-         -p:Version=${GITHUB_REF_NAME#v}, and ci.yml packs a throwaway 0.0.1-smoke for the smoke
-         test. Given the first push is unrevocable, nothing in this repository should mint a
-         publishable version number on its own — a version exists only when one is typed into
+    <!-- No <Version> here, and none anywhere else in the repository. The git tag is the sole
+         source of a version number: release.yml packs with -p:Version=${GITHUB_REF_NAME#v}, and
+         ci.yml packs a throwaway 0.0.1-smoke for the smoke test. Given the first push is
+         unrevocable, nothing in this repository should mint a publishable version number on its own — a version exists only when one is typed into
          `git tag`. A hand-edited property here would also make a release a three-part ritual (edit
          this, edit AnalyzerReleases.Shipped.md, tag) in which two parts can silently disagree with
          the third. An unqualified local `dotnet pack` therefore produces the SDK's own 1.0.0
@@ -30,11 +28,11 @@
     <PackageTags>roslyn;analyzers;codeanalysis;editorconfig</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
 
-    <!-- License as an SPDX expression; LICENSE is not packed (spec §4.2). -->
+    <!-- License as an SPDX expression; LICENSE is not packed. -->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2026 Andrew P R Brown</Copyright>
 
-    <!-- consuming.md is packed as the package README (spec §4.2). -->
+    <!-- consuming.md is packed as the package README. -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <PackageProjectUrl>https://github.com/aprbrown-development/Aprbrown.Analyzers</PackageProjectUrl>
@@ -47,7 +45,7 @@
 
   <!-- Build the analyzer and the code fixes first, but do not reference their assemblies for
        compilation. OutputItemType="Analyzer" on the analyzer reference additionally runs the APB
-       rules against this project (spec §7). This project compiles no source of its own today, so
+       rules against this project. This project compiles no source of its own today, so
        that gating is inert — it is here so it stays true the moment it does. -->
   <ItemGroup>
     <ProjectReference Include="..\Aprbrown.Analyzers\Aprbrown.Analyzers.csproj"
@@ -59,7 +57,7 @@
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <!-- The explicit allowlist (spec §4.2). One entry per packed file. -->
+  <!-- The explicit allowlist. One entry per packed file. -->
   <ItemGroup>
     <None Include="..\Aprbrown.Analyzers\bin\$(Configuration)\netstandard2.0\Aprbrown.Analyzers.dll"
           Pack="true" PackagePath="analyzers/dotnet/cs/Aprbrown.Analyzers.dll" Visible="false" />
