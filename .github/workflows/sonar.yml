@@ -51,7 +51,7 @@ jobs:
           /k:"Aprbrown.Analyzers"
           /d:sonar.host.url="$SONAR_HOST_URL"
           /d:sonar.token="$SONAR_TOKEN"
-          /d:sonar.cs.vscoveragexml.reportsPaths="tests/**/TestResults/coverage.xml"
+          /d:sonar.cs.vscoveragexml.reportsPaths="$RUNNER_TEMP/test-results/coverage.xml"
           /d:sonar.exclusions="tests/Fixture.Consumer/**,.claude/**,docs/**,.out-of-scope/**"
           /d:sonar.coverage.exclusions="tests/**"
 
@@ -61,6 +61,7 @@ jobs:
       - name: Test with coverage
         run: >-
           dotnet test --solution Aprbrown.Analyzers.slnx -c Release --no-build
+          --results-directory "$RUNNER_TEMP/test-results"
           --coverage --coverage-output-format xml --coverage-output coverage.xml
 
       - name: SonarScanner end
