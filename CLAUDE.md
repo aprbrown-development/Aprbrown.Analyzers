@@ -5,6 +5,9 @@ Guidance for Claude Code when working in this repository.
 Aprbrown.Analyzers is a Roslyn analyzer + code fix package for .NET. See `README.md`
 for the planned layout and build commands.
 
+Run tests with `dotnet test --solution Aprbrown.Analyzers.slnx -c Release` (the .NET 10 SDK
+rejects a positional solution).
+
 ## Agent skills
 
 ### Issue tracker
