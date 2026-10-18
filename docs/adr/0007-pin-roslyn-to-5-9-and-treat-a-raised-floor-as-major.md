@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-18
 - **Ticket:** [Decide whether to raise the Roslyn version the analyzers build against](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/76)
-- **Depends on:** [ADR-0004](0004-diagnostic-ids-are-public-api.md) (versioning)
+- **Extends:** [ADR-0004](0004-diagnostic-ids-are-public-api.md) (its versioning table)
 
 ## Context
 
@@ -32,11 +32,13 @@ publish dates:
 | Host | Minimum | Source |
 |---|---|---|
 | .NET SDK | **10.0.400** (the `4xx` feature band) | `dotnet/sdk` at `v10.0.400` takes `Microsoft.Net.Compilers.Toolset` `5.9.0-1.26374.102`; `v10.0.300` takes `5.6.0` |
-| Visual Studio | **2026 version 18.9** | The SDK versioning page pairs 10.0.4xx with Visual Studio 18.9; `dotnet/roslyn`'s Visual Studio 2026 tags carry Roslyn 5.*N* in 18.*N* |
+| Visual Studio | **2026 version 18.9** | Microsoft's [SDK, MSBuild and Visual Studio versioning](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs) page ships 10.0.4xx with Visual Studio 18.9. `dotnet/roslyn` has no 18.9 tag yet to confirm it directly; its tags from 18.0 to 18.8 Preview 1 each carry Roslyn 5.*N* in 18.*N*, consistent with that pairing |
+| Rider | Not determined | No primary source maps Rider releases to a Roslyn version. A Rider build that compiles through a .NET SDK meets the floor when that SDK does |
 
-The `5.0.0` floor of SDK 10.0.100 was considered and rejected: it would keep more 10.0 bands
-loading, but the bands between `1xx` and `4xx` go out of support well before `4xx`, which is the
-last .NET 10 band and supported for the life of the runtime. The higher floor was taken knowingly.
+The `5.0.0` floor of SDK 10.0.100 was considered and rejected knowingly. It would keep every .NET 10
+band loading, including `1xx`, which stays in support for the life of the runtime. `5.9.0` locks
+that band out, along with the `2xx` and `3xx` bands that are already out of support, in exchange
+for a floor that the remaining supported band, `4xx`, also carries for the life of the runtime.
 
 **The pin moves for only two reasons:** to retire toolchains that have gone out of support, or to
 gain a Roslyn API a rule or fixer needs. Moving it for neither is churn that costs consumers an

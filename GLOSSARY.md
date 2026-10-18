@@ -62,6 +62,11 @@ A change that makes an existing rule catch a case it previously missed. The rule
 so it is invisible to release tracking, yet it can turn a consumer's green build red.
 _Avoid_: bug fix, improvement
 
+**Toolchain floor**:
+The oldest .NET SDK and IDE that can load the analyzers, set by the Roslyn version they are built
+against. A host older than the floor fails the build with `CS9057`, so raising it is a major release.
+_Avoid_: minimum SDK, supported versions
+
 **Pack-consume smoke test**:
 The gate that proves an already-built package delivers the house ruleset intact to a consumer. It
 inspects the package it is handed and never makes its own.
