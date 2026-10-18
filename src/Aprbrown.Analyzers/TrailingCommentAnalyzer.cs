@@ -38,14 +38,14 @@ public sealed class TrailingCommentAnalyzer : DiagnosticAnalyzer
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var trivia in root.DescendantTrivia())
+        foreach (var trivia in root.DescendantTrivia().Where(IsReportable))
         {
-            if (IsTrailingLineComment(trivia) && !IsToolDirective(trivia))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptors.TrailingComment, trivia.GetLocation()));
-            }
+            context.ReportDiagnostic(Diagnostic.Create(Descriptors.TrailingComment, trivia.GetLocation()));
         }
     }
+
+    private static bool IsReportable(SyntaxTrivia trivia) =>
+        IsTrailingLineComment(trivia) && !IsToolDirective(trivia);
 
     private static bool IsTrailingLineComment(SyntaxTrivia trivia) =>
         trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) && trivia.SpanStart >= trivia.Token.Span.End;
