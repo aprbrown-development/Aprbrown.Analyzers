@@ -2,9 +2,10 @@
 
   <!--
     This repository is held to its own house ruleset. It is the reference implementation of the
-    onboarding snippet in docs/consuming.md — with one unavoidable difference:
-    a package cannot reference itself, so what a consumer receives through NuGet is wired by hand
-    here, and the APB analyzers by ProjectReference + OutputItemType="Analyzer" in each project.
+    onboarding snippet in docs/consuming.md — with one difference: what a consumer receives through
+    NuGet is wired by hand here, and the APB analyzers by ProjectReference + OutputItemType="Analyzer"
+    in each project. The analyzer project cannot be its own analyzer, so it alone references the
+    last published Aprbrown.Analyzers package instead, one release behind; Dependabot raises the pin.
 
     tests/Fixture.Consumer deliberately opts out of this file — see the empty Directory.Build.props
     in that directory for why.

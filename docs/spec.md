@@ -748,12 +748,19 @@ packaging project packs**, via `GlobalAnalyzerConfigFiles` — not a copy — an
 third-party `PackageReference`s the spec prescribes. It is the reference implementation of the
 onboarding snippet.
 
-Two known holes, both inherent:
+Two places where that needs more than the snippet:
 
-- **A project cannot be its own analyzer.** `src/Aprbrown.Analyzers` cannot have `APB0001` enforced
-  against it. The `APB` rules gate `Aprbrown.Analyzers.CodeFixes`, the packaging project and the tests
-  via `ProjectReference` + `OutputItemType="Analyzer"`; the analyzer project is held to the config and
-  third-party rules only.
+- **A project cannot be its own analyzer.** The `APB` rules gate `Aprbrown.Analyzers.CodeFixes`, the
+  packaging project and the tests from current source, via `ProjectReference` +
+  `OutputItemType="Analyzer"`. `src/Aprbrown.Analyzers` instead takes a `PackageReference` to the
+  **last published** `Aprbrown.Analyzers`, so it is held to the `APB` rules one release behind the
+  source. Its `PackageId` is `Aprbrown.Analyzers.Source`, so NuGet sees no self-cycle (`NU1108`); the
+  reference is `PrivateAssets="all"`, so the projects that reference it, already running the current
+  rules, do not report every diagnostic twice; and it is `ExcludeAssets="build;buildTransitive"`, so
+  the package's props do not add a second copy of the shipped config, which would unset every shared
+  key (`MultipleGlobalAnalyzerKeys`). Only the analyzer project takes this reference. Dependabot
+  (`.github/dependabot.yml`, allowed `Aprbrown.Analyzers` and nothing else) opens a pull request
+  raising the pin after each release.
 - **The blanket suppresses the RS-series** that keeps analyzer authors honest — including RS2008,
   which is what makes release tracking self-enforcing. This repository's **local `.editorconfig`**
   re-enables `MicrosoftCodeAnalysisCorrectness`, `MicrosoftCodeAnalysisDesign`,
@@ -767,6 +774,20 @@ itself is exactly the deviation mechanism working — and this repository is its
 When a house rule trips on this repository's own code the fix is a **local deviation, not a change to
 the shipped config**. The analyzer projects target `netstandard2.0` and will hit rules the `net10.0`
 fleet never does.
+
+One case of that needs a sequence of its own: a **released `APB` rule with a false positive that fires
+on the analyzer project's own code**. The analyzer project cannot build until the fix ships, and the
+fix cannot ship until the analyzer project builds. The escape is a **temporary** deviation in the
+local `.editorconfig`, scoped to the analyzer project's path, so the current-source rule still runs
+on `CodeFixes` and the tests:
+
+```ini
+[src/Aprbrown.Analyzers/**.cs]
+dotnet_diagnostic.APB0005.severity = none
+```
+
+It is removed in the Dependabot pull request that raises the pin to the release carrying the fix.
+Rolling the pin back is not the escape: the repository otherwise stays on the shipped config exactly.
 
 ---
 
