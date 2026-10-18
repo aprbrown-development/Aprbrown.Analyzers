@@ -50,9 +50,10 @@ the fleet pins.
 The first triage covers the 17 rules. Five equivalents are switched on: `CA1849`, `CA1052`,
 `IDE0004`, `IDE0051` and `IDE0052`. `CA5382` and `CA5383` looked like a sixth and seventh, for
 `S2092`, but never fire on ASP.NET Core 3.0 or later, so `S2092` is a signal rule. One rule is added, `APB0006`, for nested
-conditional expressions. Equivalents that default to Info, such as `MA0042`, were passed over for
-ones that default to Warning, keeping the sweeps' rule that Info and Hidden vendor rules are not
-house rules.
+conditional expressions. Where equivalents compete, the one whose vendor severity is Warning is
+chosen: `CA1849` over `MA0042`, which defaults to Info. Where the only equivalent defaults to Info or
+Hidden, it is raised to warning, as `IDE0004`, `IDE0051` and `IDE0052` are; the sweeps' rule that
+Info and Hidden vendor rules stay off governs what a sweep admits, not a rule named deliberately.
 
 ## Considered options
 
