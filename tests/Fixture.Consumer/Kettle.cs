@@ -1,9 +1,9 @@
 namespace Fixture.Consumer;
 
-// The Meziantou tier's proof (spec §2.3 step 1). The package takes no dependency on
+// Proves the Meziantou tier reaches a consumer. The package takes no dependency on
 // Meziantou.Analyzer — the .csproj beside this file references it, exactly as a consumer would —
-// so every diagnostic below is the shipped config binding to an assembly that arrived separately.
-// That is the whole claim of ADR-0002 decision 1, and this file is where it is measured.
+// so every diagnostic below is the shipped config binding to an assembly that arrived separately,
+// and this file is where that binding is measured.
 //
 // The three rules declared here are a deliberate sample of the 106, not all of them. What the other
 // 103 get is weaker and worth naming: the expected ruleset pins that they are present at the right
@@ -32,12 +32,12 @@ public static class Kettle
         // MA0032 (warning) fires: Task.Delay has a CancellationToken overload and none is passed.
         // MA0032 is default-*off* at the vendor, so a default-on sweep would miss it; the house
         // adds it deliberately as the call-site half of the cancellation rule, opposite APB0002's
-        // declaration half. CA2016 and MA0040 default to Info and stay off (spec §10).
+        // declaration half. CA2016 and MA0040 default to Info and stay off.
         //
         // MA0004 (ConfigureAwait) must NOT fire: an await with no ConfigureAwait is precisely
         // what it reports, the assembly that implements it is loaded, and MA0032 firing on this
-        // same expression proves it. MA0004 is the sole universality-test exclusion (ADR-0002
-        // decision 2) and the smoke test asserts its silence here. Do not add ConfigureAwait —
+        // same expression proves it. MA0004 is the only rule the universality test excludes, and
+        // the smoke test asserts its silence here. Do not add ConfigureAwait —
         // the violating construct is the assertion.
         // expect: MA0032 warning
         await Task.Delay(1);

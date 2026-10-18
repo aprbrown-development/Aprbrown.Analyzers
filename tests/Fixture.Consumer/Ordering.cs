@@ -1,7 +1,7 @@
 namespace Fixture.Consumer;
 
-// The StyleCop ordering tier's proof (spec §2.3 step 3). Four rules ship and only four, so this
-// type is written to trip all four rather than to look like real code.
+// Proves the StyleCop ordering tier reaches a consumer. Four rules ship and only four, so this type
+// is written to trip all four rather than to look like real code.
 //
 // The member sequence is load-bearing and fiddly for one reason: StyleCop compares each member with
 // the one before it and reports only the *first* trait that is out of order — kind, then access,
