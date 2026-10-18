@@ -19,16 +19,19 @@ public sealed class Ordering
     // SA1201 — kind. A field must not follow a method, and this method leads the type.
     public int Describe() => _count + Limit + _spare + Created;
 
-    private int _count; // expect: SA1201 warning
+    // expect: SA1201 warning
+    private int _count;
 
     // SA1203 — const. Same kind and same access as the field above, differing only in const-ness.
-    private const int Limit = 4; // expect: SA1203 warning
+    // expect: SA1203 warning
+    private const int Limit = 4;
 
     private int _spare;
 
     // SA1204 — static. Same kind, access and const-ness as the field above, differing only in
     // being static.
-    private static int Created; // expect: SA1204 warning
+    // expect: SA1204 warning
+    private static int Created;
 
     private void Reset()
     {
@@ -38,5 +41,6 @@ public sealed class Ordering
     }
 
     // SA1202 — access. Same kind as the method above, differing only in being public.
-    public void Clear() => Reset(); // expect: SA1202 warning
+    // expect: SA1202 warning
+    public void Clear() => Reset();
 }

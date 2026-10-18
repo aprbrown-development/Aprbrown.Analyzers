@@ -18,9 +18,9 @@
 #     -o artifacts -p:Version=0.0.1-smoke
 #   ./scripts/verify-package.sh artifacts/Aprbrown.Analyzers.0.0.1-smoke.nupkg
 #
-# The shipped config is complete as of spec §2.3 step 4 — APB0001-APB0004, the Meziantou tier, the
-# SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier, all under the
-# blanket — so the assertions are:
+# The shipped config is complete — APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
+# four ordering rules and the IDE, naming and style tier, all under the blanket — so the assertions
+# are:
 #   - the given .nupkg matches the §4.2 allowlist exactly;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise (#2 hazard H1);
@@ -41,7 +41,7 @@
 #     colliding global config are all asserted by the same comparison. Which file proves what,
 #     and why, is written in the fixture.
 #
-# A new fixture case is a change to the fixture alone: the violating line and its marker.
+# A new fixture case is a change to the fixture alone: the violating line and the marker above it.
 
 set -euo pipefail
 
@@ -278,8 +278,9 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 [ "$TWAE" = "true" ] || fail "TreatWarningsAsErrors did not arrive as true (got '$TWAE')"
 
 # --- Assertion: the fixture raises exactly what its markers declare -------------------------
-# Every fixture line that should raise a diagnostic carries an expectation marker naming the rule and
-# the severity it ships at, and every other line — every file without one — must stay silent.
+# Every fixture line that should raise a diagnostic has an expectation marker on its own line directly
+# above it, naming the rule and the severity it ships at, and every other line — every file without
+# one — must stay silent.
 # diagnostic-diff.sh compares a build log against those markers in both directions and names each row
 # that differs. So this script knows no fixture file, rule or count: what each fixture file proves,
 # which rules are a sample of their tier, and why a silence there means something rather than an

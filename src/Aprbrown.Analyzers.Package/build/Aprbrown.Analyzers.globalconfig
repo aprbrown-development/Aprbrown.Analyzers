@@ -5,13 +5,12 @@
 # colliding keys. It is global only because of is_global = true below (spec §2.1), and it
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
-# The house ruleset is complete as of spec §2.3 step 4: APB0001-APB0004, the Meziantou tier, the
-# SDK CA tier, StyleCop's four ordering rules and the IDE, naming and style tier are all
-# enumerated below, along with the performance tier — 207 rules under the blanket. Everything else
-# is off, including rules that do not exist yet, and adding one from here is a deliberate act
-# under ADR-0004.
+# The house ruleset is complete: APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
+# four ordering rules and the IDE, naming and style tier are all enumerated below, along with the
+# performance tier — 208 rules under the blanket. Everything else is off, including rules that do
+# not exist yet, and adding one from here is a deliberate act under ADR-0004.
 #
-# 207, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
+# 208, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
 # measured; each tier's count is the one its derivation or, for the performance tier, its rule
 # by rule selection produced.
 #
@@ -36,6 +35,9 @@ dotnet_diagnostic.APB0003.severity = warning
 
 # APB0004 — put an expression body's arrow at the end of the declaration line.
 dotnet_diagnostic.APB0004.severity = warning
+
+# APB0005 — put a comment on its own line above the code it describes.
+dotnet_diagnostic.APB0005.severity = warning
 
 # ---------------------------------------------------------------------------------------------
 # The Meziantou tier — Meziantou.Analyzer 3.0.123 (spec §2.3 step 1).

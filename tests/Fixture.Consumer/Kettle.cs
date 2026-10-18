@@ -16,14 +16,16 @@ public static class Kettle
     // an ordinary member of the 103-rule default-on Warning sweep, and it is here so the smoke
     // test proves the bulk of the tier rather than only the two rules given special treatment.
 
-    // TODO deliberate MA0026 violation; see above. expect: MA0026 warning
+    // expect: MA0026 warning
+    // TODO deliberate MA0026 violation; see above.
 
     public static async Task BoilAsync()
     {
         // MA0037 (error) — an empty statement. One of the three rules Meziantou defaults to Error
         // rather than Warning; the smoke test builds once with TreatWarningsAsErrors=false to
         // prove the config records it at 'error' rather than flattening it to 'warning'.
-        ; // expect: MA0037 error
+        // expect: MA0037 error
+        ;
 
         // Two rules meet on this one await, which is why it is written this way.
         //
@@ -37,6 +39,7 @@ public static class Kettle
         // same expression proves it. MA0004 is the sole universality-test exclusion (ADR-0002
         // decision 2) and the smoke test asserts its silence here. Do not add ConfigureAwait —
         // the violating construct is the assertion.
-        await Task.Delay(1); // expect: MA0032 warning
+        // expect: MA0032 warning
+        await Task.Delay(1);
     }
 }

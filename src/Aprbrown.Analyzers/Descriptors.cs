@@ -68,6 +68,20 @@ internal static class Descriptors
             + "and are not covered.",
         helpLinkUri: HelpLinkUri);
 
+    /// <summary>APB0005 — put a comment on its own line above the code it describes.</summary>
+    public static readonly DiagnosticDescriptor TrailingComment = new(
+        id: "APB0005",
+        title: "Put a comment on its own line above the code it describes",
+        messageFormat: "Move this comment onto its own line above the code",
+        category: "Style",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "A comment explains the code below it. One trailing a line of code is read after "
+            + "the code it was meant to explain, and is pushed out of sight by long lines. Block "
+            + "comments, documentation, comments on preprocessor directives and tool directives such "
+            + "as NOSONAR, ReSharper and lang= are exempt.",
+        helpLinkUri: HelpLinkUri);
+
     // Below the descriptors rather than above them, because SA1202 orders members by access before
     // it considers const-ness and this is the only private member of the type. The rule arrived
     // with the StyleCop ordering tier; fixed here rather than deviated, per spec §7.

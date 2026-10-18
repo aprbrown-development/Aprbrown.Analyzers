@@ -28,7 +28,8 @@ public static class Furnace
         }
         catch (InvalidOperationException e)
         {
-            throw e; // expect: CA2200 warning, MA0027 warning
+            // expect: CA2200 warning, MA0027 warning
+            throw e;
         }
     }
 
@@ -40,7 +41,8 @@ public static class Furnace
     // These two are also why this tier ships 29 rules where spec §2.3 step 2 says 27: the 27 is the
     // Warning subset, and dropping the vendor's Error rules to reach it would flatten a severity
     // the spec says to read rather than assume.
-    public static void Prime() => Prototype.Ignite(); // expect: CA2252 error
+    // expect: CA2252 error
+    public static void Prime() => Prototype.Ignite();
 
     // CA2007 must NOT fire. An await written without ConfigureAwait is precisely what it reports,
     // and the SDK analyzer that implements it is loaded — CA2200 above proves that. It is

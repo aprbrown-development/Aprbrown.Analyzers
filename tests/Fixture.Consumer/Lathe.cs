@@ -24,7 +24,8 @@ public sealed class Lathe
     // claiming the opposite is not carried into the shipped config, and this field is why that
     // claim did not have to be taken on trust — it sits *before* the general rule's own violation
     // below, which under the declaration-order story would have swallowed it.
-    private static int _created = 1; // expect: IDE1006 warning
+    // expect: IDE1006 warning
+    private static int _created = 1;
 
     // Must stay silent: a private static in PascalCase is what the specific rule asks for.
     private static int Produced = 2;
@@ -33,7 +34,8 @@ public sealed class Lathe
     // dotnet_naming_rule.private_fields_are_underscored. IDE1006 is the single ID every
     // dotnet_naming_rule violation reports under, which is why the shipped config must enumerate
     // it for any of the naming block to do anything at all.
-    private int count = 3; // expect: IDE1006 warning
+    // expect: IDE1006 warning
+    private int count = 3;
 
     // Must stay silent: the shape the general rule asks for, so the file proves the rules fire on
     // the right thing rather than merely firing.
@@ -48,14 +50,16 @@ public sealed class Lathe
     // *before* methods, not after — SA1201 measured, not guessed.
     public interface ILatheStep
     {
-        void Tighten(); // expect: IDE0040 warning
+        // expect: IDE0040 warning
+        void Tighten();
     }
 
     // IDE0022 — a block body wrapping a single expression. One of the seven expression-bodied
-    // preferences, which ship at `warning` and gate like any other rule. The marker sits on the
-    // declaration, where IDE0022 reports, so the two-build diff proves the raised severity survives
+    // preferences, which ship at `warning` and gate like any other rule. The marker declares the
+    // declaration line, where IDE0022 reports, so the two-build diff proves the raised severity survives
     // packing — an error under TreatWarningsAsErrors, a warning without it.
-    public int Describe() // expect: IDE0022 warning
+    // expect: IDE0022 warning
+    public int Describe()
     {
         return count + _size + _created + Produced;
     }
@@ -75,7 +79,8 @@ public sealed class Lathe
     // dotnet_style_require_accessibility_modifiers = always. C# would infer `private`; the house
     // rule is that access is always something the author chose rather than something the reader
     // has to know the language rules to recover.
-    void Idle() // expect: IDE0040 warning
+    // expect: IDE0040 warning
+    void Idle()
     {
     }
 }

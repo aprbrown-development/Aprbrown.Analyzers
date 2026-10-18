@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------------------------
 APB0004 | Style    | Warning  | ExpressionBodyArrowAnalyzer, [Documentation](https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-three-custom-rules)
+APB0005 | Style    | Warning  | TrailingCommentAnalyzer, [Documentation](https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-three-custom-rules)

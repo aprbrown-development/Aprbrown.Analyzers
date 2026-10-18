@@ -192,7 +192,7 @@ day one.
 
 ---
 
-## 3. The four APB analyzers
+## 3. The five APB analyzers
 
 Specified by behaviour: what each rule flags, what it must **not** flag, and the test cases that prove
 it. Implement to the behaviour, not to a described implementation.
@@ -482,6 +482,92 @@ it waits for a major version.
 | A `#region` between the declaration and the arrow | 1 diagnostic, no fix offered |
 | An arrow-first member whose expression is a raw string literal | 1 diagnostic; fixed, the literal unchanged |
 | Several arrow-first members in one document | fix-all fixes every one in a single pass |
+
+### 3.6 `APB0005` — Put a comment on its own line above the code it describes
+
+| | |
+|---|---|
+| Category | `Style` |
+| Default severity | `Warning` |
+| Code fix | **Yes**, with fix-all (section 3.7) |
+| Message | `Move this comment onto its own line above the code` |
+
+Added in 1.1.0, as a minor bump under ADR-0004.
+
+**Rationale.** A comment explains the code below it, which is where a reader looks for it. A trailing
+comment is read after the code it was meant to explain, and long lines push it out of sight. The
+house comment policy in `docs/consuming.md` is the wider statement; this rule enforces only the
+position of a comment, never whether it is justified.
+
+**Flags** a single-line comment (`//`) with a token of code before it on the same line, whatever that
+token is: `;`, `,`, `)`, `{`, `=>` or any other. Report at the comment.
+
+**Must not flag:**
+
+- A `//` comment on its own line.
+- Block comments (`/* … */`) wherever they sit, including inline uses such as `Call(/* retries */ 3)`
+  and `/*lang=json*/"…"`.
+- Documentation (`///`, `/** */`).
+- A comment on a preprocessor directive line, such as `#endif // DEBUG` or
+  `#pragma warning disable CA1234 // reason`.
+- A comment whose text, after the `//` and any whitespace, starts with `NOSONAR`, `ReSharper `,
+  `lang=` or `language=`. These are tool directives whose position matters. There is no other
+  content-based exemption.
+
+**Required tests**
+
+| Input | Expected |
+|---|---|
+| A trailing `//` after a statement `;`, a field `;`, a list item `,`, a `)`, a `{` or an `=>` | 1 diagnostic each, on the comment |
+| A `//` comment on its own line | 0 |
+| A trailing `/* */`, or `Call(/* retries */ 3)` | 0 |
+| `///` documentation | 0 |
+| `#endif // X`, `#pragma warning disable … // reason` | 0 |
+| A trailing comment starting `NOSONAR`, `ReSharper `, `lang=` or `language=` | 0 |
+| A trailing comment after the closing line of a multi-line raw string literal | 1 diagnostic |
+
+### 3.7 The `APB0005` code fix
+
+Title: `Move this comment onto its own line above the code`. Fix-all is supported, through the batch
+fixer: each fix edits the trivia of the tokens on its own line only, so fixes never overlap.
+
+Find the first token on the line the comment trails. Remove the comment, and the whitespace before
+it, from the end of the line, keeping the line break. Insert the comment on a new line directly
+before that first token, at that token's indentation, adding no blank line. Trivia already leading
+that token, such as documentation, own-line comments or blank lines, stays above the hoisted comment.
+
+This:
+
+```csharp
+var users = await _dbContext
+    .Users()
+    .Where(user => user.Roles.Contains("Admin")) // Admin users
+    .Where(user => user.IsActive) // Active users
+    .ToListAsync(cancellationToken);
+```
+
+fixes, in one fix-all pass, to:
+
+```csharp
+var users = await _dbContext
+    .Users()
+    // Admin users
+    .Where(user => user.Roles.Contains("Admin"))
+    // Active users
+    .Where(user => user.IsActive)
+    .ToListAsync(cancellationToken);
+```
+
+**No fix** is offered when the trailed line does not begin with a token of its own, such as the
+closing line of a multi-line raw string literal, or a line opened by a block comment
+(`/* a */ x; // b`), where the hoisted comment would land after the block comment and still trail
+it. The diagnostic is still reported, and fix-all skips it.
+
+**Required tests**: `x = 2; // Green` fixes to `// Green` above `x = 2;` at the same indentation; a
+list item's comment is hoisted inside its collection initializer; a documented declaration's
+comment lands between the documentation and the declaration; `int M() => // why` followed by `x;`
+fixes to `// why`, `int M() =>`, `x;`; the example above, and a document with several trailing
+comments, are fixed in one fix-all pass; and the raw-string case offers no fix.
 
 ---
 

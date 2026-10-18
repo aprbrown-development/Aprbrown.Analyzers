@@ -5,7 +5,8 @@ namespace Fixture.Consumer;
 // this proves the rule is enumerated back on beneath the blanket and reaches a consumer.
 public class Panel : IResizable
 {
-    public void Resize(int size) // expect: APB0003 warning
+    // expect: APB0003 warning
+    public void Resize(int size)
     {
     }
 }

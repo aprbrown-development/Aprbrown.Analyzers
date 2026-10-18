@@ -5,7 +5,8 @@ namespace Fixture.Consumer;
 // TreatWarningsAsErrors default this becomes a build error, which the smoke test asserts.
 public static class Sprocket
 {
-    public static Task SpinAsync(CancellationToken ct = default) => Task.CompletedTask; // expect: APB0002 warning
+    // expect: APB0002 warning
+    public static Task SpinAsync(CancellationToken ct = default) => Task.CompletedTask;
 
     // Must stay silent: a token the caller is obliged to pass is the endorsed shape.
     public static Task WindAsync(CancellationToken cancellationToken) => Task.CompletedTask;

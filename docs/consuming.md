@@ -2,8 +2,8 @@
 
 One .NET coding standard, delivered as a NuGet package.
 
-It ships two things: four custom Roslyn analyzers (`APB0001`–`APB0004`), and — the larger half — a
-configuration that decides which **207 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+It ships two things: five custom Roslyn analyzers (`APB0001`–`APB0005`), and — the larger half — a
+configuration that decides which **208 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -185,14 +185,14 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 
 | Tier | Count | What is on |
 |---|---|---|
-| `APB` | 4 | The four custom rules below |
+| `APB` | 5 | The five custom rules below |
 | `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
 | .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
 | Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
 
-207 rules in total. **202 are warnings and five are errors.**
+208 rules in total. **203 are warnings and five are errors.**
 
 The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
 `IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.
@@ -246,9 +246,36 @@ other rule in the table above gates.
   Solution" clears it. A comment that ended the declaration line stays on it, after the arrow. No fix
   is offered when a preprocessor directive sits between the declaration and the arrow; move that one
   by hand.
+- **`APB0005` — a comment goes on its own line above the code it describes.** A `//` comment
+  trailing code is reported, wherever it trails: after `;`, `,`, `)`, `{`, `=>` or anything else. Block
+  comments (`/* … */`), documentation, comments on preprocessor directive lines, and tool directives
+  starting `NOSONAR`, `ReSharper `, `lang=` or `language=` are exempt. **Ships with a code fix**,
+  fix-all included, which moves the comment onto a new line directly above the line it trailed, at
+  that line's indentation. Where the line does not start with a token of its own, such as after the
+  closing line of a multi-line raw string or after a block comment that opens the line, the comment
+  is still reported and no fix is offered. The rule follows from the
+  [house comment policy](#the-house-comment-policy).
+
+  `dotnet format analyzers --diagnostics APB0005` applies the fix across a repository, once
+  `dotnet_diagnostic.APB0005.severity = warning` is in your `.editorconfig` for the run. Run it after
+  `APB0004`'s fix: that one leaves a comment from the declaration line after the arrow, and this one
+  moves it above the member.
 
 The heading above still says three. It is the anchor every rule's help link points at, so renaming
 it would break the links already shipped; it changes in the next major version.
+
+### The house comment policy
+
+- **Documentation** (XML doc) is welcome. It is written for the caller, and should be complete
+  enough that an editor's tooltip explains the member without its body being read.
+- **Comments** — any note that is not documentation — are rare by design. The code should explain
+  itself: a member's name and parameters say what it does, and its body says how. A comment is
+  justified only where the code cannot explain itself.
+- A comment or documentation explains the code. It never refers to the decision, ticket, ADR or
+  document section behind it.
+- A justified comment sits on its own line above the code it describes, which is what `APB0005`
+  enforces. A comment trailing a line of code is a **trailing comment**. Whether a comment is
+  justified is a judgment for review, and no rule checks it.
 
 ### Two rules you might expect that are deliberately off
 
