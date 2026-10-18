@@ -51,7 +51,7 @@ dotnet_diagnostic.APB0005.severity = warning
 #   - MA0032 is added at warning although the vendor defaults it to off. It is the call-site half
 #     of the cancellation rule, standing opposite APB0002's declaration half, and it stands alone:
 #     MA0040 and CA2016 are enabled by default but at Info, so they do not gate a build and
-#     neither tier's sweep carries them. Adding either would be a deliberate departure from it.
+#     neither tier's sweep carries them. Adding either would be a third departure from the sweep.
 # 103 default-on, minus one, plus one — 103 rules.
 #
 # MA0220, MA0240 and MA0241, at the end of the list, are silent until a repository writes a regex

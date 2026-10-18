@@ -20,10 +20,11 @@ namespace Aprbrown.Analyzers;
 /// <para>
 /// Scope: local functions and delegates are out of scope, and bringing them in would raise new
 /// diagnostics in a consumer's build, so it needs a version bump. Rather than match parameters
-/// everywhere and filter the unwanted parents back out, this analyzer registers only for the node kinds it means to cover:
-/// <see cref="SyntaxKind.MethodDeclaration"/> and <see cref="SyntaxKind.ConstructorDeclaration"/>
-/// — which between them cover ordinary methods, constructors and interface members — plus the two
-/// record kinds. A local function is a <see cref="LocalFunctionStatementSyntax"/> and a delegate a
+/// everywhere and filter the unwanted parents back out, this analyzer registers only for the node
+/// kinds it means to cover: <see cref="SyntaxKind.MethodDeclaration"/> and
+/// <see cref="SyntaxKind.ConstructorDeclaration"/> — which between them cover ordinary methods,
+/// constructors and interface members — plus the two record kinds. A local function is a
+/// <see cref="LocalFunctionStatementSyntax"/> and a delegate a
 /// <see cref="DelegateDeclarationSyntax"/>; neither node kind ever reaches the callback.
 /// </para>
 /// <para>

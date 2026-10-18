@@ -18,11 +18,12 @@
     <!-- No <Version> here, and none anywhere else in the repository. The git tag is the sole
          source of a version number: release.yml packs with -p:Version=${GITHUB_REF_NAME#v}, and
          ci.yml packs a throwaway 0.0.1-smoke for the smoke test. Given the first push is
-         unrevocable, nothing in this repository should mint a publishable version number on its own — a version exists only when one is typed into
-         `git tag`. A hand-edited property here would also make a release a three-part ritual (edit
-         this, edit AnalyzerReleases.Shipped.md, tag) in which two parts can silently disagree with
-         the third. An unqualified local `dotnet pack` therefore produces the SDK's own 1.0.0
-         default, which is a scratch artifact with nowhere to go. -->
+         unrevocable, nothing in this repository should mint a publishable version number on its
+         own — a version exists only when one is typed into `git tag`. A hand-edited property
+         here would also make a release a three-part ritual (edit this, edit
+         AnalyzerReleases.Shipped.md, tag) in which two parts can silently disagree with the third.
+         An unqualified local `dotnet pack` therefore produces the SDK's own 1.0.0 default, which is
+         a scratch artifact with nowhere to go. -->
     <Authors>Andrew P R Brown</Authors>
     <Description>One .NET coding standard, delivered as a Roslyn analyzer package: four custom analyzers and a sealed-allowlist configuration deciding which rules are on.</Description>
     <PackageTags>roslyn;analyzers;codeanalysis;editorconfig</PackageTags>

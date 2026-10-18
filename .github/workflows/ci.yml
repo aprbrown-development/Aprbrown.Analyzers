@@ -106,9 +106,10 @@ jobs:
           dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj \
             -c Release --no-build -o "$RUNNER_TEMP/smoke" -p:Version="$SMOKE_VERSION"
 
-      # Invoke the script, never reimplement its assertions in YAML. The gate has to be runnable on a dev machine to be worth anything, and a YAML copy of it would
-      # be a second set of assertions free to disagree with the first — with CI's copy the only
-      # one anybody runs. A failing assertion inside the script exits non-zero and fails this step.
+      # Invoke the script, never reimplement its assertions in YAML. The gate has to be runnable on
+      # a dev machine to be worth anything, and a YAML copy of it would be a second set of
+      # assertions free to disagree with the first — with CI's copy the only one anybody runs. A
+      # failing assertion inside the script exits non-zero and fails this step.
       - name: Pack-consume smoke test
         run: ./scripts/verify-package.sh "$RUNNER_TEMP/smoke/Aprbrown.Analyzers.$SMOKE_VERSION.nupkg"
 

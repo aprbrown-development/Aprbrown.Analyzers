@@ -58,8 +58,8 @@ public static class Furnace
     //
     // Worth being exact about how it stays off, because it is not default-off: measured against
     // SDK 10.0.110 it is enabled by default at *Hidden*. Hidden does not gate a build, so this
-    // silence is weaker evidence than it looks — a
-    // Naming category re-enable would set it to warning and it would fire here. The load-bearing
+    // silence is weaker evidence than it looks — a Naming category re-enable would set it to
+    // warning and it would fire here. The load-bearing
     // guards are CA2007 above, which is genuinely default-off at Warning, and the smoke test's
     // structural check that no category line exists in the packed config at all.
     public static void Set_Point()

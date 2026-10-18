@@ -87,8 +87,8 @@ echo 'stub' > "$STUB"
 # The README a real package ships: docs/consuming.md, packed under that name.
 GOOD_README="$REPO_ROOT/docs/consuming.md"
 
-# Every entry the package allowlist names, so a case can add one too many or swap one entry's content
-# and be refused for exactly that.
+# Every entry the packed-file list names, so a case can add one too many or swap one entry's
+# content and be refused for exactly that.
 ALLOWLISTED=(
   'Aprbrown.Analyzers.nuspec='"$NUSPEC"
   'analyzers/dotnet/cs/Aprbrown.Analyzers.dll='"$STUB"

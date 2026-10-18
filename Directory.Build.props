@@ -2,7 +2,7 @@
 
   <!--
     This repository is held to its own house ruleset. It is the reference implementation of the
-    onboarding snippet — with one unavoidable difference:
+    onboarding snippet in docs/consuming.md — with one unavoidable difference:
     a package cannot reference itself, so what a consumer receives through NuGet is wired by hand
     here, and the APB analyzers by ProjectReference + OutputItemType="Analyzer" in each project.
 
@@ -29,8 +29,8 @@
 
   <ItemGroup>
     <!--
-      The pins the onboarding snippet prescribes. The package takes no dependency on either, so
-      a consuming repository supplies them itself — this repository included.
+      The pins docs/consuming.md prescribes. The package takes no dependency on either, so a
+      consuming repository supplies them itself — this repository included.
       PrivateAssets="all" does not cover the project declaring the reference, which is why this
       belongs in Directory.Build.props rather than one project.
     -->

@@ -3,8 +3,8 @@
   <!--
     Consumer fixture for the pack-consume smoke test. Deliberately NOT part of
     Aprbrown.Analyzers.slnx: it can only build once the package has been packed to a temp feed,
-    which is what scripts/verify-package.sh does. Building it any other way is expected to fail
-    to restore.
+    which is what scripts/verify-package.sh does. Building it any other way is expected to fail to
+    restore.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -13,8 +13,8 @@
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
 
-    <!-- No default version, deliberately. verify-package.sh passes
-         -p:AprbrownAnalyzersVersion=… read from the package it was handed; a default here would be
+    <!-- No default version, deliberately. verify-package.sh passes -p:AprbrownAnalyzersVersion=…
+         read from the package it was handed; a default here would be
          a second copy of a version string only the caller who packs should hold, and a restore
          that forgot the property would quietly match it. Without one, that restore fails. -->
 
@@ -37,7 +37,7 @@
     <PackageReference Include="Aprbrown.Analyzers" Version="$(AprbrownAnalyzersVersion)" PrivateAssets="all" />
 
     <!--
-      The version the onboarding snippet prescribes, referenced the way a consumer references it:
+      The version docs/consuming.md prescribes, referenced the way a consumer references it:
       separately, because the package deliberately takes no dependency on it.
       This reference is load-bearing for the smoke test rather than incidental — with it absent
       every Meziantou line in the shipped config is inert and the tier's assertions would pass by
@@ -48,7 +48,7 @@
     <!--
       The same argument, for the StyleCop ordering tier: four ordering rules configured by a
       package that does not carry the assembly implementing them. Without this reference SA1201-
-      SA1204 are inert and Ordering.cs proves nothing. The version is the pin the onboarding snippet
+      SA1204 are inert and Ordering.cs proves nothing. The version is the pin docs/consuming.md
       prescribes, and the one the four shipped severities were read from.
 
       The SDK's CA analyzers need no reference — they arrive with the SDK — which is why Furnace.cs

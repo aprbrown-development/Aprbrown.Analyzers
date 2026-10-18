@@ -46,7 +46,7 @@ dotnet_diagnostic.IDE0061.severity = warning
 # --- Deviations this repository takes -----------------------------------------------------------
 
 [tests/**.cs]
-# The carve-out the onboarding snippet marks "not optional" for every consumer, applied to the
+# The carve-out docs/consuming.md marks "not optional" for every consumer, applied to the
 # repository that prescribes it. Test doubles hold values rather than injected dependencies, which
 # is the one shape APB0001 should not object to — and the tests project is gated by the APB rules
 # like any other project here, so without this the first `private sealed class StubX(Y y) : IY`

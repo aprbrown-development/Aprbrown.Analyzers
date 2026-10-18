@@ -98,9 +98,9 @@ jobs:
         run: ./scripts/verify-package.sh "artifacts/Aprbrown.Analyzers.${GITHUB_REF_NAME#v}.nupkg"
 
       # The release body, cut from CHANGELOG.md's section for this version, so there is exactly one
-      # authored source and the release page cannot disagree with the
-      # repository. verify-release.sh already proved the section exists and is non-empty; this reads
-      # it out through the same parser rather than a second one free to answer differently.
+      # authored source and the release page cannot disagree with the repository. verify-release.sh
+      # already proved the section exists and is non-empty; this reads it out through the same
+      # parser rather than a second one free to answer differently.
       - name: Cut the release notes from CHANGELOG.md
         run: ./scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > artifacts/release-notes.md
 
@@ -123,9 +123,9 @@ jobs:
     timeout-minutes: 20
 
     # The approval gate. The repository owner is a required reviewer and `Prevent self-review` is
-    # left off — GitHub's default, verified, so a sole maintainer can
-    # approve their own deployment; the prohibition on self-approval applies to pull request
-    # reviews, not to environment protection rules. The push is unrevocable and a mistyped tag
+    # left off — GitHub's default, verified, so a sole maintainer can approve their own deployment;
+    # the prohibition on self-approval applies to pull request reviews, not to environment
+    # protection rules. The push is unrevocable and a mistyped tag
     # spends a version number permanently, so one click is cheap insurance. The nuget.org trusted
     # publishing policy is scoped to this same environment.
     environment: release

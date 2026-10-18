@@ -6,8 +6,8 @@
 #
 # Analyzer unit tests test the analyzer; they cannot test the *package* — a package can build
 # clean and enforce nothing. This gate takes an already-packed Aprbrown.Analyzers package, places it
-# alone in a temporary feed, restores tests/Fixture.Consumer against it, builds, and asserts an exact
-# diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
+# alone in a temporary feed, restores tests/Fixture.Consumer against it, builds, and asserts an
+# exact diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
 # assertion.
 #
 # It never packs. Whoever calls it packs, at whatever version they mean to ship, so release.yml
@@ -21,7 +21,7 @@
 # The shipped config is complete — APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier, all under the blanket — so the assertions
 # are:
-#   - the given .nupkg matches the package allowlist exactly;
+#   - the given .nupkg holds exactly the packed-file list;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
 #     a silent failure otherwise;
 #   - the packed config is exactly the expected ruleset (tests/expected-ruleset.txt), checked
@@ -118,9 +118,9 @@ cat > "$CONFIG" <<EOF
 </configuration>
 EOF
 
-# --- Assertion: packed contents match the package allowlist exactly -------------------------
-# EXPECTED is the package allowlist. It grows in lockstep with what the package ships: add a row here
-# whenever the package gains a file, or this exact-match assertion will fail.
+# --- Assertion: packed contents match the packed-file list exactly --------------------------
+# EXPECTED is the packed-file list. It grows in lockstep with what the package ships: add a row
+# here whenever the package gains a file, or this exact-match assertion will fail.
 # Drop the standard OPC/NuGet metadata; what remains is the content allowlist.
 ACTUAL="$(list_entries "$NUPKG" \
   | grep -vE '^(_rels/|package/|\[Content_Types\]\.xml$)' \

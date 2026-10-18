@@ -5,10 +5,10 @@
 #
 # The fixture is a synthetic consumer whose whole job is to receive the ruleset from the packed
 # package and nothing else. The repository root's .editorconfig carves APB0001 out under
-# [tests/**.cs] — the onboarding snippet's carve-out for test doubles — and Fixture.Consumer sits
-# under tests/, so without this file that glob matches and the fixture reports no APB0001 at all. A
-# deviation this repository takes for its own test code must never reach the fixture. root = true
-# stops the walk-up here.
+# [tests/**.cs] — the carve-out docs/consuming.md prescribes for test doubles — and
+# Fixture.Consumer sits under tests/, so without this file that glob matches and the fixture
+# reports no APB0001 at all. A deviation this repository takes for its own test code must never
+# reach the fixture. root = true stops the walk-up here.
 #
 # Do not add rules here. A deviation the fixture needs is a deviation the smoke test should not have.
 

@@ -31,9 +31,9 @@ VERSION="${1:-}"
 
 # A prerelease resolves to the section of the version it prefixes: 1.0.0-preview.1 reads ## 1.0.0.
 # A prerelease is a rehearsal for the release that follows it, and a rehearsal has nothing of its
-# own to say about build impact — the impact it carries is that
-# version's, and duplicating the section under a second heading would create two authored sources
-# free to drift, which is the exact thing cutting the body from the changelog exists to prevent.
+# own to say about build impact — the impact it carries is that version's, and duplicating the
+# section under a second heading would create two authored sources free to drift, which is the
+# exact thing cutting the body from the changelog exists to prevent.
 SECTION_VERSION="${VERSION%%-*}"
 
 # Matched by field equality rather than by regex, because every version number is mostly dots and a
