@@ -44,9 +44,10 @@ env:
 jobs:
   verify:
     name: Build, test and verify the package
-    # GitHub-hosted: the homelab self-hosted runners are offline and scoped to another repository,
-    # and the fleet's ruleset should not depend on the homelab being up. The repository is public,
-    # so the Actions allowance is no constraint.
+    # GitHub-hosted: the org's homelab runners are closed to public repositories, the repository's
+    # own homelab runner takes only the SonarQube analysis (docs/adr/0006), and the fleet's ruleset
+    # should not depend on the homelab being up. The repository is public, so the Actions allowance
+    # is no constraint.
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

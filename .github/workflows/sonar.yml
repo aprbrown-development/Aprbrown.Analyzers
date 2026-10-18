@@ -1,0 +1,71 @@
+name: SonarQube
+
+# Publishes an analysis of main to the homelab SonarQube from the repository's own contained
+# runner; see docs/adr/0006. A signal, not a gate: nothing waits for its quality gate.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  sonarqube:
+    name: Analyse main
+    runs-on: [self-hosted, linux, homelab-public]
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install SonarScanner for .NET
+        run: dotnet tool install dotnet-sonarscanner --version 12.0.0 --tool-path "$RUNNER_TEMP/sonar-scanner"
+
+      - name: SonarScanner begin
+        id: begin
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+        run: >-
+          "$RUNNER_TEMP/sonar-scanner/dotnet-sonarscanner" begin
+          /k:"Aprbrown.Analyzers"
+          /d:sonar.host.url="$SONAR_HOST_URL"
+          /d:sonar.token="$SONAR_TOKEN"
+          /d:sonar.cs.vscoveragexml.reportsPaths="$RUNNER_TEMP/test-results/coverage.xml"
+          /d:sonar.exclusions="tests/Fixture.Consumer/**,.claude/**,docs/**,.out-of-scope/**"
+          /d:sonar.coverage.exclusions="tests/**"
+
+      - name: Build
+        run: dotnet build Aprbrown.Analyzers.slnx -c Release
+
+      - name: Test with coverage
+        run: >-
+          dotnet test --solution Aprbrown.Analyzers.slnx -c Release --no-build
+          --results-directory "$RUNNER_TEMP/test-results"
+          --coverage --coverage-output-format xml --coverage-output coverage.xml
+
+      - name: SonarScanner end
+        if: always() && steps.begin.outcome == 'success'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: '"$RUNNER_TEMP/sonar-scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"'
