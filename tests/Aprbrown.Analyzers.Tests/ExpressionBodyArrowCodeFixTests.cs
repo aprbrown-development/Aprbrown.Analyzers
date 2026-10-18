@@ -1,6 +1,3 @@
-using Aprbrown.Analyzers.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Aprbrown.Analyzers.Tests.CSharpCodeFixVerifier<
     Aprbrown.Analyzers.ExpressionBodyArrowAnalyzer,
@@ -253,43 +250,43 @@ public sealed class ExpressionBodyArrowCodeFixTests
     [Fact]
     public async Task Fix_all_fixes_every_arrow_in_the_document_in_one_pass()
     {
-        var test = new CSharpCodeFixTest<ExpressionBodyArrowAnalyzer, ExpressionBodyArrowCodeFixProvider, DefaultVerifier>
-        {
-            TestCode = """
-                class C
-                {
-                    int x;
+        const string source = """
+            class C
+            {
+                int x;
 
-                    int M()
-                        [|=>|] 1;
+                int M()
+                    {|#0:=>|} 1;
 
-                    int P
-                        [|=>|] 2;
+                int P
+                    {|#1:=>|} 2;
 
-                    C()
-                        [|=>|] x = 3;
-                }
-                """,
-            FixedCode = """
-                class C
-                {
-                    int x;
+                C()
+                    {|#2:=>|} x = 3;
+            }
+            """;
 
-                    int M() =>
-                        1;
+        const string fixedSource = """
+            class C
+            {
+                int x;
 
-                    int P =>
-                        2;
+                int M() =>
+                    1;
 
-                    C() =>
-                        x = 3;
-                }
-                """,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            NumberOfFixAllIterations = 1,
-            NumberOfFixAllInDocumentIterations = 1,
-        };
+                int P =>
+                    2;
 
-        await test.RunAsync(TestContext.Current.CancellationToken);
+                C() =>
+                    x = 3;
+            }
+            """;
+
+        await VerifyCS.VerifyFixAllInOnePassAsync(
+            source,
+            fixedSource,
+            VerifyCS.Diagnostic("APB0004").WithLocation(0),
+            VerifyCS.Diagnostic("APB0004").WithLocation(1),
+            VerifyCS.Diagnostic("APB0004").WithLocation(2));
     }
 }
