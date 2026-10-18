@@ -30,18 +30,30 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 
 ## 1.1.0
 
-The prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, three rules that version adds
+The seven expression-bodied-member preferences now gate the build instead of only suggesting. The
+prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, three rules that version adds
 are switched on, a performance tier of 53 rules joins the ruleset, and two custom rules arrive:
 `APB0004` puts a wrapped expression body's `=>` at the end of the declaration line, and `APB0005`
 moves trailing comments onto their own line. `CA1725` now holds every override to its base
 declaration's parameter names, and a suppressor, `APBS0001`, leaves interface implementations to
-`APB0003`. The ruleset is now 209 rules.
+`APB0003`. The ruleset is now 209 rules, 204 of them warnings and five errors.
 **Bump your own `Meziantou.Analyzer` reference to `3.0.305`** alongside this package: the package
 takes no dependency on it, so nothing moves your pin for you — see
 [the consumer docs](docs/consuming.md#1-reference-three-packages).
 
 ### Fails a green build — by design
 
+- **The seven expression-bodied-member preferences are raised from `suggestion` to warning.**
+  `IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`, `IDE0027`, `IDE0053` and `IDE0061` shipped at
+  `suggestion` on `1.0.x`, which never reaches a build log but which SonarQube imports, so a quality
+  gate could fail on code every build had passed. At warning the build and Sonar agree. The
+  `csharp_style_expression_bodied_*` options are unchanged, but `methods = true` means a method
+  whose body is one statement spread over several lines is reported too, so expect hits wherever a
+  block body holds a single statement. `dotnet format style` fixes every case once the seven
+  severities are in your `.editorconfig` for the run; run it before `APB0004`'s and `APB0005`'s
+  fixes. If your own `.editorconfig` sets a `csharp_style_expression_bodied_*` option with an inline
+  severity such as `when_on_single_line:suggestion`, delete the line, since it overrides the house
+  setting. See [the rules](docs/consuming.md#the-rules).
 - **`APB0004` is a new rule, on at warning: a wrapped expression body's `=>` ends the declaration
   line.** `int M() =>` with the expression on the next line passes; `int M()` with `=> expression`
   on the next line is reported, on the arrow. It covers methods, constructors, finalizers,
