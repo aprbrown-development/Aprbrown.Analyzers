@@ -62,6 +62,17 @@ A change that makes an existing rule catch a case it previously missed. The rule
 so it is invisible to release tracking, yet it can turn a consumer's green build red.
 _Avoid_: bug fix, improvement
 
+**Sonar verdict**:
+The decision recorded for a SonarQube rule that fires in the fleet: *covered*, when a rule in the
+house ruleset enforces it in the build; *signal*, when the house ruleset agrees with it but leaves
+it to SonarQube; or *rejected*, when it fails the universality test and SonarQube stops reporting it.
+_Avoid_: triage outcome, Sonar status, mapping
+
+**Detection gap**:
+A finding SonarQube reports under a covered rule on code the build passed: evidence that the house
+rule covering it misses a case, and the usual origin of a detection fix.
+_Avoid_: false negative, miss, leak
+
 **Toolchain floor**:
 The oldest .NET SDK and IDE that can load the analyzers, set by the Roslyn version they are built
 against. A host older than the floor fails the build with `CS9057`, so raising it is a major release.
