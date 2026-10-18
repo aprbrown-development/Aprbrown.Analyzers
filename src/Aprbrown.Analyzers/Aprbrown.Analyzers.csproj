@@ -19,10 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Roslyn pinned to 5.0.0: an analyzer built against an older
-         Roslyn loads in a newer host, never the reverse. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +30,7 @@
          twice. ExcludeAssets="build;buildTransitive" drops the package's props: Directory.Build.props
          already supplies the shipped config, and a second copy would unset every shared key
          (MultipleGlobalAnalyzerKeys). -->
-    <PackageReference Include="Aprbrown.Analyzers" Version="1.1.1"
+    <PackageReference Include="Aprbrown.Analyzers"
                       PrivateAssets="all" ExcludeAssets="build;buildTransitive" />
   </ItemGroup>
 

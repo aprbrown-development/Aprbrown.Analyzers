@@ -1,0 +1,15 @@
+<Project>
+
+  <!--
+    Deliberately empty, and deliberately present.
+
+    Directory.Packages.props resolution stops at the first file found walking up, so this one stops
+    tests/Fixture.Consumer from picking up the repository root's. The fixture must reference
+    packages the way a consumer does, each with its own inline version and nothing supplied by the
+    repository. Inheriting the root file would turn on central package management, which rejects
+    the fixture's inline versions (NU1008).
+
+    Do not add content here. If the fixture ever needs a package version, set it in the .csproj.
+  -->
+
+</Project>
