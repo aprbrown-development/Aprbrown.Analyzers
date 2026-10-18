@@ -1,7 +1,8 @@
 # Deliberately empty apart from root = true, and deliberately present.
 #
-# The companion to the empty Directory.Build.props beside it: that one stops the fixture inheriting
-# this repository's MSBuild wiring, this one stops it inheriting this repository's *deviations*.
+# The companion to the empty Directory.Build.props and Directory.Packages.props beside it: those stop
+# the fixture inheriting this repository's MSBuild wiring and package versions, this one stops it
+# inheriting this repository's *deviations*.
 #
 # The fixture is a synthetic consumer whose whole job is to receive the ruleset from the packed
 # package and nothing else. The repository root's .editorconfig carves APB0001 out under

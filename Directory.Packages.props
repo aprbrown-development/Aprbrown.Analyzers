@@ -9,6 +9,7 @@
          never the reverse. Raising it drops every host older than the new floor. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
 
     <PackageVersion Include="Aprbrown.Analyzers" Version="1.1.1" />

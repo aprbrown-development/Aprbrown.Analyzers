@@ -7,8 +7,7 @@
     tests/Fixture.Consumer from picking up the repository root's. The fixture must reference
     packages the way a consumer does, each with its own inline version and nothing supplied by the
     repository. Inheriting the root file would turn on central package management, which rejects
-    the fixture's inline versions (NU1008), and moving them into the root file instead would let the
-    repository decide which packages the smoke test restores.
+    the fixture's inline versions (NU1008).
 
     Do not add content here. If the fixture ever needs a package version, set it in the .csproj.
   -->

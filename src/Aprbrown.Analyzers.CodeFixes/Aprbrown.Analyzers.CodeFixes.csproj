@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Workspaces rather than CSharp alone: the APB0003 fix renames a symbol rather than
-         rewriting a token, and Renamer lives in Workspaces. -->
+    <!-- Workspaces, not CSharp alone: the APB0003 fix renames a symbol rather than rewriting a
+         token, and Renamer lives in Workspaces. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
   </ItemGroup>
