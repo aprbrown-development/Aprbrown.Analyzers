@@ -230,7 +230,7 @@ until then their rows are the plan, not the shipped config.
 
 ---
 
-## 3. The five APB analyzers
+## 3. The APB analyzers
 
 Specified by behaviour: what each rule flags, what it must **not** flag, and the test cases that prove
 it. Implement to the behaviour, not to a described implementation.
@@ -499,10 +499,10 @@ int M()
 Only the active branch is parsed, so this reports one diagnostic, on that branch's arrow; moving it
 up would leave the other branch's arrow stranded under the `#if`.
 
-**Known wart.** The help link of every `APB` rule, this one included, lands on the `consuming.md`
-heading "The three custom rules". The heading keeps that wording although there are now four,
-because renaming it changes its anchor and breaks every help link already shipped (#43). Renaming
-it waits for a major version.
+**Help link.** The help link of every `APB` rule, this one included, lands on the `consuming.md`
+heading "The custom rules". Until 2.1.0 that heading read "The three custom rules", and every help
+link shipped before then points at its anchor, `#the-three-custom-rules`; an
+`<a id="the-three-custom-rules">` above the renamed heading keeps those links landing on it.
 
 **Required tests**
 
@@ -610,6 +610,52 @@ comment lands between the documentation and the declaration; `int M() => // why`
 fixes to `// why`, `int M() =>`, `x;`; the example above, and a document with several trailing
 comments, are fixed in one fix-all pass; and the raw-string case offers no fix.
 
+### 3.8 `APB0006` — Do not nest conditional expressions
+
+| | |
+|---|---|
+| Category | `Style` |
+| Default severity | `Warning` |
+| Code fix | **None** |
+| Message | `Unnest this conditional expression into an if statement or a switch expression` |
+
+Added in 2.1.0, as a minor bump under ADR-0004. It covers SonarQube's `S3358`; ADR-0008 records why
+a rule of this package's own was chosen over `MA0240` with a shipped `BannedSyntaxes.txt`.
+
+**Rationale.** A conditional expression inside another's condition or branches makes the reader
+hold every condition at once to know which value is chosen. An `if` statement or a switch
+expression names each case on its own line.
+
+**Flags** a conditional expression (`a ? b : c`) that sits anywhere inside the condition, true
+branch or false branch of another conditional expression, looking through parentheses, casts,
+invocations, operators, switch expressions and any other expression between them. Report at the
+inner conditional, once per nested conditional, so a three-deep chain reports twice.
+
+**Must not flag:**
+
+- A conditional inside a lambda, anonymous method or local function body, even when that function
+  sits inside a conditional: the body is a scope of its own. Nesting *within* that body is judged
+  afresh, so a conditional nested in another inside the same lambda is still reported.
+- `?.`, `??`, `??=` and switch expressions. None is a conditional expression, so none reports, and
+  none counts as the outer conditional of a nesting.
+- Sibling conditionals in one expression, such as `(a ? 1 : 2) + (b ? 3 : 4)`.
+
+**No code fix.** Unnesting means choosing between an `if` statement and a switch expression, and
+the choice depends on what the surrounding code reads best as.
+
+**Required tests**
+
+| Input | Expected |
+|---|---|
+| `a ? 1 : b ? 2 : 3`, and the same nesting in the true branch and in the condition | 1 diagnostic, on the inner conditional |
+| The inner conditional wrapped in a cast, an argument, an arithmetic operator or an array element | 1 diagnostic |
+| `a ? 1 : b ? 2 : c ? 3 : 4` | 2 diagnostics, one per inner conditional |
+| A lone conditional, and sibling conditionals | 0 |
+| A conditional in an expression lambda, a statement lambda, an anonymous method or a local function inside a conditional | 0 |
+| A nested conditional inside a lambda that itself sits in a conditional | 1 diagnostic, on the conditional nested within the lambda |
+| `??`, `?.`, `??=` or a switch expression inside a conditional, and a conditional inside each of `??`, `?.` and a switch expression | 0 |
+| A conditional in a switch-expression arm inside a conditional | 1 diagnostic |
+
 ---
 
 ## 4. Package layout and delivery
@@ -618,8 +664,8 @@ comments, are fixed in one fix-all pass; and the raw-string case offers no fix.
 
 | Path | TFM | Purpose |
 |---|---|---|
-| `src/Aprbrown.Analyzers/` | `netstandard2.0` | The four `DiagnosticAnalyzer`s |
-| `src/Aprbrown.Analyzers.CodeFixes/` | `netstandard2.0` | The `APB0003` and `APB0004` `CodeFixProvider`s |
+| `src/Aprbrown.Analyzers/` | `netstandard2.0` | The `DiagnosticAnalyzer`s and the `APBS0001` suppressor |
+| `src/Aprbrown.Analyzers.CodeFixes/` | `netstandard2.0` | The `APB0003`, `APB0004` and `APB0005` `CodeFixProvider`s |
 | `src/Aprbrown.Analyzers.Package/` | — | Packaging project; produces the `.nupkg` |
 | `tests/Aprbrown.Analyzers.Tests/` | current .NET | Analyzer + code fix tests |
 | `tests/Fixture.Consumer/` | `net10.0` | Consumer fixture for the pack-consume smoke test |

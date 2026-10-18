@@ -2,8 +2,8 @@
 
 One .NET coding standard, delivered as a NuGet package.
 
-It ships two things: five custom Roslyn analyzers (`APB0001`–`APB0005`), and — the larger half — a
-configuration that decides which **214 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+It ships two things: six custom Roslyn analyzers (`APB0001`–`APB0006`), and — the larger half — a
+configuration that decides which **215 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -189,21 +189,21 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 
 | Tier | Count | What is on |
 |---|---|---|
-| `APB` | 5 | The five custom rules below |
+| `APB` | 6 | The [custom rules](#the-custom-rules) below |
 | `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
 | .NET SDK `CA` | 31 | The rules the SDK enables by default as build warnings or errors, plus `CA1849` (blocking calls in async methods) and `CA1052` (static holder types, at every accessibility) |
 | Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 15 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, seven expression-bodied-member preferences, no redundant casts or unused or unread private members, and `CA1725`: an override keeps its base declaration's parameter names, at every accessibility |
 
-214 rules in total. **209 are warnings and five are errors.**
+215 rules in total. **210 are warnings and five are errors.**
 
 **`CA1725` checks every override, internal ones included**, because the configuration sets
 `dotnet_code_quality.CA1725.api_surface = all`. That covers framework overrides: `Equals(object? obj)`,
 not `Equals(object? other)`, and `Stream.Read(buffer, offset, count)`. It ships a code fix that renames
 the parameter and every use of it, which `dotnet format analyzers --diagnostics CA1725` applies once
 `dotnet_diagnostic.CA1725.severity = warning` is in your `.editorconfig` for the run. Interface
-implementations are left to `APB0003`, [below](#the-three-custom-rules).
+implementations are left to `APB0003`, [below](#the-custom-rules).
 
 **`CA1849` reports a blocking call inside an async method** when the call has an awaitable
 counterpart: `stream.Flush()` where `await stream.FlushAsync(cancellationToken)` would do. It is
@@ -257,7 +257,9 @@ one of the rules Roslyn only runs inside an IDE, so an unwanted `this.` shows up
 one-key fix but will not stop a command-line build. `IDE0009`, the add-`this.` half, does gate. Every
 other rule in the table above gates.
 
-### The three custom rules
+<a id="the-three-custom-rules"></a>
+
+### The custom rules
 
 - **`APB0001` — no primary constructors on classes or structs.** Injected dependencies belong in an
   explicit constructor assigning readonly fields, so a type's dependency surface reads as one block.
@@ -294,9 +296,13 @@ other rule in the table above gates.
   `dotnet_diagnostic.APB0005.severity = warning` is in your `.editorconfig` for the run. Run it after
   `APB0004`'s fix: that one leaves a comment from the declaration line after the arrow, and this one
   moves it above the member.
-
-The heading above still says three. It is the anchor every rule's help link points at, so renaming
-it would break the links already shipped; it changes in the next major version.
+- **`APB0006` — conditional expressions are not nested.** An `a ? b : c` inside another's condition,
+  true branch or false branch is reported, however deeply it is wrapped in parentheses, casts, calls
+  or other expressions; a three-deep chain reports twice, once per inner conditional. A conditional
+  inside a lambda, anonymous method or local function starts afresh, since that body is a scope of
+  its own. `?.`, `??`, `??=` and switch expressions are not conditional expressions, and neither
+  report nor count as nesting. No code fix: unnesting means choosing between an `if` statement and a
+  switch expression, which is yours to make. It matches SonarQube's `S3358`.
 
 ### The house comment policy
 
