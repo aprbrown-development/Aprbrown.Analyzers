@@ -25,7 +25,7 @@
          An unqualified local `dotnet pack` therefore produces the SDK's own 1.0.0 default, which is
          a scratch artifact with nowhere to go. -->
     <Authors>Andrew P R Brown</Authors>
-    <Description>One .NET coding standard, delivered as a Roslyn analyzer package: four custom analyzers and a sealed-allowlist configuration deciding which rules are on.</Description>
+    <Description>One .NET coding standard, delivered as a Roslyn analyzer package: custom analyzers and a sealed-allowlist configuration deciding which rules are on.</Description>
     <PackageTags>roslyn;analyzers;codeanalysis;editorconfig</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
 
