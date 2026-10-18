@@ -1,8 +1,8 @@
 # This repository's local deviations from the shipped configuration it consumes.
 #
-# It is the reference implementation of the onboarding snippet (spec §7): every entry below is a
-# deviation taken through the mechanism every consumer gets — a local .editorconfig, which outranks
-# a global AnalyzerConfig outright. Nothing here changes src/Aprbrown.Analyzers.Package/build/
+# It is the reference implementation of the onboarding snippet: every entry below is a deviation
+# taken through the mechanism every consumer gets — a local .editorconfig, which outranks a global
+# AnalyzerConfig outright. Nothing here changes src/Aprbrown.Analyzers.Package/build/
 # Aprbrown.Analyzers.globalconfig; a house rule that trips this repository's own code is fixed here,
 # never there.
 
@@ -10,7 +10,7 @@ root = true
 
 [*.cs]
 
-# --- Restoring the analyzer-authoring safety net (ADR-0003 decision 7, spec §7) ---------------
+# --- Restoring the analyzer-authoring safety net -----------------------------------------------
 #
 # Microsoft.CodeAnalysis.Analyzers ships the RS-series that keeps analyzer authors honest — RS1001
 # through the RS2000-series that keeps AnalyzerReleases.Shipped.md / .Unshipped.md truthful,
@@ -18,15 +18,15 @@ root = true
 # in the fleet where it matters would leave release tracking silently unenforced.
 #
 # Re-enabled by *category*, one line each, so RS rules added by future package versions are covered
-# without editing this file. This is the one place category-level re-enabling is correct and it does
-# not contradict ADR-0002's seal: the seal governs what the package promises consumers. This is a
-# local config, and a repository loosening rules for itself is the deviation mechanism working.
+# without editing this file. Category-level re-enabling is correct here and does not unseal the
+# sealed allowlist: the seal governs what the package promises consumers, and this is a local
+# config, where a repository loosening rules for itself is the deviation mechanism working.
 dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisCorrectness.severity = warning
 dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisDesign.severity = warning
 dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisReleaseTracking.severity = warning
 dotnet_analyzer_diagnostic.category-MicrosoftCodeAnalysisPerformance.severity = warning
 
-# --- Restating the expression-bodied severities for dotnet format (#67) ----------------------
+# --- Restating the expression-bodied severities for dotnet format ------------------------------
 #
 # Not a deviation: these are the shipped config's own values, and the build already enforces them
 # from there. `dotnet format` does not. It acts only on a severity it finds in an .editorconfig and
@@ -46,27 +46,24 @@ dotnet_diagnostic.IDE0061.severity = warning
 # --- Deviations this repository takes -----------------------------------------------------------
 
 [tests/**.cs]
-# The carve-out docs/consuming.md marks "not optional" for every consumer, applied to the repository
-# that prescribes it. Test doubles hold values rather than injected dependencies, which is the one
-# shape APB0001 should not object to — and the tests project is gated by the APB rules (spec §7), so
-# without this the first `private sealed class StubX(Y y) : IY` would fail the build.
+# The carve-out the onboarding snippet marks "not optional" for every consumer, applied to the
+# repository that prescribes it. Test doubles hold values rather than injected dependencies, which
+# is the one shape APB0001 should not object to — and the tests project is gated by the APB rules
+# like any other project here, so without this the first `private sealed class StubX(Y y) : IY`
+# would fail the build.
 dotnet_diagnostic.APB0001.severity = none
 
-# The other half of that same snippet, live now that the Meziantou tier enumerates MA0025 back on.
-# Throwing NotImplementedException *is* the correct way for a test double to say a member is not
-# part of its contract, so the rule is right everywhere except here. Written even though no test
-# currently throws one: this repository is the reference implementation of the onboarding snippet,
-# and a consumer copying it should find both halves.
+# The other half of that same snippet. Throwing NotImplementedException *is* the correct way for a
+# test double to say a member is not part of its contract, so the rule is right everywhere except
+# here. Written even though no test currently throws one: this repository is the reference
+# implementation of the onboarding snippet, and a consumer copying it should find both halves.
 dotnet_diagnostic.MA0025.severity = none
 
 # SA0001 fires when a project does not generate an XML documentation file, and test projects have no
 # reason to. It survives the shipped config's blanket because it is reported with no location, and a
 # bulk `dotnet_analyzer_diagnostic.severity` entry does not reach a diagnostic that has no syntax
-# tree to resolve options against — an explicit ID does, which is what this is.
-#
-# Written here before the StyleCop tier shipped, when this repository was the only one referencing
-# StyleCop.Analyzers. Now that the tier ships, every consumer meets the same thing on adoption, so it
-# is part of the onboarding snippet in docs/consuming.md and recorded as spec §10 correction 11.
+# tree to resolve options against — an explicit ID does, which is what this is. Every consumer with
+# a test project meets the same thing on onboarding, so the onboarding snippet carries it too.
 dotnet_diagnostic.SA0001.severity = none
 
 # The analyzer-authoring safety net restored above guards analyzers that ship. A test project has
