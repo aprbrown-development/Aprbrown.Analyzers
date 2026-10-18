@@ -9,7 +9,7 @@ Prepare the next release: the `CHANGELOG.md` section, its version number, and pr
 The rules this skill applies live in the repository, and are read rather than restated here:
 
 - **Bump rules**: the Decision table and Consequences of `docs/adr/0004-diagnostic-ids-are-public-api.md`, and the table at the head of `CHANGELOG.md`.
-- **Shipped surface**: the `<None Pack="true">` allowlist in `src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj`. A change reaches a consumer only through one of those files.
+- **Shipped surface**: the `<None Pack="true">` allowlist and the package metadata (`<Description>`, `<PackageTags>` and their neighbours, shown on nuget.org) in `src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj`. A change reaches a consumer only through one of those.
 - **Voice**: the existing `CHANGELOG.md` sections. Entries open with a bold sentence stating what changed for the consumer, then why and what they do about it, linking `docs/consuming.md` anchors.
 
 Every entry is **authored for the consumer**. A commit is a lead, never an entry: its message says what the implementer did, and the question each entry answers is what happens to a consumer's build.
@@ -28,7 +28,7 @@ Every entry is **authored for the consumer**. A commit is a lead, never an entry
    - **cannot fail**: a fixer added, a false positive removed, a consumer-visible doc change, a severity lowered
    - **no entry**: touches nothing in the shipped surface (tests, scripts, workflows, ADRs, repo-only docs)
 
-   The test diff is the evidence that separates **silently** from **cannot fail**: a new test expecting a diagnostic where the old code reported none is a detection fix, whatever the commit calls itself; one expecting no diagnostic where there was one is a false positive removed. A change that does both gets both entries. `docs/consuming.md` is packed as the package README, so its corrections are **cannot fail**, not **no entry**.
+   The test diff is the evidence that separates **silently** from **cannot fail**: a new test expecting a diagnostic where the old code reported none is a detection fix, whatever the commit calls itself; one expecting no diagnostic where there was one is a false positive removed. A change that does both gets both entries. `docs/consuming.md` is packed as the package README, so its corrections are **cannot fail**, not **no entry**; so are corrections to the package metadata.
 
    Done when every commit in the inventory has one class and one line of evidence from its diff. Show the owner the table before writing.
 
@@ -36,7 +36,7 @@ Every entry is **authored for the consumer**. A commit is a lead, never an entry
 
 5. **Write the section.** When the top `## ` heading of `CHANGELOG.md` names a version with no tag, it is the open section: audit it rather than starting over, renaming its heading to `## X.Y.Z` if step 4 chose differently. Otherwise add `## X.Y.Z` above the previous release. Use the three headings the previous sections use (`Fails a green build — by design`, `— silently`, `Cannot fail a green build`), each stating _Nothing_ with its reason when empty. **Voids config** has no heading yet: when it occurs, propose one to the owner before writing it. Then rewrite the paragraph under the version heading so it summarises the final entries; it was likely written before the last of them landed.
 
-   Done when every classified commit maps to exactly one entry, every entry maps to at least one commit, and the summary paragraph is true of the whole section.
+   Done when every classified commit maps to exactly one entry, every entry maps to at least one commit, and both the summary paragraph and the package `<Description>` are true of what this version ships.
 
 6. **Promote release tracking.** Move every rule row in `src/Aprbrown.Analyzers/AnalyzerReleases.Unshipped.md` into `AnalyzerReleases.Shipped.md` under a new `## Release X.Y.Z`, keeping their `### New Rules` / `### Changed Rules` / `### Removed Rules` subheadings, and leave `Unshipped.md` holding only its two comment lines. Nothing to move is the normal case for a patch. Done when `Unshipped.md` holds no rule rows.
 

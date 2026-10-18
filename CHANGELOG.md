@@ -28,6 +28,26 @@ matching its tag, so there is exactly one authored source and the release page c
 this file. A prerelease tag reads the section of the version it prefixes — `v1.0.0-preview.1` is a
 rehearsal for `1.0.0` and carries that version's build impact, because it has none of its own.
 
+## 1.1.1
+
+A correction to the package's description; no configuration entry, MSBuild property or analyzer
+changed, and no rule reports anything it did not report on `1.1.0`.
+
+### Fails a green build — by design
+
+_Nothing. No rule was added and no severity was raised._
+
+### Fails a green build — silently
+
+_Nothing. No analyzer changed._
+
+### Cannot fail a green build
+
+- **The package description no longer miscounts the custom analyzers.** `1.1.0`'s description, shown
+  on nuget.org and in package-manager UIs, said the package ships four custom analyzers when it
+  ships five. It now names no number, so adding a rule cannot make it stale again. See
+  [the custom rules](docs/consuming.md#the-three-custom-rules) for the full set.
+
 ## 1.1.0
 
 The seven expression-bodied-member preferences now gate the build instead of only suggesting. The
