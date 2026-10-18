@@ -7,7 +7,7 @@
 #
 # The house ruleset is complete: APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier are all enumerated below, along with the
-# performance tier — 209 rules under the blanket. Everything else is off, including rules that do
+# performance tier — 214 rules under the blanket. Everything else is off, including rules that do
 # not exist yet, and adding one from here is a deliberate act: a rule added or a severity raised is
 # a minor version bump.
 #
@@ -389,6 +389,16 @@ dotnet_diagnostic.CA2264.severity = warning
 # CA2265 — Do not compare Span<T> to 'null' or 'default'
 dotnet_diagnostic.CA2265.severity = warning
 
+# Two rules outside the derivation above: default-off upstream, each named because it covers a
+# SonarQube rule that fires in the fleet, so the build reports what the quality gate would.
+
+# CA1849 — Call async methods when in an async method
+dotnet_diagnostic.CA1849.severity = warning
+# CA1052 — Static holder types should be Static or NotInheritable
+#          `api_surface = all` extends it from public types to every type, as CA1725's does.
+dotnet_diagnostic.CA1052.severity = warning
+dotnet_code_quality.CA1052.api_surface = all
+
 # ---------------------------------------------------------------------------------------------
 # The performance tier — Meziantou.Analyzer 3.0.305 and the NetAnalyzers in .NET SDK 10.0.112.
 #
@@ -586,6 +596,12 @@ dotnet_diagnostic.IDE0003.severity = warning
 dotnet_diagnostic.IDE0009.severity = warning
 # IDE0040 — Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
+# IDE0004 — Remove unnecessary cast
+dotnet_diagnostic.IDE0004.severity = warning
+# IDE0051 — Remove unused private members
+dotnet_diagnostic.IDE0051.severity = warning
+# IDE0052 — Remove unread private members
+dotnet_diagnostic.IDE0052.severity = warning
 # CA1725 — Parameter names should match base declaration
 #          `api_surface = all` extends it from public and protected overrides to every override,
 #          internal types included. The package's suppressor, APBS0001, hides it on interface

@@ -3,7 +3,7 @@
 One .NET coding standard, delivered as a NuGet package.
 
 It ships two things: five custom Roslyn analyzers (`APB0001`–`APB0005`), and — the larger half — a
-configuration that decides which **209 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+configuration that decides which **214 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -191,12 +191,12 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 |---|---|---|
 | `APB` | 5 | The five custom rules below |
 | `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
-| .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
+| .NET SDK `CA` | 31 | The rules the SDK enables by default as build warnings or errors, plus `CA1849` (blocking calls in async methods) and `CA1052` (static holder types), at every accessibility |
 | Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
-| `IDE` / naming | 12 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, seven expression-bodied-member preferences, and `CA1725`: an override keeps its base declaration's parameter names, at every accessibility |
+| `IDE` / naming | 15 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, seven expression-bodied-member preferences, no redundant casts or unused or unread private members, and `CA1725`: an override keeps its base declaration's parameter names, at every accessibility |
 
-209 rules in total. **204 are warnings and five are errors.**
+214 rules in total. **209 are warnings and five are errors.**
 
 **`CA1725` checks every override, internal ones included**, because the configuration sets
 `dotnet_code_quality.CA1725.api_surface = all`. That covers framework overrides: `Equals(object? obj)`,
@@ -204,6 +204,26 @@ not `Equals(object? other)`, and `Stream.Read(buffer, offset, count)`. It ships 
 the parameter and every use of it, which `dotnet format analyzers --diagnostics CA1725` applies once
 `dotnet_diagnostic.CA1725.severity = warning` is in your `.editorconfig` for the run. Interface
 implementations are left to `APB0003`, [below](#the-three-custom-rules).
+
+**`CA1849` reports a blocking call inside an async method** when the call has an awaitable
+counterpart: `stream.Flush()` where `await stream.FlushAsync(cancellationToken)` would do. It is
+default-off in the SDK and on here because SonarQube reports the same pattern as `S6966`, so the
+build and the quality gate agree. Expect it to be the busiest of the newer rules: SonarQube had 54
+such calls open across the repositories already onboarded.
+
+**`CA1052` asks a type holding only static members to be declared `static`**, internal types
+included, because the configuration sets `dotnet_code_quality.CA1052.api_surface = all` as it does
+for `CA1725`. SonarQube's `S1118` asks for a private constructor instead; `static` satisfies both.
+An internal holder usually reports `CA1852` (seal internal types) on the same line, and `static`
+clears that too.
+
+**`IDE0004`, `IDE0051` and `IDE0052` remove what nothing needs**: a cast to the type an expression
+already has, a private member nothing uses, and a private member that is written but never read.
+The SDK enables all three at `Hidden`, which never reaches a build; they gate here, matching
+SonarQube's `S1905` and `S1144`. `dotnet format style --diagnostics IDE0004 IDE0051` removes the
+first two across a repository once their `dotnet_diagnostic.<ID>.severity = warning` lines are in
+your `.editorconfig` for the run. `IDE0052` has no code fix: deleting the member or starting to
+read it is yours to decide.
 
 The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
 `IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.

@@ -4,7 +4,7 @@ One .NET coding standard, delivered as a NuGet package.
 
 It ships five custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/) analyzers
 (`APB0001`–`APB0005`, three with a code fix) and — the larger half — a configuration that decides which
-**209 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and the .NET SDK's own `CA` and `IDE`
+**214 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and the .NET SDK's own `CA` and `IDE`
 analyzers are switched on. There is a single universal ruleset: no profiles, no presets, nothing to
 configure. Anything you disagree with, you override in your own `.editorconfig`, which always wins.
 
@@ -43,7 +43,7 @@ default, so it will fail builds that currently pass — read the install guide b
   Block comments, documentation, preprocessor lines and tool directives are exempt. Ships with a code
   fix that hoists the comment above the line it trailed.
 
-Full detail, including the other 204 rules and everything deliberately left off, is in
+Full detail, including the other 209 rules and everything deliberately left off, is in
 [`docs/consuming.md`](docs/consuming.md#the-rules).
 
 ## Documentation
@@ -60,7 +60,7 @@ Full detail, including the other 204 rules and everything deliberately left off,
 
 The five analyzers, the `APBS0001` suppressor and the `APB0003` and `APB0004` code fixes are proven
 end to end from a packed `.nupkg` by `scripts/verify-package.sh`, and the shipped configuration is
-complete at 209 enumerated rules. This repository is held to that ruleset itself, and CI gates every pull request against it.
+complete at 214 enumerated rules. This repository is held to that ruleset itself, and CI gates every pull request against it.
 
 The release pipeline is in place: a `v*` tag builds, tests, runs the same pack-consume gate, waits for
 an approval click, and publishes to nuget.org with a keyless one-hour credential.
