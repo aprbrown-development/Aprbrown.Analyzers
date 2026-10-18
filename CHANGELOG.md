@@ -40,15 +40,18 @@ The analyzers are now built against Roslyn 5.0 instead of 4.14, so the minimum t
   Roslyn 5.0 or newer: every .NET 10 SDK, but no .NET 9 SDK and no Visual Studio 2022. On an older
   SDK or IDE the host cannot load the analyzers and reports `CS9057`, which `TreatWarningsAsErrors`
   turns into a failed build. Update the toolchain (on CI too, and in any `global.json` `sdk` pin)
-  before taking this version.
+  before taking this version. See [the requirements](docs/consuming.md#requirements).
 
 ### Fails a green build — silently
 
-_Nothing. No analyzer changed._
+_Nothing. No rule reports anything it did not report on `1.1.1`._
 
 ### Cannot fail a green build
 
-- **The install guide and README name the new minimum toolchain.**
+- **The install guide names the new minimum toolchain.** Its
+  [requirements](docs/consuming.md#requirements) give .NET SDK 10.0.100 or Visual Studio 2026 18.0
+  in place of `1.1.1`'s .NET SDK 9.0.300 or Visual Studio 2022 17.14, and name `CS9057` as the error
+  an older host reports.
 
 ## 1.1.1
 
