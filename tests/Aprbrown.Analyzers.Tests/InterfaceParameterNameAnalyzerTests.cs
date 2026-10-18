@@ -4,10 +4,11 @@ using VerifyCS = Aprbrown.Analyzers.Tests.CSharpAnalyzerVerifier<Aprbrown.Analyz
 namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
-/// Covers every required-test row for APB0003 (spec §3.3).
+/// Covers APB0003: every way an implementing parameter can disagree with the interface's name, and
+/// every case that must not be flagged.
 /// </summary>
 /// <remarks>
-/// Three of the spec's four must-not-flag cases are pinned here: an interface declaration is not
+/// Three of the four must-not-flag cases are pinned here: an interface declaration is not
 /// an implementer, accessor parameters are synthesised, and an inherited implementation is
 /// reported on the base that declares it rather than on the derived type. The fourth — a
 /// parameter with no source location — cannot be written as a test, because a metadata

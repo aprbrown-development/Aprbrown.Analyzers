@@ -20,8 +20,7 @@ public sealed class DescriptorContractTests
 
     // A help link is what an IDE opens when a consumer clicks the rule on a squiggle. GitHub serves
     // the page and ignores an unknown fragment, so a reworded heading leaves no 404 to notice: the
-    // consumer lands at the top of a long document with no sign they were meant to be further down
-    // (#43).
+    // consumer lands at the top of a long document with no sign they were meant to be further down.
     [Theory]
     [MemberData(nameof(DescriptorIds))]
     public void Help_link_lands_on_a_heading_of_the_consuming_guide(string id)

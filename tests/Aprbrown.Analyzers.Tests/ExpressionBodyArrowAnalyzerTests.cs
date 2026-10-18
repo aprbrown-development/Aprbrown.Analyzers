@@ -4,7 +4,9 @@ using VerifyCS = Aprbrown.Analyzers.Tests.CSharpAnalyzerVerifier<Aprbrown.Analyz
 namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
-/// Covers every required-test row for APB0004's analyzer.
+/// Covers APB0004's analyzer: every expression-bodied member whose arrow starts a line is flagged
+/// at the arrow, while an arrow that ends the declaration line, and the arrows of lambdas and
+/// switch-expression arms, are left alone.
 /// </summary>
 public sealed class ExpressionBodyArrowAnalyzerTests
 {

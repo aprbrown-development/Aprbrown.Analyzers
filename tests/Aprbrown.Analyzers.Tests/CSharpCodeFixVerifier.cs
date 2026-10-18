@@ -17,7 +17,7 @@ namespace Aprbrown.Analyzers.Tests;
 /// <remarks>
 /// The harness compiles the fixed source and fails on any diagnostic that was not declared
 /// expected — compiler errors included. That is what turns "the fixed source compiles" from an
-/// assumption into an assertion (spec §3.4): a fix that rewrote only the declaration token would
+/// assumption into an assertion: a fix that rewrote only the declaration token would
 /// leave the body referring to a name that no longer exists, and <c>CS0103</c> would fail the test.
 /// </remarks>
 internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
@@ -35,8 +35,8 @@ internal static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
 
     /// <summary>
     /// As <see cref="VerifyCodeFixAsync(string, string, DiagnosticResult[])"/>, and additionally
-    /// asserts the title under which the fix is offered — the string a developer reads in the
-    /// light bulb, which spec §3.4 fixes exactly.
+    /// asserts the exact title under which the fix is offered — the string a developer reads in the
+    /// light bulb.
     /// </summary>
     public static Task VerifyCodeFixAsync(
         string source,
