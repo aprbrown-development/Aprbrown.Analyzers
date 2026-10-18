@@ -1,13 +1,13 @@
 name: Release
 
-# The only file in this repository that can mint a nuget.org key and push something unrevocable
-# (ADR-0003 decisions 1 and 3). It is meant to stay short enough to read in one screen and boring
-# enough that it almost never changes: a single workflow with a conditional publish job would mean
-# every future edit to PR CI happened inside the file holding publish rights.
+# The only file in this repository that can mint a nuget.org key and push something unrevocable.
+# It is meant to stay short enough to read in one screen and boring enough that it almost never
+# changes: a single workflow with a conditional publish job would mean every future edit to PR CI
+# happened inside the file holding publish rights.
 #
-# Nothing here is a first look. Every gate below already ran at PR time (decision 4) and re-runs to
-# discover nothing new, because a nuget.org version number is spent the moment it is pushed. The
-# only checks this file adds are the two that cannot exist before a tag, and they live in
+# Nothing here is a first look. Every gate below already ran at PR time and re-runs to discover
+# nothing new, because a nuget.org version number is spent the moment it is pushed. The only checks
+# this file adds are the two that cannot exist before a tag, and they live in
 # scripts/verify-release.sh.
 on:
   push:
@@ -32,10 +32,10 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
-  # ADR-0003 decision 10. Set as an environment variable rather than a `-p:` flag so the build and
-  # the pack below cannot disagree about it, mirroring ci.yml — these are the duplicated setup
-  # lines the ADR accepts deliberately over a reusable-workflow indirection that could confuse the
-  # OIDC claim. If they ever grow enough to warrant sharing, the answer is a local composite action
+  # Normalises embedded paths. Set as an environment variable rather than a `-p:` flag so the build
+  # and the pack below cannot disagree about it, mirroring ci.yml. These setup lines are duplicated
+  # between the two workflows on purpose: a reusable-workflow indirection could confuse the OIDC
+  # claim. If they ever grow enough to warrant sharing, the answer is a local composite action
   # under .github/actions/, which runs inside the calling job and leaves the claim untouched.
   ContinuousIntegrationBuild: true
 
@@ -56,9 +56,9 @@ jobs:
       # a second; everything after them costs ten minutes. A mistyped tag or a rule left unpromoted
       # should be told so immediately, not after the smoke test has run to completion.
       #
-      # The tag is the only source of a version number (ADR-0003 decision 2). No <Version> property
-      # exists anywhere in this repository, and nothing in it mints a publishable version on its own
-      # — a version exists only when one is typed into `git tag`.
+      # The tag is the only source of a version number. No <Version> property exists anywhere in
+      # this repository, and nothing in it mints a publishable version on its own — a version
+      # exists only when one is typed into `git tag`.
       - name: Release-time assertions
         run: ./scripts/verify-release.sh "${GITHUB_REF_NAME#v}"
 
@@ -73,9 +73,9 @@ jobs:
       - name: Restore
         run: dotnet restore Aprbrown.Analyzers.slnx
 
-      # The dogfooding gate (ADR-0003 decision 6): this repository consumes the same physical config
-      # file the packaging project packs, under TreatWarningsAsErrors, so a house-rule violation in
-      # its own source is a build error here.
+      # The dogfooding gate: this repository consumes the same physical config file the packaging
+      # project packs, under TreatWarningsAsErrors, so a house-rule violation in its own source is a
+      # build error here.
       - name: Build
         run: dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
 
@@ -84,23 +84,23 @@ jobs:
 
       # Packed once, before the smoke test rather than after it, and that ordering is the point: the
       # file the smoke test inspects is the file the publish job pushes, not a sibling packed for
-      # the purpose (ADR-0003 amendment 3). Packing here rather than in the publish job also keeps
-      # that job free of a checkout, an SDK restore and a build — the less that happens under
-      # `id-token: write`, the smaller the thing a reviewer has to trust.
+      # the purpose. Packing here rather than in the publish job also keeps that job free of a
+      # checkout, an SDK restore and a build — the less that happens under `id-token: write`, the
+      # smaller the thing a reviewer has to trust.
       - name: Pack
         run: |
           dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj \
             -c Release --no-build -o artifacts -p:Version="${GITHUB_REF_NAME#v}"
 
-      # Invoke the script, never reimplement its assertions in YAML (ADR-0003 decision 5). The
-      # artifact that is published is the artifact that was gated.
+      # Invoke the script, never reimplement its assertions in YAML. The artifact that is published
+      # is the artifact that was gated.
       - name: Pack-consume smoke test
         run: ./scripts/verify-package.sh "artifacts/Aprbrown.Analyzers.${GITHUB_REF_NAME#v}.nupkg"
 
-      # The release body, cut from CHANGELOG.md's section for this version (ADR-0003 decision 9), so
-      # there is exactly one authored source and the release page cannot disagree with the
-      # repository. verify-release.sh already proved the section exists and is non-empty; this reads
-      # it out through the same parser rather than a second one free to answer differently.
+      # The release body, cut from CHANGELOG.md's section for this version, so there is exactly one
+      # authored source and the release page cannot disagree with the repository. verify-release.sh
+      # already proved the section exists and is non-empty; this reads it out through the same
+      # parser rather than a second one free to answer differently.
       - name: Cut the release notes from CHANGELOG.md
         run: ./scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > artifacts/release-notes.md
 
@@ -122,10 +122,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    # The approval gate (ADR-0003 amendment 2). The repository owner is a required reviewer and
-    # `Prevent self-review` is left off — GitHub's default, verified, so a sole maintainer can
-    # approve their own deployment; the prohibition on self-approval applies to pull request
-    # reviews, not to environment protection rules. The push is unrevocable and a mistyped tag
+    # The approval gate. The repository owner is a required reviewer and `Prevent self-review` is
+    # left off — GitHub's default, verified, so a sole maintainer can approve their own deployment;
+    # the prohibition on self-approval applies to pull request reviews, not to environment
+    # protection rules. The push is unrevocable and a mistyped tag
     # spends a version number permanently, so one click is cheap insurance. The nuget.org trusted
     # publishing policy is scoped to this same environment.
     environment: release
@@ -185,8 +185,7 @@ jobs:
       # first would leave a page describing a version that a failed push means nobody can install.
       #
       # --prerelease is set from the tag itself: a tag carrying a prerelease suffix must not become
-      # the repository's "Latest release". The first tag is v1.0.0-preview.1 and is expected to be
-      # thrown away (ADR-0003 decision 11), so this is the normal case before it is the exception.
+      # the repository's "Latest release".
       - name: Cut the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

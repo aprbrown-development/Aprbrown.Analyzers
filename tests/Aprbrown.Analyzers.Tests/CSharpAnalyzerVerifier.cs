@@ -7,7 +7,7 @@ namespace Aprbrown.Analyzers.Tests;
 /// <summary>
 /// Thin wrapper over <see cref="CSharpAnalyzerTest{TAnalyzer, TVerifier}"/> that pins a modern
 /// reference-assembly set — <c>Net80</c>, whose default C# 12 language version parses both records
-/// and class primary constructors, which the required-test snippets need.
+/// and class primary constructors, which the test snippets need.
 /// </summary>
 internal static class CSharpAnalyzerVerifier<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()

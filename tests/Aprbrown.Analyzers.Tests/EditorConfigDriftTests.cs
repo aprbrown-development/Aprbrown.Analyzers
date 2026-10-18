@@ -4,7 +4,7 @@ namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
 /// The repository's .editorconfig restates the shipped config's expression-bodied severities, because
-/// <c>dotnet format</c> ignores a severity delivered through a global config (#67). The .editorconfig
+/// <c>dotnet format</c> ignores a severity delivered through a global config. The .editorconfig
 /// outranks the global config, so a severity changed in one and not the other would be silently
 /// overridden in this repository; this holds the two in step.
 /// </summary>

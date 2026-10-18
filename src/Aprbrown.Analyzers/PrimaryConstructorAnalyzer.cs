@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Aprbrown.Analyzers;
 
 /// <summary>
-/// APB0001 — flags a primary constructor on a <c>class</c> or <c>struct</c> declaration
-/// (spec §3.1). Records are exempt: positional parameters are the point of a record, and
-/// the fleet holds 537 of them that must stay silent.
+/// APB0001 — flags a primary constructor on a <c>class</c> or <c>struct</c> declaration.
+/// Records are exempt: positional parameters are the point of a record, and the fleet holds 537
+/// of them that must stay silent.
 /// </summary>
 /// <remarks>
 /// The record exemption is structural, not a filter. A record declaration also carries a

@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 #
-# Tests for the two release-time gates (ADR-0003 decisions 8 and 9).
+# Tests for the two release-time gates.
 #
 # verify-package.sh is an assertion over a real artifact and its failure mode is loud; its few
 # tests, in verify-package-tests.sh, pin only that it refuses a broken package it is handed. These
 # two are different in kind. They are text parsers over Markdown, and a text parser that quietly
-# matches nothing looks exactly like a gate that passed — which is the failure shape #2 produced a
-# package for (built clean, enforced nothing) and the one this repository has spent the most effort
-# refusing to repeat.
+# matches nothing looks exactly like a gate that passed — the same failure shape as a package that
+# builds clean and enforces nothing.
 #
 # What is worth pinning is precisely what a hand-check would not notice:
 #   - a rule row in Unshipped.md is detected, and the table furniture around it is not mistaken for
@@ -185,9 +184,9 @@ assert_stdout 'Body of the ten.' \
   'a trailing date on the heading does not stop the match' \
   env CHANGELOG_FILE="$CHANGELOG" "$SECTION" 1.0.10
 
-# The one deliberate piece of cleverness: a prerelease is a rehearsal for the version it prefixes
-# (ADR-0003 decision 11), and it has nothing truthful of its own to say about build impact — the
-# build impact it carries is that version's.
+# The one deliberate piece of cleverness: a prerelease is a rehearsal for the version it prefixes,
+# and it has nothing truthful of its own to say about build impact — the build impact it carries is
+# that version's.
 assert_stdout 'Body of the first.
 
 ### A subheading

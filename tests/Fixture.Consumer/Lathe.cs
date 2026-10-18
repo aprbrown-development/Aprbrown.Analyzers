@@ -1,10 +1,10 @@
 namespace Fixture.Consumer;
 
-// The IDE, naming and style tier's proof (spec §2.3 step 4).
+// Proves the IDE, naming and style tier reaches a consumer.
 //
 // This tier is the one where "enumerated by ID" is not a stylistic preference but the whole
 // mechanism: under the blanket, a naming rule whose dotnet_diagnostic severity is not set
-// explicitly is *silently unenforced* — it neither fires nor warns that it is inactive (#4). So
+// explicitly is *silently unenforced* — it neither fires nor warns that it is inactive. So
 // unlike the CA tier next door there is no vendor default to fall back on, and nothing here would
 // fire by accident. Every diagnostic below exists because the shipped config names its ID.
 //
@@ -20,10 +20,9 @@ public sealed class Lathe
     // IDE1006, and the more interesting of the two naming cases. `_created` satisfies the
     // *general* private-fields rule and violates the *specific* private-statics one, so it fires
     // only if Roslyn picks the more specific rule. It does: naming rules are ordered by
-    // specificity, not by declaration order (#2, verified twice). The source repository's comment
-    // claiming the opposite is not carried into the shipped config, and this field is why that
-    // claim did not have to be taken on trust — it sits *before* the general rule's own violation
-    // below, which under the declaration-order story would have swallowed it.
+    // specificity, not by declaration order. This field sits *before* the general rule's own
+    // violation below, so were the rules ordered by declaration the general rule would claim it
+    // and this marker would go unmet.
     // expect: IDE1006 warning
     private static int _created = 1;
 
@@ -71,8 +70,8 @@ public sealed class Lathe
     // add-qualification half, fires from the same options in the same build; IDE0003 does not.
     //
     // The pair still ships. In an editor both halves work, which is where a developer meets them —
-    // and this is the one house convention the build does not gate. Spec §10 correction 12 records
-    // it; the smoke test pins the silence so an SDK that fixes it cannot do so unnoticed.
+    // and this is the one house convention the build does not gate. The smoke test pins the
+    // silence so an SDK that fixes it cannot do so unnoticed.
     public int Measure() => this._size;
 
     // IDE0040 — no accessibility modifier, against

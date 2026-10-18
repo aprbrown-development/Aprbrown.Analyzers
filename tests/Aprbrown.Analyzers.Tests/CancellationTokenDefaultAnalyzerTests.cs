@@ -7,9 +7,10 @@ using VerifyCS = Aprbrown.Analyzers.Tests.CSharpAnalyzerVerifier<Aprbrown.Analyz
 namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
-/// Covers every required-test row for APB0002 (spec §3.2). The two boundary tests are the ones
-/// worth reading: the unresolvable-<c>CancellationToken</c> compilation, which must stay silent
-/// rather than throw, and the local function, which is out of scope in v1 by decision.
+/// Covers APB0002: every declaration shape that can default a <c>CancellationToken</c> parameter,
+/// and every shape that must stay silent. The two boundary tests are the ones worth reading: the
+/// unresolvable-<c>CancellationToken</c> compilation, which must stay silent rather than throw, and
+/// the local function, which the rule does not reach.
 /// </summary>
 public sealed class CancellationTokenDefaultAnalyzerTests
 {
@@ -136,8 +137,8 @@ public sealed class CancellationTokenDefaultAnalyzerTests
         await VerifyCS.VerifyAnalyzerAsync(source);
     }
 
-    // A recorded boundary (spec §3.2), not an oversight: changing it needs a version bump
-    // under ADR-0004.
+    // A boundary, not an oversight: flagging local functions would be a detection fix, turning a
+    // consumer's green build red, so it ships only in a release that says so.
     [Fact]
     public async Task Local_function_is_out_of_scope_in_v1() =>
         await VerifyCS.VerifyAnalyzerAsync(

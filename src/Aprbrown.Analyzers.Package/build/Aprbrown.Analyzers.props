@@ -6,9 +6,9 @@
     the Condition below is the whole of what makes these overridable defaults rather than a
     mandate: the consumer pre-empts them, and the Condition then finds a value and stands down.
     Do not drop it — running later than Directory.Build.props, an unconditional assignment here
-    would overwrite the consumer (spec §4.3, correction 15). A .csproj <Import> would be too
-    late in the other direction: the SDK's own guarded default has already set
-    TreatWarningsAsErrors=false by then, so this Condition would never fire.
+    would overwrite the consumer. A .csproj <Import> would be too late in the other direction:
+    the SDK's own guarded default has already set TreatWarningsAsErrors=false by then, so this
+    Condition would never fire.
   -->
   <PropertyGroup>
     <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)'==''">true</EnforceCodeStyleInBuild>

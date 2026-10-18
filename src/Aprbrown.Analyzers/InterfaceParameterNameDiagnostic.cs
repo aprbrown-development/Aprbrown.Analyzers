@@ -28,11 +28,11 @@ internal static class InterfaceParameterNameDiagnostic
     /// the parameter has no source location to report at.
     /// </summary>
     /// <remarks>
-    /// Spec §3.3 requires that a parameter with no source location — an implementation inherited
-    /// from metadata — is never reported. The analyzer's containing-type check is what actually
-    /// excludes those, since a metadata method's containing type is never the source type under
-    /// analysis; this stays as the guard on the reporting itself, so the requirement is enforced
-    /// where it is stated rather than only as a side effect of an earlier test.
+    /// A parameter with no source location — an implementation inherited from metadata — is never
+    /// reported. The analyzer's containing-type check is what actually excludes those, since a
+    /// metadata method's containing type is never the source type under analysis; this is the
+    /// guard on the reporting itself, so the rule holds where the diagnostic is made rather than
+    /// only as a side effect of an earlier test.
     /// </remarks>
     public static Diagnostic? Create(IParameterSymbol parameter, IParameterSymbol interfaceParameter)
     {

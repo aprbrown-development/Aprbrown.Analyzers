@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
-# Compare the diagnostics a consumer fixture build raised against the fixture's expectation markers
-# (#52).
+# Compare the diagnostics a consumer fixture build raised against the fixture's expectation markers.
 #
 #   diagnostic-diff.sh <build-log> <fixture-dir> [--warnings-as-errors]
 #

@@ -41,8 +41,8 @@ commit=$(git rev-parse HEAD)
 echo "deploy: main at $(git log --oneline -1)"
 
 # The version is the one the changelog's top section was authored for. That section is where the
-# bump was decided (by build impact, ADR-0004), so it is read rather than typed a second time. The
-# build still takes its version from the tag alone (ADR-0003 decision 2); this only picks the tag.
+# bump was decided, by build impact, so it is read rather than typed a second time. The build still
+# takes its version from the tag alone; this only picks the tag.
 version=$(awk '$1 == "##" { print $2; exit }' CHANGELOG.md)
 [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
   || fail "CHANGELOG.md's top section is '## $version', not '## X.Y.Z'"

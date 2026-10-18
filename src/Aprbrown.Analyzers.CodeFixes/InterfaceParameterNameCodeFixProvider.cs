@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Rename;
 namespace Aprbrown.Analyzers.CodeFixes;
 
 /// <summary>
-/// The <c>APB0003</c> code fix (spec §3.4) — renames an implementing parameter to the name the
+/// The <c>APB0003</c> code fix — renames an implementing parameter to the name the
 /// interface gives it.
 /// </summary>
 /// <remarks>
@@ -21,8 +21,7 @@ namespace Aprbrown.Analyzers.CodeFixes;
 /// throughout the method body, so rewriting the declaration alone would produce code that does not
 /// compile; <see cref="Renamer"/> updates every reference and resolves the conflicts a plain
 /// textual substitution would create. That is why the fix returns a changed solution rather than a
-/// changed document, and why this assembly needs <c>Microsoft.CodeAnalysis.CSharp.Workspaces</c> —
-/// the fix is trivial to describe and not at all trivial to implement (spec §10, correction 4).
+/// changed document, and why this assembly needs <c>Microsoft.CodeAnalysis.CSharp.Workspaces</c>.
 /// </remarks>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InterfaceParameterNameCodeFixProvider))]
 [Shared]
@@ -33,10 +32,10 @@ public sealed class InterfaceParameterNameCodeFixProvider : CodeFixProvider
         = ImmutableArray.Create(Descriptors.InterfaceParameterName.Id);
 
     /// <summary>
-    /// No batch fix-all support, deliberately (spec §3.4). Every fix-all implementation available
-    /// here computes its changes against one solution snapshot and applies them together; two
-    /// renames in a single document derived that way conflict or clobber each other. Single
-    /// invocation only in v1, so "Fix all occurrences" never appears in the light bulb.
+    /// No batch fix-all support, deliberately. Every fix-all implementation available here
+    /// computes its changes against one solution snapshot and applies them together; two renames in
+    /// a single document derived that way conflict or clobber each other. Single invocation only,
+    /// so "Fix all occurrences" never appears in the light bulb.
     /// </summary>
     /// <returns>Always <see langword="null" />.</returns>
     public override FixAllProvider? GetFixAllProvider() => null;

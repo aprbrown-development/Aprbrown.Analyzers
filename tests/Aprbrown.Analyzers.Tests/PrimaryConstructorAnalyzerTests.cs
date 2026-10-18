@@ -4,8 +4,9 @@ using VerifyCS = Aprbrown.Analyzers.Tests.CSharpAnalyzerVerifier<Aprbrown.Analyz
 namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
-/// Covers every required-test row for APB0001 (spec §3.1). The record cases are the primary
-/// test, not edge cases: a wrong filter on the shared syntax base flags every record.
+/// Covers APB0001: the class and struct primary constructors it flags, and the records it must not.
+/// The record cases are the primary test, not edge cases: a wrong filter on the shared syntax base
+/// flags every record.
 /// </summary>
 public sealed class PrimaryConstructorAnalyzerTests
 {

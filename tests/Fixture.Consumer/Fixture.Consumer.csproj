@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Consumer fixture for the pack-consume smoke test (spec §4.1, §6). Deliberately NOT part of
+    Consumer fixture for the pack-consume smoke test. Deliberately NOT part of
     Aprbrown.Analyzers.slnx: it can only build once the package has been packed to a temp feed,
-    which is what scripts/verify-package.sh does. Building it any other way is expected to fail
-    to restore.
+    which is what scripts/verify-package.sh does. Building it any other way is expected to fail to
+    restore.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -13,8 +13,8 @@
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
 
-    <!-- No default version, deliberately (ADR-0003 amendment 3). verify-package.sh passes
-         -p:AprbrownAnalyzersVersion=… read from the package it was handed; a default here would be
+    <!-- No default version, deliberately. verify-package.sh passes -p:AprbrownAnalyzersVersion=…
+         read from the package it was handed; a default here would be
          a second copy of a version string only the caller who packs should hold, and a restore
          that forgot the property would quietly match it. Without one, that restore fails. -->
 
@@ -22,8 +22,8 @@
       SA0001 reports "XML comment analysis disabled" once per project when no documentation file is
       generated, and it escapes the shipped config's blanket: it carries no location, and a bulk
       dotnet_analyzer_diagnostic.severity entry has no syntax tree to resolve options against, so it
-      never reaches it. This repository hits the same thing in its own test project and answers it
-      the same way the onboarding snippet now does.
+      never reaches it. This repository's own test project and the onboarding snippet answer it the
+      same way.
 
       Suppressed here rather than in an .editorconfig on purpose. The fixture must receive its
       ruleset from the packed package and nowhere else, so it takes no severity entries of its own;
@@ -38,7 +38,7 @@
 
     <!--
       The version docs/consuming.md prescribes, referenced the way a consumer references it:
-      separately, because the package deliberately takes no dependency on it (ADR-0002 decision 1).
+      separately, because the package deliberately takes no dependency on it.
       This reference is load-bearing for the smoke test rather than incidental — with it absent
       every Meziantou line in the shipped config is inert and the tier's assertions would pass by
       vacuum. Kettle.cs is where they are measured.
@@ -46,10 +46,10 @@
     <PackageReference Include="Meziantou.Analyzer" Version="3.0.305" PrivateAssets="all" />
 
     <!--
-      The same argument, for the tier spec §2.3 step 3 adds: four ordering rules configured by a
+      The same argument, for the StyleCop ordering tier: four ordering rules configured by a
       package that does not carry the assembly implementing them. Without this reference SA1201-
       SA1204 are inert and Ordering.cs proves nothing. The version is the pin docs/consuming.md
-      prescribes and the derivation read the four severities from.
+      prescribes, and the one the four shipped severities were read from.
 
       The SDK's CA analyzers need no reference — they arrive with the SDK — which is why Furnace.cs
       has no counterpart line here.

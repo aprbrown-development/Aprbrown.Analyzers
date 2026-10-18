@@ -1,36 +1,32 @@
-# Aprbrown.Analyzers shipped configuration — a sealed allowlist (ADR-0002, spec §2).
+# Aprbrown.Analyzers shipped configuration — a sealed allowlist.
 #
 # Named Aprbrown.Analyzers.globalconfig, NOT .globalconfig: the latter is
 # ancestor-auto-discovered and would collide with a consumer's own file, unsetting
-# colliding keys. It is global only because of is_global = true below (spec §2.1), and it
+# colliding keys. It is global only because of is_global = true below, and it
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
 # The house ruleset is complete: APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier are all enumerated below, along with the
 # performance tier — 209 rules under the blanket. Everything else is off, including rules that do
-# not exist yet, and adding one from here is a deliberate act under ADR-0004.
-#
-# 209, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
-# measured; each tier's count is the one its derivation or, for the performance tier, its rule
-# by rule selection produced.
+# not exist yet, and adding one from here is a deliberate act: a rule added or a severity raised is
+# a minor version bump.
 #
 # Nothing here sets AnalysisMode or AnalysisLevel, and nothing in this package does either.
 # Measured on SDK 10.0.110: neither reaches past the blanket at any value, All and latest-all
-# included (ADR-0002 decision 4, spec §10 correction 1). Setting one would document an intent the
-# build does not honour. The CA rules below are back on because they are named, like everything
-# else in this file.
+# included. Setting one would document an intent the build does not honour. The CA rules below are
+# back on because they are named, like everything else in this file.
 is_global = true
 
 # The blanket: everything off, including rules that do not exist yet.
 dotnet_analyzer_diagnostic.severity = none
 
-# APB0001 — do not use primary constructors on classes or structs (spec §3.1).
+# APB0001 — do not use primary constructors on classes or structs.
 dotnet_diagnostic.APB0001.severity = warning
 
-# APB0002 — do not give a CancellationToken parameter a default value (spec §3.2).
+# APB0002 — do not give a CancellationToken parameter a default value.
 dotnet_diagnostic.APB0002.severity = warning
 
-# APB0003 — parameter names should match the implemented interface member (spec §3.3).
+# APB0003 — parameter names should match the implemented interface member.
 dotnet_diagnostic.APB0003.severity = warning
 
 # APB0004 — put an expression body's arrow at the end of the declaration line.
@@ -40,7 +36,7 @@ dotnet_diagnostic.APB0004.severity = warning
 dotnet_diagnostic.APB0005.severity = warning
 
 # ---------------------------------------------------------------------------------------------
-# The Meziantou tier — Meziantou.Analyzer 3.0.123 (spec §2.3 step 1).
+# The Meziantou tier — Meziantou.Analyzer 3.0.123.
 #
 # Derived once, then frozen. The derivation was: load the pinned analyzer assembly, instantiate
 # every DiagnosticAnalyzer it exports, and read IsEnabledByDefault and DefaultSeverity off each
@@ -51,18 +47,11 @@ dotnet_diagnostic.APB0005.severity = warning
 #
 # Two deliberate departures from that sweep, and only two:
 #   - MA0004 (ConfigureAwait) is omitted. The sole universality-test exclusion: its rationale is
-#     false for a class library (ADR-0002 decision 2). An all-web repository may re-enable it in
-#     its own .editorconfig.
+#     false for a class library. An all-web repository may re-enable it in its own .editorconfig.
 #   - MA0032 is added at warning although the vendor defaults it to off. It is the call-site half
-#     of the cancellation rule, standing opposite APB0002's declaration half.
-#
-#     Spec §2.3 and §3.2 describe that call-site half as a trio, CA2016 + MA0040 + MA0032. As
-#     enumerated here it is neither: MA0032 stands alone. MA0040 is enabled by default but at Info,
-#     so it does not gate a build and falls outside the 103, which is why the sweep does not carry
-#     it. Adding it would be a third deliberate departure from the sweep. CA2016 is excluded
-#     from the CA tier for the same reason (spec §10 correction 10). Left as measured
-#     rather than quietly corrected — it is a ruleset decision, and ADR-0004 makes adding a rule a
-#     minor version bump.
+#     of the cancellation rule, standing opposite APB0002's declaration half, and it stands alone:
+#     MA0040 and CA2016 are enabled by default but at Info, so they do not gate a build and
+#     neither tier's sweep carries them. Adding either would be a third departure from the sweep.
 # 103 default-on, minus one, plus one — 103 rules.
 #
 # MA0220, MA0240 and MA0241, at the end of the list, are silent until a repository writes a regex
@@ -70,9 +59,9 @@ dotnet_diagnostic.APB0005.severity = warning
 # or the typos that would quietly void its configuration — 106 rules.
 #
 # Re-running the derivation against a newer Meziantou.Analyzer would silently admit whatever
-# rules that version added, which is precisely what the seal exists to prevent (ADR-0002
-# decision 3). Do not regenerate this block. From here it is edited by hand, one deliberate line
-# at a time, under ADR-0004 — a rule added or a severity raised is a minor version bump.
+# rules that version added, which is precisely what the seal exists to prevent. Do not regenerate
+# this block. From here it is edited by hand, one deliberate line at a time — a rule added or a
+# severity raised is a minor version bump.
 #
 # Rules that are framework-specific but inert elsewhere are on by design (MA0115-MA0119, MA0123,
 # MA0124-MA0126, MA0139, MA0153 — Blazor, Microsoft.Extensions.Logging, Serilog). They are silent
@@ -130,7 +119,7 @@ dotnet_diagnostic.MA0027.severity = warning
 # MA0030 — Remove useless OrderBy call
 dotnet_diagnostic.MA0030.severity = warning
 # MA0032 — Use an overload with a CancellationToken argument, even when no token is available in scope
-#          Default-off at the vendor; enumerated on deliberately (spec §2.3 step 1).
+#          Default-off at the vendor; enumerated on deliberately.
 dotnet_diagnostic.MA0032.severity = warning
 # MA0033 — Do not tag instance fields with ThreadStaticAttribute
 dotnet_diagnostic.MA0033.severity = warning
@@ -300,8 +289,7 @@ dotnet_diagnostic.MA0240.severity = warning
 dotnet_diagnostic.MA0241.severity = warning
 
 # ---------------------------------------------------------------------------------------------
-# The SDK CA tier — Microsoft.CodeAnalysis.NetAnalyzers as shipped in .NET SDK 10.0.110
-# (spec §2.3 step 2).
+# The SDK CA tier — Microsoft.CodeAnalysis.NetAnalyzers as shipped in .NET SDK 10.0.110.
 #
 # Derived once, then frozen, the same way the Meziantou tier was: load the two analyzer
 # assemblies the SDK ships (Microsoft.CodeAnalysis.NetAnalyzers.dll and its C# companion),
@@ -316,11 +304,9 @@ dotnet_diagnostic.MA0241.severity = warning
 # analysis level: analysislevel_10_default.globalconfig turns off exactly one rule, CA1516, which
 # defaults to Info and so falls outside the gating filter regardless.
 #
-# 29, not the 27 spec §2.3 step 2 states. The measured 27 is the Warning-severity subset; CA1856
-# and CA2252 are the two the SDK defaults to Error. Dropping them to reach 27 would flatten the
-# vendor's own judgement, which §2.3 forbids in the same breath as it gives the count, and would
-# leave two error-severity SDK rules a plain `dotnet build` enforces today silently off across the
-# fleet. Recorded as a correction in spec §10 rather than reconciled by deletion.
+# CA1856 and CA2252 are carried at Error alongside the 27 Warning rules. Dropping them would
+# flatten the vendor's own judgement and leave two error-severity SDK rules a plain `dotnet build`
+# enforces silently off across the fleet.
 #
 # A contradiction check against the rest of the ruleset came back clean: all 29 are correctness
 # rules — platform compatibility, marshalling, stackalloc in loops, rethrow, spans — with no
@@ -328,20 +314,17 @@ dotnet_diagnostic.MA0241.severity = warning
 # and CA2013≈MA0006-adjacent, same fix in each case.
 #
 # The two rules that would genuinely fight the house style stay off, and how they stay off is
-# worth being exact about because ADR-0002 decision 4 rests on it:
+# worth being exact about, because it is why this file never re-enables a whole category:
 #   - CA2007 (ConfigureAwait) is enabled-by-default *false* at Warning. Genuinely default-off,
 #     and against the MA0004 exclusion, so it stays out.
 #   - CA1707 (identifiers should not contain underscores) is enabled by default at *Hidden*, not
-#     off as ADR-0002 decision 4 and spec §10 correction 2 both say. It is off here because the
-#     blanket sets it to none and this file never names it — but a category re-enable of Naming
-#     would set it to warning and it would fight the house _camelCase convention, which is the
-#     demonstration those two passages were making. The conclusion stands; only the word
-#     "default-off" was imprecise. See spec §10.
+#     off. It is off here because the blanket sets it to none and this file never names it — but a
+#     category re-enable of Naming would set it to warning and it would fight the house _camelCase
+#     convention.
 #
 # Re-running this derivation against a newer SDK would silently admit whatever rules that version
-# added, which is precisely what the seal exists to prevent (ADR-0002 decision 3). Do not
-# regenerate this block. From here it is edited by hand, one deliberate line at a time, under
-# ADR-0004.
+# added, which is precisely what the seal exists to prevent. Do not regenerate this block. From
+# here it is edited by hand, one deliberate line at a time.
 #
 # The comment above each line is the vendor's own title for the rule, carried across so a hand
 # edit can be read and audited without a browser.
@@ -529,14 +512,13 @@ dotnet_diagnostic.CA1874.severity = warning
 dotnet_diagnostic.CA1875.severity = warning
 
 # ---------------------------------------------------------------------------------------------
-# The StyleCop ordering tier — StyleCop.Analyzers 1.2.0-beta.556 (spec §2.3 step 3).
+# The StyleCop ordering tier — StyleCop.Analyzers 1.2.0-beta.556.
 #
 # Four rules, and only four. StyleCop is the one mainstream analyzer that ships member-ordering
 # rules, which is the whole reason it is referenced; this is not a StyleCop adoption. Every other
-# SA rule stays off under the blanket, which is also why the eight
-# category-StyleCop.CSharp.*.severity = none lines the source repository carried are not ported:
-# under a blanket they are redundant, and a category line in this file would break the seal even
-# when it points downwards.
+# SA rule stays off under the blanket, so no category-StyleCop.CSharp.*.severity = none line is
+# needed: under a blanket it is redundant, and a category line in this file would break the seal
+# even when it points downwards.
 #
 # Severities read off the vendor's descriptors during derivation, like every other tier: all four
 # default to Warning.
@@ -552,24 +534,24 @@ dotnet_diagnostic.SA1203.severity = warning
 dotnet_diagnostic.SA1204.severity = warning
 
 # ---------------------------------------------------------------------------------------------
-# The IDE, naming and style tier — the C# compiler's own code-style analyzers (spec §2.3 step 4).
+# The IDE, naming and style tier — the C# compiler's own code-style analyzers.
 #
 # Not a derivation like the three tiers above. There was no sweep to run: these are the house
 # conventions themselves — `_camelCase` private fields, `PascalCase` private statics, explicit
-# accessibility, no `this.` — carried across from the source repository, which had arrived at them
-# by hand. Adoption cost was measured rather than the rule list: private-field `_camelCase`,
-# private-static `PascalCase` and IDE0040 all came back at **0 violations across all six fleet
-# repositories**, which is why this tier ships at `warning` with no ratchet and no baseline file.
+# accessibility, no `this.`. Adoption cost was measured rather than the rule list: private-field
+# `_camelCase`, private-static `PascalCase` and IDE0040 all came back at **0 violations across all
+# six fleet repositories**, which is why this tier ships at `warning` with no ratchet and no
+# baseline file.
 #
 # Every entry here must be enumerated by ID, and this tier is the one where that stops being a
 # stylistic preference. Under the blanket, a naming rule whose `dotnet_diagnostic` severity is not
-# set explicitly is *silently unenforced* — it neither fires nor warns that it is inactive (#4).
+# set explicitly is *silently unenforced* — it neither fires nor warns that it is inactive.
 # There is no vendor default to fall back on: an ID missing from this block is a convention that
 # looks configured and does nothing, and nothing in a build would ever say so.
 #
 # Severities are given as `dotnet_diagnostic` entries, never as the `option = value:severity`
-# shorthand the source repository used. The shorthand sets both at once, which means a reader
-# looking for what a rule is set to has two places to look and they can disagree.
+# shorthand. The shorthand sets both at once, which means a reader looking for what a rule is set
+# to has two places to look and they can disagree.
 #
 # Three severities in this file are not `dotnet_diagnostic` entries, and none of them is an
 # inconsistency — each is a key with no `dotnet_diagnostic` form at all. The blanket at the top is
@@ -579,14 +561,11 @@ dotnet_diagnostic.SA1204.severity = warning
 # say what one of them is set to. The smoke test asserts that set exactly rather than describing
 # it, so a fourth cannot appear and be read as house style.
 #
-# The naming rule / symbols / style triples are ported verbatim; #2 verified they work
-# byte-identically in a global config. What is *not* ported is the comment that accompanied them,
-# which claimed naming rules are matched in declaration order and that the general private-fields
-# rule would otherwise swallow the specific private-statics one. That is false — Roslyn orders
-# them by specificity, verified twice in #2 — and the behaviour was correct for a different reason
-# than the comment gave. Declaration order below therefore carries no meaning and these blocks may
-# be reordered freely. tests/Fixture.Consumer/Lathe.cs measures it: a private static named
-# `_created` satisfies the general rule, violates the specific one, and fires.
+# The naming rule / symbols / style triples work byte-identically in a global config. Roslyn
+# matches naming rules by specificity, not declaration order, so the general private-fields rule
+# never swallows the specific private-statics one, declaration order below carries no meaning, and
+# these blocks may be reordered freely. tests/Fixture.Consumer/Lathe.cs measures it: a private
+# static named `_created` satisfies the general rule, violates the specific one, and fires.
 # ---------------------------------------------------------------------------------------------
 
 # IDE1006 — Naming styles
@@ -597,8 +576,8 @@ dotnet_diagnostic.IDE1006.severity = warning
 #          Enforced by the IDE only. IDE0003 is a Simplify-family rule Roslyn does not run in a
 #          command-line build, EnforceCodeStyleInBuild notwithstanding — measured on SDK 10.0.110
 #          in a compilation where IDE1006 and IDE0040 both fired. Kept, and kept at warning, so an
-#          editor shows the squiggle and offers the fix; spec §10 correction 12 records that this
-#          is the one house convention a build does not gate.
+#          editor shows the squiggle and offers the fix. This is the one house convention a build
+#          does not gate.
 dotnet_diagnostic.IDE0003.severity = warning
 # IDE0009 — Add 'this' or 'Me' qualification
 #          The opposite half, and unreachable for the opposite reason: it fires in a build, but
@@ -652,9 +631,9 @@ dotnet_style_qualification_for_event = false
 dotnet_style_require_accessibility_modifiers = always
 
 # Expression bodies wherever the member is a single expression, enforced like the naming and
-# accessibility rules above. They once shipped at `suggestion`, but a suggestion never reaches a
-# build log while SonarQube still imports it, so a quality gate failed on code every build had
-# passed. At `warning` the build and Sonar agree, and `dotnet format style` fixes every case.
+# accessibility rules above. At `warning`, not `suggestion`: a suggestion never reaches a build log
+# while SonarQube still imports it, so a quality gate would fail on code every build had passed. At
+# `warning` the build and Sonar agree, and `dotnet format style` fixes every case.
 # `methods = true` rather than `when_on_single_line`, so a single statement spread over several
 # lines converts too.
 csharp_style_expression_bodied_constructors = when_on_single_line

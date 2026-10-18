@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Compare a config against the expected ruleset (#51).
+# Compare a config against the expected ruleset.
 #
 #   ruleset-diff.sh <config> <expected>
 #
@@ -11,7 +11,7 @@
 # A setting is any line that is not blank or a # comment, trimmed, with the spacing around its first
 # = collapsed to ` = `, so the expected ruleset can carry its own grouping and commentary and the
 # comparison still sees only what the config sets. The comparison is over a multiset, not a set: a
-# line the config enumerates twice is a difference, as the digests it replaced (#51) also made it.
+# line the config enumerates twice is a difference.
 
 set -euo pipefail
 

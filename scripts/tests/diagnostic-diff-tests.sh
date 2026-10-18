@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Tests for the comparison between a fixture build's log and the fixture's expectation markers (#52).
+# Tests for the comparison between a fixture build's log and the fixture's expectation markers.
 #
 # diagnostic-diff.sh is what verify-package.sh asks whether the consumer fixture raised exactly the
 # diagnostics its source declares, so a comparison that passes something it should refuse would let

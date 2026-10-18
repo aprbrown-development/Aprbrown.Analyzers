@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# The two checks that cannot exist before a tag (ADR-0003 decisions 8 and 9).
+# The two checks that cannot exist before a tag.
 #
 # Everything else release.yml runs — build, test, verify-package.sh — already ran at PR time, and is
-# re-run there to discover nothing new (decision 4). These two are the exceptions, because neither
-# has anything to check until a version number exists:
+# re-run there to discover nothing new. These two are the exceptions, because neither has anything
+# to check until a version number exists:
 #
 #   1. AnalyzerReleases.Unshipped.md holds no rule rows. The build already catches rules that were
 #      never *recorded* — the RS2000-series is re-enabled in this repository's .editorconfig and

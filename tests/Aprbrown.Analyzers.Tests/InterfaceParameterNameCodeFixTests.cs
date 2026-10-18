@@ -7,9 +7,9 @@ using VerifyCS = Aprbrown.Analyzers.Tests.CSharpCodeFixVerifier<
 namespace Aprbrown.Analyzers.Tests;
 
 /// <summary>
-/// Covers the APB0003 code fix (spec §3.4). Every case here renames the *symbol*: each fixed
-/// source is compiled by the harness, so a fix that rewrote only the declaration token would fail
-/// on the dangling body reference rather than pass quietly.
+/// Covers the APB0003 code fix. Every case here renames the *symbol*: each fixed source is compiled
+/// by the harness, so a fix that rewrote only the declaration token would fail on the dangling body
+/// reference rather than pass quietly.
 /// </summary>
 public sealed class InterfaceParameterNameCodeFixTests
 {
@@ -54,9 +54,9 @@ public sealed class InterfaceParameterNameCodeFixTests
             VerifyCS.Diagnostic("APB0003").WithLocation(0).WithArguments("beta", "alpha", "I.M"));
     }
 
-    // Spec §3.4: two renames applied to one document from a stale solution snapshot can
-    // conflict or clobber each other, so the fix is single-invocation only in v1. Null here is
-    // what keeps "Fix all occurrences" out of the IDE's light-bulb menu.
+    // Two renames applied to one document from a stale solution snapshot can conflict or clobber
+    // each other, so the fix applies to one diagnostic at a time. Null here is what keeps "Fix all
+    // occurrences" out of the IDE's light-bulb menu.
     [Fact]
     public void No_batch_fix_all_provider_is_registered() =>
         Assert.Null(new InterfaceParameterNameCodeFixProvider().GetFixAllProvider());

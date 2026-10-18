@@ -81,7 +81,7 @@ public sealed class InterfaceParameterNameDiagnosticTests
     [Fact]
     public void A_parameter_declared_only_in_metadata_is_not_reported()
     {
-        // Spec §3.3: a parameter with no source location is never reported. Int32.Equals — the
+        // A parameter with no source location is never reported. Int32.Equals — the
         // interface parameter's own type, read from the referenced corlib — stands in for any
         // implementation the compiler knows only from metadata.
         var (_, interfaceParameter, _) = Mismatch();

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Tests for the pack-consume smoke test's interface (ADR-0003 amendment 3).
+# Tests for the pack-consume smoke test's interface.
 #
 # verify-package.sh inspects the package it is handed rather than packing its own, which is what
-# makes the package a release pushes the package that was gated. It also makes the script testable
-# for the first time: it can be handed a package that is deliberately broken, and must refuse it.
+# makes the package a release pushes the package that was gated. It also makes the script testable:
+# it can be handed a package that is deliberately broken, and must refuse it.
 #
 # Only the cheap refusals are pinned here — the ones that fail before any fixture build, so this
 # file runs in seconds and needs no SDK. The packages are synthetic zips rather than real packs:
@@ -84,11 +84,11 @@ printf '%s\n' \
 STUB="$WORK/stub"
 echo 'stub' > "$STUB"
 
-# The README a real package ships: docs/consuming.md, packed under that name (#42).
+# The README a real package ships: docs/consuming.md, packed under that name.
 GOOD_README="$REPO_ROOT/docs/consuming.md"
 
-# Every entry the §4.2 allowlist names, so a case can add one too many or swap one entry's content
-# and be refused for exactly that.
+# Every entry the packed-file list names, so a case can add one too many or swap one entry's
+# content and be refused for exactly that.
 ALLOWLISTED=(
   'Aprbrown.Analyzers.nuspec='"$NUSPEC"
   'analyzers/dotnet/cs/Aprbrown.Analyzers.dll='"$STUB"
@@ -98,8 +98,8 @@ ALLOWLISTED=(
 )
 
 # --- the allowlist ------------------------------------------------------------------------------
-# The shape #2 produced in the other direction: a pack glob that quietly widens. Nothing downstream
-# of the allowlist would notice an extra file, so it is the allowlist's alone to refuse.
+# A pack glob that quietly widens. Nothing downstream of the allowlist would notice an extra file,
+# so it is the allowlist's alone to refuse.
 EXTRA_ENTRY="$WORK/extra-entry.nupkg"
 make_nupkg "$EXTRA_ENTRY" "${ALLOWLISTED[@]}" "README.md=$GOOD_README" "build/stray.txt=$STUB"
 assert_refused 'packed contents do not match the §4.2 allowlist' \
@@ -107,8 +107,8 @@ assert_refused 'packed contents do not match the §4.2 allowlist' \
   "$EXTRA_ENTRY"
 
 # --- the expected ruleset --------------------------------------------------------------------------
-# One rule switched on in the shipped config and not in the expected ruleset (#51): the change
-# ADR-0004 calls a versioned act, made to one file only. MA0004 because it is the rule most worth
+# One rule switched on in the shipped config and not in the expected ruleset: a change to the house
+# ruleset, which bumps the version, made to one file only. MA0004 because it is the rule most worth
 # refusing — the sole universality-test exclusion — and because it is not enumerated, so the line
 # is new rather than a duplicate of one already there. The package carries the real config and
 # every allowlisted entry so the earlier checks pass, and the refusal must name the rule rather than

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Tests for the comparison between a config and the expected ruleset (#51).
+# Tests for the comparison between a config and the expected ruleset.
 #
 # ruleset-diff.sh is what verify-package.sh asks whether the packed config is the house ruleset, so
 # a comparison that passes something it should refuse would wave a wrong ruleset through every gate
@@ -70,7 +70,7 @@ cp "$CONFIG" "$EXPECTED"
 assert_same 'a config identical to the expected ruleset passes'
 
 # --- a rule the expected ruleset does not name ---------------------------------------------------
-# The change ADR-0004 calls a minor bump: one rule switched on. Made to the config alone, it is the
+# A minor version's change: one rule switched on. Made to the config alone, it is the
 # drift this comparison exists to catch, and the refusal has to say which rule.
 cp "$EXPECTED" "$CONFIG"
 echo 'dotnet_diagnostic.MA0099.severity = warning' >> "$CONFIG"
@@ -78,7 +78,7 @@ assert_differs 'a rule in the config but not expected is named with +' \
   '+ dotnet_diagnostic.MA0099.severity = warning'
 
 # --- an expected rule the config has lost ---------------------------------------------------------
-# The direction ADR-0004 calls major: a rule a consumer may hold a deviation for, gone.
+# A major version's change: a rule a consumer may hold a deviation for, gone.
 printf '%s\n' \
   'is_global = true' \
   'dotnet_analyzer_diagnostic.severity = none' > "$CONFIG"
@@ -86,7 +86,7 @@ assert_differs 'an expected rule missing from the config is named with -' \
   '- dotnet_diagnostic.MA0001.severity = warning'
 
 # --- a rule re-levelled --------------------------------------------------------------------------
-# The silent downgrade §2.3 forbids — a vendor's Error recorded at warning — shows as the pair, so
+# A silent downgrade — a vendor's Error recorded at warning — shows as the pair, so
 # a reader sees both what the line was meant to say and what it says.
 printf '%s\n' \
   'is_global = true' \

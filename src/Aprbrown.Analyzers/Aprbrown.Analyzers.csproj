@@ -16,15 +16,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Roslyn pinned to 4.14.0 (spec §4.1): an analyzer built against an older
+    <!-- Roslyn pinned to 4.14.0: an analyzer built against an older
          Roslyn loads in a newer host, never the reverse. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The fixer must name the same diagnostic ID the analyzer reports, and ADR-0004 makes that
-         string public API. Reading it from the shared descriptor keeps one definition; the assembly
+    <!-- The fixer must name the same diagnostic ID the analyzer reports, and that string is public
+         API. Reading it from the shared descriptor keeps one definition; the assembly
          surface stays closed. -->
     <InternalsVisibleTo Include="Aprbrown.Analyzers.CodeFixes" />
 
