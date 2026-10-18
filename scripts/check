@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# The CI build and test gates in one command, from the root of whichever checkout it lives in:
+# restore, a Release build (house-rule violations are errors through the imported package props),
+# then the test solution against that build.
+#
+#   scripts/check
+#
+# Prints one line per check and the tail of any that fail; exits non-zero if any did. Later
+# checks are skipped once one fails, since each runs against the output of the one before.
+set -uo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+log=$(mktemp)
+trap 'rm -f "$log"' EXIT
+
+# run <label> <command...>
+run() {
+    local label=$1
+    shift
+    local start=$SECONDS
+    if "$@" >"$log" 2>&1; then
+        printf 'ok    %-20s %3ss\n' "$label" $((SECONDS - start))
+    else
+        printf 'FAIL  %-20s %3ss\n' "$label" $((SECONDS - start))
+        { grep -E ': (error|warning) ' "$log" | sort -u | head -40 || tail -40 "$log"; } | sed 's/^/      /'
+        echo "check: failed at $label" >&2
+        exit 1
+    fi
+}
+
+run "dotnet restore" dotnet restore Aprbrown.Analyzers.slnx
+run "dotnet build" dotnet build Aprbrown.Analyzers.slnx -c Release --no-restore
+run "dotnet test" dotnet test --solution Aprbrown.Analyzers.slnx -c Release --no-build
+
+echo "check: all passed"
