@@ -14,6 +14,7 @@
 # the process list nor the output.
 
 set -euo pipefail
+shopt -s inherit_errexit
 
 usage() { echo "usage: SONAR_HOST_URL=<server> SONAR_TOKEN=<token> sonar-untriaged.sh [spec]" >&2; exit 2; }
 
@@ -53,7 +54,7 @@ firing() {
     exit 2
   fi
   while IFS=$'\t' read -r key encoded; do
-    sonar_get "issues/search?componentKeys=$encoded&issueStatuses=OPEN,CONFIRMED&facets=rules&additionalFields=rules&ps=1" |
+    sonar_get "issues/search?componentKeys=$encoded&issueStatuses=OPEN,CONFIRMED&languages=cs&facets=rules&additionalFields=rules&ps=1" |
       jq -r --arg project "$key" '
         (.rules | map({(.key): .name}) | add // {}) as $names
         | .facets[] | select(.property == "rules") | .values[]
@@ -85,10 +86,14 @@ if [ -z "$VERDICTS" ]; then
 fi
 FIRING="$(firing)"
 
-UNTRIAGED="$(awk -F'\t' 'NR == FNR { verdict[$1] = $2; next } !($1 in verdict)' \
-  <(echo "$VERDICTS") <(echo "$FIRING") | sed '/^$/d')"
-COVERED="$(awk -F'\t' 'NR == FNR { verdict[$1] = $2; next } verdict[$1] == "covered"' \
-  <(echo "$VERDICTS") <(echo "$FIRING") | sed '/^$/d')"
+# The firing lines whose rule matches the awk predicate given, over verdict[<rule>].
+firing_where() {
+  awk -F'\t' "NR == FNR { verdict[\$1] = \$2; next } $1" <(echo "$VERDICTS") <(echo "$FIRING") |
+    sed '/^$/d'
+}
+
+UNTRIAGED="$(firing_where '!($1 in verdict)')"
+COVERED="$(firing_where 'verdict[$1] == "covered"')"
 
 report 'Untriaged rules' <<< "$UNTRIAGED"
 report 'Covered rules with open issues' <<< "$COVERED"

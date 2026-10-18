@@ -7,8 +7,8 @@
 # or every one as a newcomer. Each case runs the script whole, with a fake curl first on PATH that
 # serves canned API responses, so this needs no network and no SonarQube.
 
-# No `set -e`, for the reason release-gate-tests.sh gives: several cases here run the script
-# expecting it to exit non-zero, and the exit code is read explicitly instead.
+# No `set -e`: several cases run the script expecting it to exit non-zero, and the exit code is read
+# explicitly instead.
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -107,7 +107,7 @@ write_projects() {
 # Serve a project's open issues as a rules facet of `<rule key> <count> <name>` values.
 write_issues() {
   local project="$1"; shift
-  local value
+  local value key count name
   for value in "$@"; do
     read -r key count name <<< "$value"
     jq -n -c --arg key "$key" --argjson count "$count" --arg name "$name" \
@@ -181,8 +181,16 @@ printf '%s\n' '### 2.5 SonarQube verdicts' '' 'No table here.' > "$SPEC"
 assert_run 2 'a spec with no verdict rows is refused'
 
 write_spec 'S107 rejected'
+write_projects Alpha Beta
+write_issues Beta 'csharpsquid:S107 1 Methods should not have too many parameters'
 rm "$API/issues-search-Alpha.json"
-assert_run 2 'a failed API request is refused'
+assert_run 2 'a failed request for a project that is not the last is refused'
+
+write_projects Beta Alpha
+assert_run 2 'a failed request for the last project is refused'
+
+rm "$API/components-search.json"
+assert_run 2 'a failed project listing is refused'
 
 out="$(PATH="$WORK/bin:$PATH" SONAR_HOST_URL='http://sonar.test' "$UNTRIAGED" "$SPEC" 2>&1)"; rc=$?
 if [ "$rc" -eq 2 ]; then

@@ -132,8 +132,6 @@ jobs:
       - name: Fixture diagnostic comparison tests
         run: ./scripts/tests/diagnostic-diff-tests.sh
 
-      # The SonarQube triage listing itself needs the homelab server, so CI runs only its tests,
-      # against canned API responses.
       - name: Sonar triage listing tests
         run: ./scripts/tests/sonar-untriaged-tests.sh
 
