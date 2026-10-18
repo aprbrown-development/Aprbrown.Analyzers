@@ -12,9 +12,10 @@ inherited names in two places, and both are already covered better elsewhere:
   implements several interfaces whose parameters are named differently, it checks the name against
   each interface, where `SA1315` accepts a match with any one of them. Its code fix renames the
   symbol across the solution, so references in the method body follow.
-- **Overrides** are `CA1725`'s job. It ships with the .NET SDK, so the house ruleset can take it
-  on without a new package or a prerelease. Whether it should is decided by the universality test
-  like any other SDK rule, not by this record.
+- **Overrides** are `CA1725`'s job. It ships with the .NET SDK, and the house ruleset takes it on
+  at every accessibility from 1.1.0 (#82). `CA1725` reports some interface implementations too,
+  and accepts a match with any one of several interfaces; the package suppresses it there
+  (`APBS0001`), so `APB0003` stays the single, stricter report on interfaces.
 
 Enabling `SA1315` alongside `APB0003` would report every interface mismatch twice. Enabling it
 instead of `APB0003` would trade a stricter rule for a looser one, and `APB0003`'s ID is public

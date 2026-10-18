@@ -49,9 +49,10 @@ internal static class Descriptors
         category: "Naming",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "CA1725 requires matching parameter names for base-class overrides but is blind "
-            + "to interface implementations. This is the missing half, so an interface's parameter "
-            + "names survive into every type that implements it.",
+        description: "An interface's parameter names survive into every type that implements it. "
+            + "CA1725 reports some interface implementations too, but accepts a match with any one "
+            + "of several interfaces; this package suppresses CA1725 there (APBS0001), so this "
+            + "stricter rule is the single report. CA1725 still covers base-class overrides.",
         helpLinkUri: HelpLinkUri);
 
     /// <summary>APB0004 — put an expression body's arrow at the end of the declaration line.</summary>
@@ -81,6 +82,16 @@ internal static class Descriptors
             + "comments, documentation, comments on preprocessor directives and tool directives such "
             + "as NOSONAR, ReSharper and lang= are exempt.",
         helpLinkUri: HelpLinkUri);
+
+    /// <summary>
+    /// APBS0001 — suppresses CA1725 on an interface implementation, where APB0003 is the rule that
+    /// reports a renamed parameter.
+    /// </summary>
+    public static readonly SuppressionDescriptor InterfaceParameterNameSuppression = new(
+        id: "APBS0001",
+        suppressedDiagnosticId: "CA1725",
+        justification: "APB0003 reports a parameter renamed from the interface member it implements; "
+            + "CA1725 would report it a second time.");
 
     // Below the descriptors rather than above them, because SA1202 orders members by access before
     // it considers const-ness and this is the only private member of the type. The rule arrived

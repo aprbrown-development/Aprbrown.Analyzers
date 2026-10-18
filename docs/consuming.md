@@ -3,7 +3,7 @@
 One .NET coding standard, delivered as a NuGet package.
 
 It ships two things: five custom Roslyn analyzers (`APB0001`–`APB0005`), and — the larger half — a
-configuration that decides which **208 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
+configuration that decides which **209 rules** from `Meziantou.Analyzer`, `StyleCop.Analyzers` and
 the .NET SDK's own `CA` and `IDE` analyzers are switched on.
 
 There is one universal ruleset. No profiles, no presets, no tiers to pick from, nothing to configure.
@@ -179,6 +179,10 @@ outranks it, always. That is a documented guarantee of the compiler rather than 
 layout — the package's file is injected as a global analyzer config that deliberately claims no
 priority, so any entry of yours for the same rule beats it.
 
+**One diagnostic suppressor**, `APBS0001`, which hides `CA1725` on interface implementations so that
+`APB0003` reports them alone. It suppresses nothing else. See
+[Switching the suppressor off](#switching-the-suppressor-off).
+
 Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.pdb`.
 
 ## The rules
@@ -190,9 +194,16 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 | .NET SDK `CA` | 29 | The rules the SDK enables by default as build warnings or errors |
 | Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
-| `IDE` / naming | 11 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, and seven expression-bodied-member preferences |
+| `IDE` / naming | 12 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, seven expression-bodied-member preferences, and `CA1725`: an override keeps its base declaration's parameter names, at every accessibility |
 
-208 rules in total. **203 are warnings and five are errors.**
+209 rules in total. **204 are warnings and five are errors.**
+
+**`CA1725` checks every override, internal ones included**, because the configuration sets
+`dotnet_code_quality.CA1725.api_surface = all`. That covers framework overrides: `Equals(object? obj)`,
+not `Equals(object? other)`, and `Stream.Read(buffer, offset, count)`. It ships a code fix that renames
+the parameter and every use of it, which `dotnet format analyzers --diagnostics CA1725` applies once
+`dotnet_diagnostic.CA1725.severity = warning` is in your `.editorconfig` for the run. Interface
+implementations are left to `APB0003`, [below](#the-three-custom-rules).
 
 The **seven expression-bodied-member preferences** (`IDE0021`, `IDE0022`, `IDE0025`, `IDE0026`,
 `IDE0027`, `IDE0053`, `IDE0061`) gate like every other warning.
@@ -236,9 +247,12 @@ other rule in the table above gates.
   this is the declaration half. An override or implementation keeping a default its base or
   interface member already declares is exempt, since `MA0061` requires it. No code fix.
 - **`APB0003` — an interface implementation's parameter names must match the interface's.** `CA1725`
-  requires this for base-class overrides but is blind to interface implementations; this is the missing
-  half. **Ships with a code fix**, which renames the symbol rather than the token, so every reference
-  follows.
+  requires this for base-class overrides, and reports some interface implementations too, but accepts
+  a method implementing several interfaces if its name matches any one of them. The package therefore
+  suppresses `CA1725` on interface implementations (suppression `APBS0001`), so a renamed interface
+  parameter is reported once, by this stricter rule. An override that renames its base's parameter
+  keeps its `CA1725` even if it also implements an interface. **Ships with a code fix**, which renames
+  the symbol rather than the token, so every reference follows.
 - **`APB0004` — a wrapped expression body's `=>` ends the declaration line.** `int M() =>` then the
   expression on the next line, not `int M()` then `=> expression`. Covers methods, constructors,
   operators, properties, indexers, accessors and local functions; lambdas and switch-expression arms
@@ -323,6 +337,18 @@ To adopt the ruleset without failing builds on it, set this in your `Directory.B
 
 Every rule then reports as a warning, except the five that ship at `error` — switch those to `warning`
 individually if you need a fully green build while you work through the backlog.
+
+### Switching the suppressor off
+
+`APBS0001` is a suppression, not a rule, and an `.editorconfig` severity does not reach it:
+`dotnet_diagnostic.APBS0001.severity = none` changes nothing. Name it in `NoWarn` instead, and
+`CA1725` reports interface implementations again, alongside `APB0003`:
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);APBS0001</NoWarn>
+</PropertyGroup>
+```
 
 ## Adopting into an existing configuration
 

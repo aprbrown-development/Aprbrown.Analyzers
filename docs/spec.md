@@ -3,7 +3,7 @@
 What the package contains, how it is built, and how it reaches a consuming repository. Written so an
 implementation session can build v1 without reopening a design question.
 
-**Read first:** [`GLOSSARY.md`](../GLOSSARY.md) for vocabulary, then the four ADRs — this document
+**Read first:** [`GLOSSARY.md`](../GLOSSARY.md) for vocabulary, then the ADRs — this document
 states *what to build*, the ADRs state *why*, and it is not repeated here.
 
 | ADR | Settles |
@@ -12,6 +12,7 @@ states *what to build*, the ADRs state *why*, and it is not repeated here.
 | [0002](adr/0002-sealed-allowlist-ruleset-architecture.md) | Ship rules + config, not third-party assemblies; the sealed allowlist |
 | [0003](adr/0003-tag-triggered-trusted-publishing-with-pr-time-gates.md) | Tag-triggered trusted publishing; PR-time gates; dogfooding |
 | [0004](adr/0004-diagnostic-ids-are-public-api.md) | Versioning and the changelog |
+| [0005](adr/0005-ship-a-suppressor-so-one-rule-reports-each-mismatch.md) | The `APBS0001` suppressor, so `CA1725` and `APB0003` never report the same parameter |
 
 Consumer-facing instructions live in [`consuming.md`](consuming.md), which is packed as the package
 README. Do not duplicate them here.
@@ -30,7 +31,9 @@ README. Do not duplicate them here.
 - **Release tracking and a changelog** — `AnalyzerReleases.Shipped.md`, `.Unshipped.md`,
   `CHANGELOG.md`.
 
-1.1.0 adds a fourth analyzer, `APB0004`, with its own code fix (section 3.5).
+1.1.0 adds a fourth analyzer, `APB0004`, with its own code fix (section 3.5), and a
+`DiagnosticSuppressor`, `APBS0001`, that leaves interface implementations to `APB0003` (section 3.3,
+ADR-0005).
 
 The package takes **no dependency** on `Meziantou.Analyzer` or `StyleCop.Analyzers` (ADR-0002).
 
@@ -150,6 +153,10 @@ whose `dotnet_diagnostic` severity is not set explicitly is *silently unenforced
 nor warns that it is inactive.
 
 - `IDE1006`, `IDE0003`, `IDE0009`.
+- `CA1725` with `dotnet_code_quality.CA1725.api_surface = all`, so an override keeps its base
+  declaration's parameter names at every accessibility. Not an SDK default, so it belongs to this
+  tier rather than the `CA` tier of step 2. Added in 1.1.0 alongside the `APBS0001` suppressor
+  (section 3.3).
 - The naming rules, symbols and styles for private-field `_camelCase` and private-static
   `PascalCase`. Port the `dotnet_naming_rule.*` / `dotnet_naming_symbols.*` / `dotnet_naming_style.*`
   triples verbatim; #2 verified they work byte-identically in a global config.
@@ -330,8 +337,11 @@ rejects that shape outright, so a second diagnostic on the same construct would 
 `{0}` is the actual name, `{1}` the interface's name, `{2}` the interface member as
 `InterfaceName.MethodName`.
 
-**Rationale.** `CA1725` requires this for base-*class* overrides but is blind to interface
-implementations. This is the missing half — so
+**Rationale.** `CA1725` requires this for base-*class* overrides. It reports some interface
+implementations too, but not consistently: with its default `api_surface` it misses explicit
+implementations, and it accepts a method implementing several interfaces if the name matches any
+one of them. The package ships a suppressor, `APBS0001`, that hides `CA1725` on interface
+implementations (ADR-0005), so this rule is the single, stricter report — so
 `IEntityTypeConfiguration<T>.Configure(EntityTypeBuilder<T> builder)` is implemented as
 `Configure(EntityTypeBuilder<T> builder)`, not with the parameter renamed.
 
