@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Aprbrown.Analyzers;
 
 /// <summary>
-/// APB0003 — flags an interface implementation whose parameter names differ from the interface's
-/// (spec §3.3). <c>CA1725</c> polices base-class overrides and reports some interface
+/// APB0003 — flags an interface implementation whose parameter names differ from the interface's.
+/// <c>CA1725</c> polices base-class overrides and reports some interface
 /// implementations too, accepting a match with any one of several interfaces;
 /// <see cref="InterfaceParameterNameSuppressor"/> suppresses those, so this stricter rule is the
 /// single report of a renamed interface parameter.

@@ -608,11 +608,9 @@ dotnet_diagnostic.IDE0009.severity = warning
 # IDE0040 — Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
 # CA1725 — Parameter names should match base declaration
-#          A naming convention rather than an SDK default, so it sits in this tier and not the CA
-#          tier. `api_surface = all` extends it from public and protected overrides to every
-#          override, internal types included. It also reports some interface implementations;
-#          the package's suppressor, APBS0001, hides those, so APB0003 is the one rule that
-#          reports a renamed interface parameter.
+#          `api_surface = all` extends it from public and protected overrides to every override,
+#          internal types included. The package's suppressor, APBS0001, hides it on interface
+#          implementations, which APB0003 reports.
 dotnet_diagnostic.CA1725.severity = warning
 dotnet_code_quality.CA1725.api_surface = all
 

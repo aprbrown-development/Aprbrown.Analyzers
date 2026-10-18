@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -151,38 +150,7 @@ public sealed class CancellationTokenDefaultAnalyzer : DiagnosticAnalyzer
             return true;
         }
 
-        return ImplementedInterfaceMembers(method).Any(member => HasDefaultAt(member, parameter.Ordinal));
-    }
-
-    private static IEnumerable<IMethodSymbol> ImplementedInterfaceMembers(IMethodSymbol method)
-    {
-        // An explicit implementation names its interface member outright. Its own name is the
-        // qualified "I.M", so the name lookup below would never find it anyway.
-        if (!method.ExplicitInterfaceImplementations.IsEmpty)
-        {
-            return method.ExplicitInterfaceImplementations;
-        }
-
-        return ImplicitlyImplementedInterfaceMembers(method);
-    }
-
-    private static IEnumerable<IMethodSymbol> ImplicitlyImplementedInterfaceMembers(IMethodSymbol method)
-    {
-        // An implicit implementation carries no back-pointer to the interface member it satisfies,
-        // so the question is asked from the type, as APB0003 asks it.
-        var type = method.ContainingType;
-
-        foreach (var @interface in type.AllInterfaces)
-        {
-            foreach (var member in @interface.GetMembers(method.Name))
-            {
-                if (member is IMethodSymbol interfaceMethod
-                    && SymbolEqualityComparer.Default.Equals(type.FindImplementationForInterfaceMember(interfaceMethod), method))
-                {
-                    yield return interfaceMethod;
-                }
-            }
-        }
+        return InterfaceImplementations.Of(method).Any(member => HasDefaultAt(member, parameter.Ordinal));
     }
 
     // An override or implementation always has the arity of its member. The bounds check is for

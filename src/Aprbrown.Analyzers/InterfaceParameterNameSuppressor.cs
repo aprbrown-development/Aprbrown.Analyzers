@@ -25,7 +25,7 @@ public sealed class InterfaceParameterNameSuppressor : DiagnosticSuppressor
         foreach (var diagnostic in context.ReportedDiagnostics)
         {
             if (ReportedParameter(context, diagnostic) is { ContainingSymbol: IMethodSymbol method } parameter
-                && ImplementsInterfaceMember(method)
+                && InterfaceImplementations.Of(method).Any()
                 && !RenamesOverriddenParameter(method, parameter))
             {
                 context.ReportSuppression(Suppression.Create(Descriptors.InterfaceParameterNameSuppression, diagnostic));
@@ -49,10 +49,4 @@ public sealed class InterfaceParameterNameSuppressor : DiagnosticSuppressor
 
         return context.GetSemanticModel(tree).GetDeclaredSymbol(node, context.CancellationToken) as IParameterSymbol;
     }
-
-    private static bool ImplementsInterfaceMember(IMethodSymbol method) =>
-        !method.ExplicitInterfaceImplementations.IsEmpty
-        || method.ContainingType.AllInterfaces
-            .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
-            .Any(member => SymbolEqualityComparer.Default.Equals(method.ContainingType.FindImplementationForInterfaceMember(member), method));
 }

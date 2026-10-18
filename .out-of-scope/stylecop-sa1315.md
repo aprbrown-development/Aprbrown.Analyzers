@@ -13,7 +13,7 @@ inherited names in two places, and both are already covered better elsewhere:
   each interface, where `SA1315` accepts a match with any one of them. Its code fix renames the
   symbol across the solution, so references in the method body follow.
 - **Overrides** are `CA1725`'s job. It ships with the .NET SDK, and the house ruleset takes it on
-  at every accessibility from 1.1.0 (#82). `CA1725` reports some interface implementations too,
+  at every accessibility from 1.1.0. `CA1725` reports some interface implementations too,
   and accepts a match with any one of several interfaces; the package suppresses it there
   (`APBS0001`), so `APB0003` stays the single, stricter report on interfaces.
 
