@@ -1,8 +1,8 @@
 # Aprbrown.Analyzers
 
 A Roslyn analyzer package that carries one .NET coding standard to every repository in a small
-personal fleet. The package ships five custom analyzers and — more importantly — the configuration
-that decides which of the 214 rules from several analyzer vendors are switched on.
+personal fleet. The package ships six custom analyzers and — more importantly — the configuration
+that decides which of the 215 rules from several analyzer vendors are switched on.
 
 ## Language
 

@@ -18,7 +18,7 @@
 #     -o artifacts -p:Version=0.0.1-smoke
 #   ./scripts/verify-package.sh artifacts/Aprbrown.Analyzers.0.0.1-smoke.nupkg
 #
-# The shipped config is complete — APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
+# The shipped config is complete — APB0001-APB0006, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier, all under the blanket — so the assertions
 # are:
 #   - the given .nupkg holds exactly the packed-file list;

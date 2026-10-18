@@ -31,9 +31,10 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 
 ## 2.1.0
 
-Five rules join the ruleset, each the build-time counterpart of a SonarQube rule already reporting
-in the fleet: `CA1849`, `CA1052`, `IDE0004`, `IDE0051` and `IDE0052`. The ruleset is now 214 rules,
-209 of them warnings and five errors.
+Six rules join the ruleset, each the build-time counterpart of a SonarQube rule already reporting
+in the fleet: `CA1849`, `CA1052`, `IDE0004`, `IDE0051`, `IDE0052` and a new custom rule, `APB0006`,
+which reports a nested conditional expression. The ruleset is now 215 rules, 210 of them warnings
+and five errors.
 
 ### Fails a green build — by design
 
@@ -49,6 +50,13 @@ in the fleet: `CA1849`, `CA1052`, `IDE0004`, `IDE0051` and `IDE0052`. The rulese
   unused private member, and a private member written but never read. They match `S1905` (2 open)
   and `S1144` (5 open). `dotnet format style` fixes the first two once their severities are in your
   `.editorconfig` for the run; `IDE0052` has no code fix.
+- **`APB0006` is a new rule, on at warning: conditional expressions are not nested.** A
+  conditional inside another's condition or branches is reported, once per inner conditional, so
+  `a ? 1 : b ? 2 : c ? 3 : 4` reports twice. A conditional inside a lambda, anonymous method or
+  local function is in a scope of its own and is not nested; `?.`, `??`, `??=` and switch
+  expressions are not conditionals. It matches SonarQube's `S3358` (18 open across the fleet).
+  There is no code fix: rewrite each as an `if` statement or a switch expression. See
+  [the custom rules](docs/consuming.md#the-custom-rules).
 
 ### Fails a green build — silently
 
@@ -58,6 +66,9 @@ _Nothing. No existing rule reports anything it did not report on `2.0.0`._
 
 - **The install guide documents the five rules** under [the rules](docs/consuming.md#the-rules),
   and its tier table and totals count them.
+- **The custom rules' heading no longer counts them.** "The three custom rules" in the install guide
+  listed five; it is now [the custom rules](docs/consuming.md#the-custom-rules), and every rule's
+  help link points there. A help link from an earlier version now opens the guide at its top.
 
 ## 2.0.0
 

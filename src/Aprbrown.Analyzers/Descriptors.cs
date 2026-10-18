@@ -82,6 +82,20 @@ internal static class Descriptors
             + "as NOSONAR, ReSharper and lang= are exempt.",
         helpLinkUri: HelpLinkUri);
 
+    /// <summary>APB0006 — do not nest conditional expressions.</summary>
+    public static readonly DiagnosticDescriptor NestedConditional = new(
+        id: "APB0006",
+        title: "Do not nest conditional expressions",
+        messageFormat: "Unnest this conditional expression into an if statement or a switch expression",
+        category: "Style",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "A conditional expression inside another's condition or branches makes the reader "
+            + "hold every condition at once to know which value is chosen. An if statement or a switch "
+            + "expression names each case on its own line. A conditional inside a lambda, anonymous "
+            + "method or local function is in a scope of its own and is not nested.",
+        helpLinkUri: HelpLinkUri);
+
     /// <summary>
     /// APBS0001 — suppresses CA1725 on an interface implementation, where APB0003 is the rule that
     /// reports a renamed parameter.
@@ -100,5 +114,5 @@ internal static class Descriptors
     // the one place a consumer learns what a rule does. Deep-linked to a heading rather
     // than per-rule: they are one short list, and one anchor cannot drift out of step with several.
     private const string HelpLinkUri =
-        "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-three-custom-rules";
+        "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-custom-rules";
 }

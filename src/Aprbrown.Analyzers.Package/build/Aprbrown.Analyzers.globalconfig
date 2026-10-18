@@ -5,9 +5,9 @@
 # colliding keys. It is global only because of is_global = true below, and it
 # deliberately does not set global_level, so a consumer's own config outranks this baseline.
 #
-# The house ruleset is complete: APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
+# The house ruleset is complete: APB0001-APB0006, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier are all enumerated below, along with the
-# performance tier — 214 rules under the blanket. Everything else is off, including rules that do
+# performance tier — 215 rules under the blanket. Everything else is off, including rules that do
 # not exist yet, and adding one from here is a deliberate act: a rule added or a severity raised is
 # a minor version bump.
 #
@@ -34,6 +34,9 @@ dotnet_diagnostic.APB0004.severity = warning
 
 # APB0005 — put a comment on its own line above the code it describes.
 dotnet_diagnostic.APB0005.severity = warning
+
+# APB0006 — do not nest conditional expressions.
+dotnet_diagnostic.APB0006.severity = warning
 
 # ---------------------------------------------------------------------------------------------
 # The Meziantou tier — Meziantou.Analyzer 3.0.123.
