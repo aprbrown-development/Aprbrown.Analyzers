@@ -197,6 +197,37 @@ primary constructors are the test-double idiom
 as the first onboarding precisely because it should light up at zero — lights up with 20 violations on
 day one.
 
+### 2.5 SonarQube verdicts
+
+Every SonarQube C# rule that has fired in the fleet carries a Sonar verdict
+([ADR-0008](adr/0008-cover-sonarqube-findings-with-the-house-ruleset-not-sonaranalyzer.md)). A
+*covered* rule names the house rule that enforces it in the build; a *rejected* rule is deactivated
+in the homelab "House ruleset" quality profile; a *signal* rule stays active there and nowhere else.
+A rule that fires without a row here is untriaged, and gets one.
+
+| Sonar rule | Verdict | Covering rule or reason |
+|---|---|---|
+| `S6966` Awaitable method should be used | covered | `CA1849` |
+| `S3358` Ternary operators should not be nested | covered | `APB0006` |
+| `S2092` Cookies should have the "secure" flag | covered | `CA5382`, `CA5383` |
+| `S6618` "string.Create" should be used instead of "FormattableString" | covered | `MA0111` |
+| `S1118` Utility classes should not have public constructors | covered | `CA1052`, which asks for a `static` class rather than a private constructor |
+| `S1905` Redundant casts should not be used | covered | `IDE0004` |
+| `S1144` Unused private types or members should be removed | covered | `IDE0051`, `IDE0052` |
+| `S107` Methods should not have too many parameters | rejected | Taste; `MA0051` already bounds method length |
+| `S3267` Loops should be simplified with LINQ expressions | rejected | Taste, and at odds with the performance tier |
+| `S2699` Tests should include assertions | signal | No equivalent; recognising every assertion library is SonarQube's strength |
+| `S3330` Cookies should have the "HttpOnly" flag | signal | `CA5396` covers `System.Web` only |
+| `S8969` Null-forgiving operators should not be redundant | signal | `IDE0080` covers `!is` only; `MA0191` bans every `!` |
+| `S3218` Inner class members should not shadow outer class static or type members | signal | No equivalent; `MA0084` covers locals only |
+| `S1192` String literals should not be duplicated | signal | No equivalent |
+| `S1075` URIs should not be hardcoded | signal | No equivalent; `CA1054`–`CA1056` concern string-typed URIs, not literals |
+| `S108` Nested blocks of code should not be left empty | signal | Partial only: `MA0090` (Info), and `MA0037`/`SA1106` for empty statements |
+| `S4136` Method overloads should be grouped together | signal | No equivalent; `SA1201`–`SA1204` order by kind, not overload |
+
+`CA1849`, `CA5382`, `CA5383`, `CA1052`, `IDE0004`, `IDE0051`, `IDE0052` and `APB0006` join the house
+ruleset in 2.1.0; until then their rows are the plan, not the shipped config.
+
 ---
 
 ## 3. The five APB analyzers
