@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 #
-# Pack-consume smoke test (spec §6, ADR-0003 decision 5 and amendment 3).
+# Pack-consume smoke test.
 #
 #   verify-package.sh <path-to.nupkg>
 #
 # Analyzer unit tests test the analyzer; they cannot test the *package* — a package can build
-# clean and enforce nothing (research produced exactly that). This gate takes an already-packed
-# Aprbrown.Analyzers package, places it alone in a temporary feed, restores tests/Fixture.Consumer
-# against it, builds, and asserts an exact diagnostic set. It runs on a dev machine and in CI alike,
-# and exits non-zero on any failed assertion.
+# clean and enforce nothing. This gate takes an already-packed Aprbrown.Analyzers package, places it
+# alone in a temporary feed, restores tests/Fixture.Consumer against it, builds, and asserts an exact
+# diagnostic set. It runs on a dev machine and in CI alike, and exits non-zero on any failed
+# assertion.
 #
 # It never packs. Whoever calls it packs, at whatever version they mean to ship, so release.yml
-# gates the very file it then pushes rather than a sibling packed for the purpose (amendment 3). The
-# version the fixture restores comes from the package's own .nuspec. On a dev machine:
+# gates the very file it then pushes rather than a sibling packed for the purpose. The version the
+# fixture restores comes from the package's own .nuspec. On a dev machine:
 #
 #   dotnet pack src/Aprbrown.Analyzers.Package/Aprbrown.Analyzers.Package.csproj -c Release \
 #     -o artifacts -p:Version=0.0.1-smoke
@@ -21,9 +21,9 @@
 # The shipped config is complete — APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier, all under the blanket — so the assertions
 # are:
-#   - the given .nupkg matches the §4.2 allowlist exactly;
+#   - the given .nupkg matches the package allowlist exactly;
 #   - both MSBuild property defaults (EnforceCodeStyleInBuild, TreatWarningsAsErrors) arrive —
-#     a silent failure otherwise (#2 hazard H1);
+#     a silent failure otherwise;
 #   - the packed config is exactly the expected ruleset (tests/expected-ruleset.txt), checked
 #     against the packed file rather than the source tree so what is asserted is what ships, with
 #     any difference named line by line — and it keeps the sealed allowlist's shape: the blanket
@@ -53,8 +53,8 @@ fail() { echo "SMOKE FAIL: $*" >&2; exit 1; }
 info() { echo "  smoke: $*"; }
 
 # --- The package under test ------------------------------------------------------------------
-# Required, with no fallback to packing one here: a fallback is exactly the sibling package
-# amendment 3 removed, and it would be the path a forgotten argument quietly took.
+# Required, with no fallback to packing one here: a fallback would gate a sibling package rather
+# than the one the caller ships, and it would be the path a forgotten argument quietly took.
 [ $# -eq 1 ] || fail "usage: verify-package.sh <path-to.nupkg>"
 GIVEN="$1"
 [ -f "$GIVEN" ] || fail "no package at $GIVEN"
@@ -118,8 +118,8 @@ cat > "$CONFIG" <<EOF
 </configuration>
 EOF
 
-# --- Assertion: packed contents match the §4.2 allowlist exactly ----------------------------
-# EXPECTED is the §4.2 allowlist. It grows in lockstep with what the package ships: add a row here
+# --- Assertion: packed contents match the package allowlist exactly -------------------------
+# EXPECTED is the package allowlist. It grows in lockstep with what the package ships: add a row here
 # whenever the package gains a file, or this exact-match assertion will fail.
 # Drop the standard OPC/NuGet metadata; what remains is the content allowlist.
 ACTUAL="$(list_entries "$NUPKG" \
@@ -149,9 +149,9 @@ read_entry "$NUPKG" 'build/Aprbrown.Analyzers.globalconfig' "$PACKED_CONFIG" \
 [ -s "$PACKED_CONFIG" ] || fail "the packed build/Aprbrown.Analyzers.globalconfig is empty"
 
 # Which rules are on, at which severity, with which options: one fact, recorded once more in
-# tests/expected-ruleset.txt so that it has an expectation independent of the file under test
-# (#51). Every derivation behind it is frozen (spec §2.3), so a difference is either drift or a
-# deliberate change under ADR-0004 that was made to one file and not the other — and either way the
+# tests/expected-ruleset.txt so that it has an expectation independent of the file under test.
+# Every derivation behind it is frozen, so a difference is either drift or a deliberate change to
+# the house ruleset that was made to one file and not the other — and either way the
 # lines that differ are what a failure prints, not a count or a digest that only says something
 # did. Why individual lines are pinned as they are — the vendor Errors kept at error, MA0004, CA2007
 # and CA1707 kept out — is recorded beside those lines in the expected ruleset.
@@ -165,7 +165,7 @@ fi
 info "the packed config is exactly the expected ruleset"
 
 # The diff above says the two files agree; what follows says the shape they agree on is still a
-# sealed allowlist (ADR-0002). These are claims about the shape rather than about the ruleset, so a
+# sealed allowlist. These are claims about the shape rather than about the ruleset, so a
 # change made deliberately to both files can still break them, and these are what refuse it.
 
 # The blanket has to come first. Global config precedence does not depend on line order today, but
@@ -181,7 +181,7 @@ FIRST_SETTINGS="$(awk '
 info "the shipped config opens with the blanket"
 
 # A category re-enable admits default-off rules and rules upstream adds later, which is exactly
-# what the seal exists to prevent (ADR-0002 decision 4). Nothing in the shipped config may use one.
+# what the seal exists to prevent. Nothing in the shipped config may use one.
 if grep -qE '^[[:space:]]*dotnet_analyzer_diagnostic\.category-' "$PACKED_CONFIG"; then
   grep -nE '^[[:space:]]*dotnet_analyzer_diagnostic\.category-' "$PACKED_CONFIG" >&2
   fail "the shipped config re-enables by category; the seal only holds when every rule is enumerated by ID"
@@ -227,11 +227,11 @@ TIER_COUNTS="$({ grep -oE '^[[:space:]]*dotnet_diagnostic\.[A-Za-z]+[0-9]+\.seve
 info "the shipped config enumerates $TIER_COUNTS under the blanket"
 
 # --- Assertion: neither AnalysisMode nor AnalysisLevel is set anywhere -----------------------
-# Measured on this SDK, neither reaches past the blanket at any value, All and latest-all included
-# (ADR-0002 decision 4, spec §10 correction 1). The CA tier is on because it is enumerated, and
-# setting either property would document an intent the build does not honour. Checked over the
-# packed artifact and the whole repository, since the criterion is "not set anywhere" — a stray
-# entry in a .csproj is exactly as misleading as one in the shipped config.
+# Measured on this SDK, neither reaches past the blanket at any value, All and latest-all included.
+# The CA tier is on because it is enumerated, and setting either property would document an intent
+# the build does not honour. Checked over the packed artifact and the whole repository, since the
+# criterion is "not set anywhere" — a stray entry in a .csproj is exactly as misleading as one in
+# the shipped config.
 # Comments are exempt, and deliberately so: the config explains at length why it does not set
 # these, and a check that forbade the words would forbid the explanation. Only settings count.
 if grep -vE '^[[:space:]]*#' "$PACKED_CONFIG" | grep -qiE 'AnalysisMode|AnalysisLevel'; then
@@ -287,18 +287,17 @@ info "EnforceCodeStyleInBuild=$EIB  TreatWarningsAsErrors=$TWAE"
 # absent analyzer, is written beside the line that proves it.
 #
 # Exact means every diagnostic in the log, including those no marker could declare because they sit
-# on no fixture line. Two of those were assertions of their own here before #52, and the reasons are
-# worth keeping, because in each every *other* row still matches:
-#   - MultipleGlobalAnalyzerKeys. Since #12 the repository root's Directory.Build.props injects this
-#     same config file into this repository's own projects (spec §7), and
+# on no fixture line. Two of those matter most, because in each every *other* row still matches:
+#   - MultipleGlobalAnalyzerKeys. The repository root's Directory.Build.props injects this same
+#     config file into this repository's own projects, and
 #     tests/Fixture.Consumer/Directory.Build.props exists to keep the fixture out of it. If that
 #     isolation ever breaks, both copies reach the consumer, every shared key is unset, and the
 #     blanket goes with them — the seal disappears and third-party rules run at vendor defaults,
 #     while the APB rules keep firing at their descriptor default severity. Measured, not theorised.
 #   - CS8032/CS8034, a packed analyzer assembly that failed to load. The code fix assembly
 #     references Workspaces, which a command-line build does not host, so "does it load outside the
-#     IDE" is a real question — and the compiler answers it with a warning, the #2 hazard shape all
-#     over again.
+#     IDE" is a real question — and the compiler answers it with a warning, so a package that loads
+#     none of its own rules would otherwise still build clean.
 check_diagnostics() {
   local log="$1" build="$2"; shift 2
   local differences rc=0
