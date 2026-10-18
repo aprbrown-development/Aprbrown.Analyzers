@@ -16,6 +16,7 @@ Each section is therefore grouped by build impact rather than by component, foll
 
 | Change | Bump | Can it fail a green build? |
 |---|---|---|
+| Toolchain floor raised ([ADR-0007](docs/adr/0007-pin-roslyn-to-5-9-and-treat-a-raised-floor-as-major.md)) | major | **Yes**, on every older SDK or IDE — before any rule runs |
 | New rule, or severity raised | minor | **Yes**, by design — opted into by upgrading |
 | Existing rule catches more cases (detection fix) | patch | **Yes**, silently — same rule, more hits |
 | Rule removed or ID renamed | major | No, but it silently voids config a consumer owns |
@@ -27,6 +28,27 @@ and no commit convention reliably encodes "this now catches more".
 matching its tag, so there is exactly one authored source and the release page cannot disagree with
 this file. A prerelease tag reads the section of the version it prefixes — `v1.0.0-preview.1` is a
 rehearsal for `1.0.0` and carries that version's build impact, because it has none of its own.
+
+## 2.0.0
+
+The analyzers are now built against Roslyn 5.9 instead of 4.14, so the minimum toolchain rises to
+**.NET SDK 10.0.400** or **Visual Studio 2026 18.9**. No rule, severity or code fix changed.
+
+### Fails a green build — by design
+
+- **The minimum toolchain is now .NET SDK 10.0.400 or Visual Studio 2026 18.9**, anything hosting
+  Roslyn 5.9 or newer. On an older SDK or IDE, including every .NET 9 SDK and the .NET 10 `1xx`–`3xx`
+  feature bands, the host cannot load the analyzers and reports `CS9057`, which
+  `TreatWarningsAsErrors` turns into a failed build. Update the toolchain (on CI too, and in any
+  `global.json` `sdk` pin) before taking this version.
+
+### Fails a green build — silently
+
+_Nothing. No analyzer changed._
+
+### Cannot fail a green build
+
+_Nothing else changed._
 
 ## 1.1.1
 

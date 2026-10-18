@@ -8,8 +8,8 @@ It ships five custom [Roslyn](https://learn.microsoft.com/dotnet/csharp/roslyn-s
 analyzers are switched on. There is a single universal ruleset: no profiles, no presets, nothing to
 configure. Anything you disagree with, you override in your own `.editorconfig`, which always wins.
 
-C# only, and it needs a toolchain hosting Roslyn 4.14 or newer (.NET SDK 9.0.300+, Visual Studio 2022
-17.14+).
+C# only, and it needs a toolchain hosting Roslyn 5.9 or newer (.NET SDK 10.0.400+, Visual Studio 2026
+18.9+).
 
 ## Installing
 
@@ -81,9 +81,13 @@ Onboarding the rest of the fleet is tracked in the
 | `tests/Aprbrown.Analyzers.Tests/` | Unit tests using `Microsoft.CodeAnalysis.Testing` verifiers |
 | `tests/Fixture.Consumer/` | Consumer fixture for the pack-consume smoke test. Deliberately outside the solution |
 
-The analyzers target `netstandard2.0` and pin Roslyn to `4.14.0` so they load in every supported host
-(MSBuild, Visual Studio, Rider, `dotnet build`) — an analyzer built against an older Roslyn loads in a
-newer host, never the reverse. Test and packaging projects target current .NET.
+The analyzers target `netstandard2.0` and pin Roslyn to `5.9.0`, so they load in every host (MSBuild,
+Visual Studio, Rider, `dotnet build`) running Roslyn 5.9 or newer: .NET SDK 10.0.400+ or Visual Studio
+2026 18.9+. An analyzer built against an older Roslyn loads in a newer host, never the reverse, and a
+host older than the pin fails the build with `CS9057`. The pin moves only to retire out-of-support
+toolchains or to gain a needed API, and moving it is a major release
+([ADR-0007](docs/adr/0007-pin-roslyn-to-5-9-and-treat-a-raised-floor-as-major.md)). Test and packaging
+projects target current .NET.
 
 ### Building and testing
 
