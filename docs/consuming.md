@@ -20,7 +20,7 @@ assumption that you want that. If you would rather start with warnings, see
 | | |
 |---|---|
 | Language | **C# only.** No Visual Basic or F# analyzers are shipped. |
-| Toolchain | .NET SDK **10.0.400** or newer, or Visual Studio 2026 **18.9** or newer — anything hosting Roslyn **5.9** or newer. The analyzers are built against Roslyn 5.9, and a host cannot load an analyzer built against a Roslyn newer than its own: an older one fails the build with `CS9057`. |
+| Toolchain | .NET SDK **10.0.100** or newer, or Visual Studio 2026 **18.0** or newer — anything hosting Roslyn **5.0** or newer. The analyzers are built against Roslyn 5.0, and a host cannot load an analyzer built against a Roslyn newer than its own: an older one fails the build with `CS9057`. |
 | Derived against | .NET SDK 10. The `CA` tier is enumerated from the rules that SDK switches on by default, so on an older SDK a few of those IDs will not exist yet. Unknown IDs are inert, so nothing breaks — the tier is just slightly smaller. |
 | Target frameworks | Any. Nothing in this package constrains what your projects target. |
 

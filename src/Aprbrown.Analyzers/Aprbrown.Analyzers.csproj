@@ -19,9 +19,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Roslyn pinned to 5.9.0: an analyzer built against an older
+    <!-- Roslyn pinned to 5.0.0: an analyzer built against an older
          Roslyn loads in a newer host, never the reverse. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-# ADR-0007: Pin Roslyn to 5.9.0, and raising the toolchain floor is a major bump
+# ADR-0007: Pin Roslyn to 5.0.0, and raising the toolchain floor is a major bump
 
 - **Status:** Accepted
 - **Date:** 2026-10-18
@@ -23,22 +23,25 @@ toolchains the floor is worth protecting.
 
 ## Decision
 
-**Roslyn is pinned to `5.9.0`**, the latest stable release, in the analyzer, code-fix and test
-projects alike. The assemblies stay `netstandard2.0`.
+**Roslyn is pinned to `5.0.0`**, the Roslyn of the first .NET 10 SDK, in the analyzer, code-fix and
+test projects alike. The assemblies stay `netstandard2.0`.
 
 The floor this implies, verified against the Roslyn version each host ships rather than NuGet
 publish dates:
 
 | Host | Minimum | Source |
 |---|---|---|
-| .NET SDK | **10.0.400** (the `4xx` feature band) | `dotnet/sdk` at `v10.0.400` takes `Microsoft.Net.Compilers.Toolset` `5.9.0-1.26374.102`; `v10.0.300` takes `5.6.0` |
-| Visual Studio | **2026 version 18.9** | Microsoft's [SDK, MSBuild and Visual Studio versioning](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs) page ships 10.0.4xx with Visual Studio 18.9. `dotnet/roslyn` has no 18.9 tag yet to confirm it directly; its tags from 18.0 to 18.8 Preview 1 each carry Roslyn 5.*N* in 18.*N*, consistent with that pairing |
+| .NET SDK | **10.0.100** (the `1xx` feature band) | `dotnet/sdk` at `v10.0.100` takes `Microsoft.Net.Compilers.Toolset` `5.0.0-2.25515.111`; every 9.0 band takes 4.x |
+| Visual Studio | **2026 version 18.0** | `dotnet/roslyn` at tag `Visual-Studio-2026-Version-18.0` is version 5.0, and its package versioning notes give Roslyn 5.0 as Visual Studio 2026 18.0 and .NET 10 |
 | Rider | Not determined | No primary source maps Rider releases to a Roslyn version. A Rider build that compiles through a .NET SDK meets the floor when that SDK does |
 
-The `5.0.0` floor of SDK 10.0.100 was considered and rejected knowingly. It would keep every .NET 10
-band loading, including `1xx`, which stays in support for the life of the runtime. `5.9.0` locks
-that band out, along with the `2xx` and `3xx` bands that are already out of support, in exchange
-for a floor that the remaining supported band, `4xx`, also carries for the life of the runtime.
+That floor is every .NET 10 SDK and every Visual Studio 2026. The `1xx` band is supported for the
+life of the .NET 10 runtime and is the band distribution packages such as Arch's ship, so a higher
+floor would lock out a supported toolchain for no gain.
+
+`5.9.0`, the latest stable release and the Roslyn of SDK 10.0.400 and Visual Studio 18.9, was
+considered and rejected: no rule needs an API newer than 5.0, so it would meet neither of the
+reasons below for moving the pin.
 
 **The pin moves for only two reasons:** to retire toolchains that have gone out of support, or to
 gain a Roslyn API a rule or fixer needs. Moving it for neither is churn that costs consumers an
@@ -58,11 +61,10 @@ already calls major.
 ## Consequences
 
 - This change ships as `2.0.0`.
-- Consumers on SDK 10.0.1xx through 10.0.3xx, or Visual Studio 2026 before 18.9, must update their
-  toolchain before taking `2.0.0`. Onboarded repositories building on SDK 10.0.112 (Roslyn 5.0) are
-  among them.
-- CI installs SDK `10.0.x`, which resolves to the newest band, so the pack-and-consume smoke test
-  exercises the new floor without a `global.json` pin. If it ever resolved to an older band, the
-  remedy is a `global.json` `sdk` section, as the workflows already set out.
+- Consumers on a .NET 9 or older SDK, or Visual Studio 2022, must move to a .NET 10 SDK or Visual
+  Studio 2026 before taking `2.0.0`. Onboarded repositories already on SDK 10.0.112 need nothing.
+- CI installs SDK `10.0.x`, which resolves to the newest band and so hosts a Roslyn at or above the
+  floor. It does not exercise the floor itself; if that ever matters, the remedy is a `global.json`
+  `sdk` section, as the workflows already set out.
 - The next floor raise is expected when .NET 10's toolchains leave support, or earlier only if a
   rule needs a newer API.

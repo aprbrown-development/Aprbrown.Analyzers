@@ -17,9 +17,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
 
     <!-- Required pin: the testing harness only floors Workspaces at 1.0.1, and
-         NuGet resolves a floor to the floor. Without this explicit 5.9.0 the analyzer tests
+         NuGet resolves a floor to the floor. Without this explicit 5.0.0 the analyzer tests
          would run against Roslyn 1.0. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
 
     <!-- Lifts the copy the testing harness reaches through NuGet.Packaging to a patched release. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
