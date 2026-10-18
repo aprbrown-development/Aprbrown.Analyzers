@@ -261,7 +261,7 @@ dotnet_diagnostic.SA1202.severity = warning
 dotnet_diagnostic.SA1203.severity = warning
 dotnet_diagnostic.SA1204.severity = warning
 
-# --- IDE, naming and style: 11 rules and the options they enforce ---------------------------------
+# --- IDE, naming and style: 12 rules and the options they enforce ---------------------------------
 # Under the blanket an IDE rule whose severity is not set explicitly is silently unenforced, so a
 # line missing here is a rule that quietly does nothing (#4).
 #
@@ -273,6 +273,12 @@ dotnet_diagnostic.IDE1006.severity = warning
 dotnet_diagnostic.IDE0003.severity = warning
 dotnet_diagnostic.IDE0009.severity = warning
 dotnet_diagnostic.IDE0040.severity = warning
+
+# CA1725 (override parameter names) at every accessibility, not only the public surface its option
+# defaults to.
+
+dotnet_diagnostic.CA1725.severity = warning
+dotnet_code_quality.CA1725.api_surface = all
 
 # The naming rule, symbol and style triples IDE1006 enforces, ported verbatim from the source
 # repository. The two dotnet_naming_rule severities are the only way to set one naming rule's

@@ -68,3 +68,12 @@ dotnet_diagnostic.MA0025.severity = none
 # StyleCop.Analyzers. Now that the tier ships, every consumer meets the same thing on adoption, so it
 # is part of the onboarding snippet in docs/consuming.md and recorded as spec §10 correction 11.
 dotnet_diagnostic.SA0001.severity = none
+
+# The analyzer-authoring safety net restored above guards analyzers that ship. A test project has
+# none: the stub analyzers it declares stand in for other vendors' rules, reuse their reserved IDs,
+# and are never loaded by a compiler, so these five have nothing to protect here.
+dotnet_diagnostic.RS1029.severity = none
+dotnet_diagnostic.RS1036.severity = none
+dotnet_diagnostic.RS1038.severity = none
+dotnet_diagnostic.RS1041.severity = none
+dotnet_diagnostic.RS2008.severity = none

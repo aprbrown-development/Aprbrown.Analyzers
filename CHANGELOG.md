@@ -33,7 +33,9 @@ rehearsal for `1.0.0` and carries that version's build impact, because it has no
 The prescribed `Meziantou.Analyzer` moves from `3.0.123` to `3.0.305`, three rules that version adds
 are switched on, a performance tier of 53 rules joins the ruleset, and two custom rules arrive:
 `APB0004` puts a wrapped expression body's `=>` at the end of the declaration line, and `APB0005`
-moves trailing comments onto their own line. The ruleset is now 208 rules.
+moves trailing comments onto their own line. `CA1725` now holds every override to its base
+declaration's parameter names, and a suppressor, `APBS0001`, leaves interface implementations to
+`APB0003`. The ruleset is now 209 rules.
 **Bump your own `Meziantou.Analyzer` reference to `3.0.305`** alongside this package: the package
 takes no dependency on it, so nothing moves your pin for you — see
 [the consumer docs](docs/consuming.md#1-reference-three-packages).
@@ -79,6 +81,14 @@ takes no dependency on it, so nothing moves your pin for you — see
   left off. Where a `Meziantou.Analyzer` rule and a `CA` rule cover the same pattern only one is on,
   so nothing is reported twice. `MA0227` and `MA0242` arrive with `3.0.305` and are inert on an
   older pin.
+- **`CA1725` is on, at warning: an override keeps its base declaration's parameter names.** It
+  checks every override, internal types included, because the configuration sets
+  `dotnet_code_quality.CA1725.api_surface = all`. Expect hits on framework overrides written with
+  your own names: `Equals(object? other)` wants `obj`, and `Stream.Read` wants `buffer`, `offset`
+  and `count`. Its code fix renames the parameter and every use of it;
+  `dotnet format analyzers --diagnostics CA1725` applies it once the severity is in your
+  `.editorconfig` for the run. Interface implementations stay `APB0003`'s, see below. See
+  [the rules](docs/consuming.md#the-rules).
 
 ### Fails a green build — silently
 
@@ -100,6 +110,14 @@ takes no dependency on it, so nothing moves your pin for you — see
 - **Many false positives removed upstream** in rules this package enables, among them `MA0002`,
   `MA0005`, `MA0011`, `MA0046`, `MA0056`, `MA0065`, `MA0066`, `MA0091`, `MA0100`, `MA0139`,
   `MA0150`, `MA0151`, `MA0158` and `MA0163`. These also arrive with your own `3.0.305` pin.
+- **A diagnostic suppressor, `APBS0001`, hides `CA1725` on interface implementations.** `CA1725`
+  reports an implementation that renames the interface's parameter, and so does `APB0003`; the
+  suppressor leaves that to `APB0003` alone, which is the stricter of the two. It only ever removes
+  a `CA1725`, and an override that renames its base's parameter keeps its `CA1725` even when it
+  also implements an interface. Its ID is public API: name it in `NoWarn` to switch it off, as
+  [the consumer docs](docs/consuming.md#switching-the-suppressor-off) explain. `APB0003`'s
+  description, shown when you expand the diagnostic, no longer says `CA1725` is blind to interface
+  implementations.
 
 ## 1.0.1
 

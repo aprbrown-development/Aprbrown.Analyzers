@@ -7,10 +7,10 @@
 #
 # The house ruleset is complete: APB0001-APB0005, the Meziantou tier, the SDK CA tier, StyleCop's
 # four ordering rules and the IDE, naming and style tier are all enumerated below, along with the
-# performance tier — 208 rules under the blanket. Everything else is off, including rules that do
+# performance tier — 209 rules under the blanket. Everything else is off, including rules that do
 # not exist yet, and adding one from here is a deliberate act under ADR-0004.
 #
-# 208, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
+# 209, where spec §1 and §2.2 both say "~131". That figure was written before any tier was
 # measured; each tier's count is the one its derivation or, for the performance tier, its rule
 # by rule selection produced.
 #
@@ -607,6 +607,12 @@ dotnet_diagnostic.IDE0003.severity = warning
 dotnet_diagnostic.IDE0009.severity = warning
 # IDE0040 — Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
+# CA1725 — Parameter names should match base declaration
+#          `api_surface = all` extends it from public and protected overrides to every override,
+#          internal types included. The package's suppressor, APBS0001, hides it on interface
+#          implementations, which APB0003 reports.
+dotnet_diagnostic.CA1725.severity = warning
+dotnet_code_quality.CA1725.api_surface = all
 
 # A private field carries a `_` prefix, so nothing needs `this.` to tell a field from a parameter.
 # Private *statics* stay PascalCase.
