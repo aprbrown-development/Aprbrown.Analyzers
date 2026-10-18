@@ -389,8 +389,7 @@ dotnet_diagnostic.CA2264.severity = warning
 # CA2265 — Do not compare Span<T> to 'null' or 'default'
 dotnet_diagnostic.CA2265.severity = warning
 
-# Two rules outside the derivation above: default-off upstream, each named because it covers a
-# SonarQube rule that fires in the fleet, so the build reports what the quality gate would.
+# Two rules outside the derivation above, default-off upstream and raised to warning.
 
 # CA1849 — Call async methods when in an async method
 dotnet_diagnostic.CA1849.severity = warning
@@ -596,6 +595,8 @@ dotnet_diagnostic.IDE0003.severity = warning
 dotnet_diagnostic.IDE0009.severity = warning
 # IDE0040 — Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
+
+# Three rules the SDK enables at Hidden, raised to warning.
 # IDE0004 — Remove unnecessary cast
 dotnet_diagnostic.IDE0004.severity = warning
 # IDE0051 — Remove unused private members

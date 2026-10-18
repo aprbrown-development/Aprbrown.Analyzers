@@ -191,7 +191,7 @@ Nothing else. No runtime assembly, no `.props` you have to import by hand, no `.
 |---|---|---|
 | `APB` | 5 | The five custom rules below |
 | `Meziantou.Analyzer` | 106 | Every rule it enables by default *at a build-gating severity*, minus `MA0004`, plus `MA0032` |
-| .NET SDK `CA` | 31 | The rules the SDK enables by default as build warnings or errors, plus `CA1849` (blocking calls in async methods) and `CA1052` (static holder types), at every accessibility |
+| .NET SDK `CA` | 31 | The rules the SDK enables by default as build warnings or errors, plus `CA1849` (blocking calls in async methods) and `CA1052` (static holder types, at every accessibility) |
 | Performance (`Meziantou.Analyzer` + `CA`) | 53 | 23 `Meziantou.Analyzer` and 30 `CA` rules whose rewrite keeps behaviour and costs less, raised to warning. [Mostly auto-fixable](#3-build-and-fix-what-it-reports) |
 | `StyleCop.Analyzers` | 4 | `SA1201`–`SA1204` — member ordering only. This is not a StyleCop adoption. **No code fix**: [size it first](#3-build-and-fix-what-it-reports) |
 | `IDE` / naming | 15 | `_camelCase` private fields, `PascalCase` private statics, explicit accessibility modifiers, no `this.` qualification, seven expression-bodied-member preferences, no redundant casts or unused or unread private members, and `CA1725`: an override keeps its base declaration's parameter names, at every accessibility |

@@ -193,11 +193,11 @@ dotnet_diagnostic.CA2265.severity = warning
 dotnet_diagnostic.CA1856.severity = error
 dotnet_diagnostic.CA2252.severity = error
 
-# Two default-off rules, each covering a SonarQube rule that fires in the fleet, raised to warning.
+# Two default-off rules, raised to warning.
 
 dotnet_diagnostic.CA1849.severity = warning
 
-# CA1052 at every accessibility, as CA1725 is: the fleet's static holders are mostly internal.
+# CA1052 at every accessibility, as CA1725 is.
 
 dotnet_diagnostic.CA1052.severity = warning
 dotnet_code_quality.CA1052.api_surface = all
@@ -283,8 +283,7 @@ dotnet_diagnostic.IDE0003.severity = warning
 dotnet_diagnostic.IDE0009.severity = warning
 dotnet_diagnostic.IDE0040.severity = warning
 
-# Three that cover SonarQube rules firing in the fleet: IDE0004 (redundant casts) and
-# IDE0051/IDE0052 (unused and unread private members), on by default at Hidden and raised here.
+# Three rules the SDK enables at Hidden, raised to warning.
 
 dotnet_diagnostic.IDE0004.severity = warning
 dotnet_diagnostic.IDE0051.severity = warning

@@ -47,8 +47,9 @@ the fleet pins.
 4. **A newly firing Sonar rule is triaged** to a verdict when it appears, found by comparing the
    rules SonarQube reports against the verdict table.
 
-The first triage covers the 17 rules. Seven equivalents are switched on: `CA1849`, `CA5382`,
-`CA5383`, `CA1052`, `IDE0004`, `IDE0051` and `IDE0052`. One rule is added, `APB0006`, for nested
+The first triage covers the 17 rules. Five equivalents are switched on: `CA1849`, `CA1052`,
+`IDE0004`, `IDE0051` and `IDE0052`. `CA5382` and `CA5383` looked like a sixth and seventh, for
+`S2092`, but never fire on ASP.NET Core 3.0 or later, so `S2092` is a signal rule. One rule is added, `APB0006`, for nested
 conditional expressions. Equivalents that default to Info, such as `MA0042`, were passed over for
 ones that default to Warning, keeping the sweeps' rule that Info and Hidden vendor rules are not
 house rules.

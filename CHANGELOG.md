@@ -43,8 +43,8 @@ in the fleet: `CA1849`, `CA1052`, `IDE0004`, `IDE0051` and `IDE0052`. The rulese
   five. See [the rules](docs/consuming.md#the-rules).
 - **`CA1052` asks a type holding only static members to be `static`**, at every accessibility,
   since `dotnet_code_quality.CA1052.api_surface = all` reaches the internal holders the default
-  would skip. It matches `S1118` (5 open); a private constructor no longer satisfies it, `static`
-  does.
+  would skip. It matches `S1118` (5 open), but where `S1118` accepts a private constructor,
+  `CA1052` wants the class `static`.
 - **`IDE0004`, `IDE0051` and `IDE0052` are raised from `Hidden` to warning**: a redundant cast, an
   unused private member, and a private member written but never read. They match `S1905` (2 open)
   and `S1144` (5 open). `dotnet format style` fixes the first two once their severities are in your
