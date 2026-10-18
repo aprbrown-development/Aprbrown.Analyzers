@@ -15,8 +15,10 @@
 
 The first two were made while writing the consumption spec
 ([#8](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/8)), and the third in an
-architecture review ([#50](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/50)).
-The decisions below stand; three statements in them did not.
+architecture review ([#50](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/50)),
+and the fourth once the package was published
+([#70](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/70)).
+The decisions below stand; four statements in them did not.
 
 1. **There is no `AnalysisMode` tier** (decision 5's assertion table). #4 assumed the SDK's 27
    default-on `CA` rules could be restored past the blanket by an `AnalysisMode` tier, and left
@@ -44,6 +46,15 @@ The decisions below stand; three statements in them did not.
    The trade accepted is dev-machine ergonomics: running the gate locally is now two commands, pack
    then verify, rather than one. Folding packing back into the script would restore the one-command
    run and reopen the gap. This amendment exists so that nobody does that as a simplification.
+4. **The analyzer project is no longer exempt from the `APB` rules** (decision 6,
+   [#70](https://github.com/aprbrown-development/Aprbrown.Analyzers/issues/70)). Decision 6 called the
+   hole inherent, because a project cannot be its own analyzer. Once a release exists on nuget.org,
+   the analyzer project can reference *that* instead. It is held to the last published release, one
+   release behind the source, and Dependabot raises the pin after each release. The paragraph is
+   corrected in place below. A released rule whose false positive fires on the analyzer project's
+   own code would otherwise deadlock the build and the fix. That case is answered by a temporary
+   deviation in the local `.editorconfig`, scoped to the analyzer project's path, never by rolling
+   the pin back (spec §7).
 
 ## Context
 

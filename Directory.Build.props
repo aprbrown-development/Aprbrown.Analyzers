@@ -6,6 +6,8 @@
     NuGet is wired by hand here, and the APB analyzers by ProjectReference + OutputItemType="Analyzer"
     in each project. The analyzer project cannot be its own analyzer, so it alone references the
     last published Aprbrown.Analyzers package instead, one release behind; Dependabot raises the pin.
+    A released rule that misfires on that project's code is turned off for src/Aprbrown.Analyzers/
+    alone in the local .editorconfig until the pin reaches the fix.
 
     tests/Fixture.Consumer deliberately opts out of this file — see the empty Directory.Build.props
     in that directory for why.

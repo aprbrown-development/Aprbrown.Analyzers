@@ -26,9 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- A project cannot be its own analyzer, so this one is held to the APB rules of the last
-         published release instead, one release behind the source; Dependabot raises the pin.
-         PrivateAssets="all" keeps the package off every project that references this one, which
+    <!-- Runs the published package's APB rules against this project, which cannot be its own
+         analyzer. PrivateAssets="all" keeps the package off every project that references this one, which
          already runs the current rules from source and would otherwise report each diagnostic
          twice. ExcludeAssets="build;buildTransitive" drops the package's props: Directory.Build.props
          already supplies the shipped config, and a second copy would unset every shared key
