@@ -12,7 +12,7 @@
 
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
 
-    <PackageVersion Include="Aprbrown.Analyzers" Version="1.1.1" />
+    <PackageVersion Include="Aprbrown.Analyzers" Version="2.0.0" />
     <PackageVersion Include="Meziantou.Analyzer" Version="3.0.305" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
 
