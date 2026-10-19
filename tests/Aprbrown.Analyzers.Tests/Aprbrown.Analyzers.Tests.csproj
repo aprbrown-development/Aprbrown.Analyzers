@@ -40,8 +40,9 @@
          in (packed byte-for-byte as the package README) and the shipped config that sets its
          severity. Copied beside the test assembly so the dependency is declared here rather than
          found by walking up to the repository root. -->
-    <None Include="..\..\docs\consuming.md"
+    <None Include="..\..\$(ConsumingGuidePath)"
           Link="Contract\consuming.md" CopyToOutputDirectory="PreserveNewest" />
+    <AssemblyMetadata Include="ConsumingGuidePath" Value="$(ConsumingGuidePath)" />
     <None Include="..\..\src\Aprbrown.Analyzers.Package\build\Aprbrown.Analyzers.globalconfig"
           Link="Contract\Aprbrown.Analyzers.globalconfig" CopyToOutputDirectory="PreserveNewest" />
     <!-- The repository's own .editorconfig, for the drift test on the severities it restates from

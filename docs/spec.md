@@ -504,6 +504,8 @@ heading "The custom rules". Until 2.1.0 that heading read "The three custom rule
 link shipped before then points at its anchor, `#the-three-custom-rules`, which no longer exists, so
 those links open `consuming.md` at its top. An HTML anchor could keep them landing, but
 `consuming.md` is also the nuget.org page, and nuget.org does not render raw HTML.
+From 2.1.0 a help link names the guide at the commit its package was built from, so a later
+heading change no longer strands it.
 
 **Required tests**
 
@@ -702,7 +704,9 @@ Not packed: `LICENSE` (declared as `<PackageLicenseExpression>MIT</PackageLicens
 `README.md`. `PackageProjectUrl` and `RepositoryUrl` point at the public repository; `HelpLinkUri`
 points one level deeper, at [`consuming.md`](consuming.md)'s custom-rules section, because it is what an
 IDE opens from a squiggle and a consumer clicking `APB0001` wants the rule explained rather than the
-repository root.
+repository root. None of the three is written in the source: the build reads the repository from the
+git `origin` remote, and the help link names the guide at the commit being built
+([ADR-0009](adr/0009-help-links-name-the-guide-at-the-commit-built.md)).
 
 ### 4.3 `build/Aprbrown.Analyzers.props`
 

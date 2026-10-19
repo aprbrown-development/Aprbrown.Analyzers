@@ -113,6 +113,5 @@ internal static class Descriptors
     // section that explains the custom rules rather than at the repository root — consuming.md is
     // the one place a consumer learns what a rule does. Deep-linked to a heading rather
     // than per-rule: they are one short list, and one anchor cannot drift out of step with several.
-    private const string HelpLinkUri =
-        "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md#the-custom-rules";
+    private const string HelpLinkUri = ConsumingGuide.Url + "#the-custom-rules";
 }

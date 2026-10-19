@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
@@ -9,13 +11,8 @@ namespace Aprbrown.Analyzers.Tests;
 /// public <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>, is held to what a consumer is told
 /// about it. A rule added later is covered without this class being edited.
 /// </summary>
-public sealed class DescriptorContractTests
+public sealed partial class DescriptorContractTests
 {
-    // Written out rather than read from the descriptors, so a descriptor pointing at the wrong
-    // repository, branch or file has something independent to disagree with.
-    private const string ConsumingGuideUrl =
-        "https://github.com/aprbrown-development/Aprbrown.Analyzers/blob/main/docs/consuming.md";
-
     public static TheoryData<string> DescriptorIds => new(AnalyzerDescriptors().Select(d => d.Id));
 
     // A help link is what an IDE opens when a consumer clicks the rule on a squiggle. GitHub serves
@@ -26,17 +23,20 @@ public sealed class DescriptorContractTests
     public void Help_link_lands_on_a_heading_of_the_consuming_guide(string id)
     {
         var link = Descriptor(id).HelpLinkUri;
+        var match = GitHubFileLink().Match(link);
 
         Assert.True(
-            link.StartsWith(ConsumingGuideUrl + "#", StringComparison.Ordinal),
-            $"{id}'s help link '{link}' is not a #fragment of {ConsumingGuideUrl}; a link without one "
-            + "lands a consumer at the top of the document rather than at the rule.");
+            match.Success,
+            $"{id}'s help link '{link}' is not a #fragment of a file on GitHub at a full commit hash; a link "
+            + "without a fragment lands a consumer at the top of the document rather than at the rule, and "
+            + "one at a branch drifts from the version the consumer has.");
+        Assert.Equal(ConsumingGuidePath(), match.Groups["path"].Value);
 
-        var fragment = link[(ConsumingGuideUrl.Length + 1)..];
+        var fragment = match.Groups["fragment"].Value;
         var headings = MarkdownHeadings.Slugs(ContractFiles.Read("consuming.md"));
         Assert.True(
             headings.Contains(fragment, StringComparer.Ordinal),
-            $"{id}'s help link fragment '#{fragment}' matches no heading in docs/consuming.md. Either "
+            $"{id}'s help link fragment '#{fragment}' matches no heading in {ConsumingGuidePath()}. Either "
             + "restore the heading or point the link at one that is there. Headings: "
             + string.Join(", ", headings));
     }
@@ -98,4 +98,12 @@ public sealed class DescriptorContractTests
 
     private static Dictionary<string, string> ShippedSeverities() =>
         ContractFiles.Severities("Aprbrown.Analyzers.globalconfig");
+
+    private static string ConsumingGuidePath() =>
+        typeof(DescriptorContractTests).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .Single(a => string.Equals(a.Key, "ConsumingGuidePath", StringComparison.Ordinal))
+            .Value!;
+
+    [GeneratedRegex(@"^https://github\.com/[^/]+/[^/]+/blob/[0-9a-f]{40}/(?<path>[^#]+)#(?<fragment>.+)$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex GitHubFileLink();
 }
