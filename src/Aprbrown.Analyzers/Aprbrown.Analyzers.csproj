@@ -50,4 +50,23 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
+  <!--
+    ConsumingGuide.Url, the base of every help link: the consuming guide at the commit being built,
+    so a shipped link keeps showing the guide that described its version after the guide moves or
+    changes.
+  -->
+  <Target Name="GenerateConsumingGuideUrl" BeforeTargets="CoreCompile" DependsOnTargets="ResolveRepositoryWebUrl">
+    <PropertyGroup>
+      <ConsumingGuideUrlFile>$(IntermediateOutputPath)ConsumingGuide.g.cs</ConsumingGuideUrlFile>
+      <ConsumingGuideUrl>$(RepositoryWebUrl)/blob/$(SourceRevisionId)/$(ConsumingGuidePath)</ConsumingGuideUrl>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ConsumingGuideUrlFile)"
+                      Lines="// &lt;auto-generated/&gt;;namespace Aprbrown.Analyzers%3B;internal static class ConsumingGuide { public const string Url = &quot;$(ConsumingGuideUrl)&quot;%3B }"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(ConsumingGuideUrlFile)" />
+      <FileWrites Include="$(ConsumingGuideUrlFile)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

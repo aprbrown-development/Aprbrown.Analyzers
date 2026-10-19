@@ -36,8 +36,9 @@
     <!-- consuming.md is packed as the package README. -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
-    <PackageProjectUrl>https://github.com/aprbrown-development/Aprbrown.Analyzers</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/aprbrown-development/Aprbrown.Analyzers</RepositoryUrl>
+    <!-- RepositoryUrl and the repository commit come from the git origin remote; PackageProjectUrl
+         from the same, in SetPackageProjectUrl. -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- NU5128: an analyzer package ships no lib/ref assemblies and no dependencies. -->
@@ -68,8 +69,14 @@
           Pack="true" PackagePath="build/Aprbrown.Analyzers.props" />
     <None Include="build\Aprbrown.Analyzers.globalconfig"
           Pack="true" PackagePath="build/Aprbrown.Analyzers.globalconfig" />
-    <None Include="..\..\docs\consuming.md"
+    <None Include="..\..\$(ConsumingGuidePath)"
           Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
+
+  <Target Name="SetPackageProjectUrl" BeforeTargets="GenerateNuspec" DependsOnTargets="ResolveRepositoryWebUrl">
+    <PropertyGroup>
+      <PackageProjectUrl>$(RepositoryWebUrl)</PackageProjectUrl>
+    </PropertyGroup>
+  </Target>
 
 </Project>

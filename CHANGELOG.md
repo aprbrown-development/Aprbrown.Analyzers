@@ -69,6 +69,9 @@ _Nothing. No existing rule reports anything it did not report on `2.0.0`._
 - **The custom rules' heading no longer counts them.** "The three custom rules" in the install guide
   listed five; it is now [the custom rules](docs/consuming.md#the-custom-rules), and every rule's
   help link points there. A help link from an earlier version now opens the guide at its top.
+- **A rule's help link opens the install guide as it was when your version was built**, at that
+  commit on GitHub rather than at `main`. A later change to the guide's headings, or a move of the
+  guide, no longer breaks the link.
 
 ## 2.0.0
 

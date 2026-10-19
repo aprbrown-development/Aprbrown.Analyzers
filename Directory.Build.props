@@ -44,4 +44,21 @@
     <PackageReference Include="StyleCop.Analyzers" PrivateAssets="all" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- Relative to the repository root, with forward slashes: it is also the path in a GitHub URL. -->
+    <ConsumingGuidePath>docs/consuming.md</ConsumingGuidePath>
+  </PropertyGroup>
+
+  <!--
+    The repository's web address, read from the git origin remote by the SDK's Source Link, so a
+    renamed or transferred repository is picked up by the next build.
+  -->
+  <Target Name="ResolveRepositoryWebUrl" DependsOnTargets="InitializeSourceControlInformation">
+    <Error Condition="'$(PrivateRepositoryUrl)' == '' or '$(SourceRevisionId)' == ''"
+           Text="No git origin remote or commit was found, so the repository's web address is unknown. Build from a git clone with an origin remote." />
+    <PropertyGroup>
+      <RepositoryWebUrl>$([System.Text.RegularExpressions.Regex]::Replace('$(PrivateRepositoryUrl)', '\.git$', ''))</RepositoryWebUrl>
+    </PropertyGroup>
+  </Target>
+
 </Project>
