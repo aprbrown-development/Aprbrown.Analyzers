@@ -1,0 +1,49 @@
+name: SonarScanner begin
+description: >-
+  Installs SonarScanner for .NET and begins an analysis: into
+  `<project-key>-pr-<n>` with the PR token, waiting for the quality gate, on a
+  pull_request event, and into `<project-key>` with the main token otherwise.
+  Run the build after it and sonar-end after that, in the same job.
+
+inputs:
+  project-key:
+    description: SonarQube project key of the caller's main branch.
+    required: true
+  host-url:
+    description: SonarQube URL the scanner sends the analysis to.
+    required: true
+  token:
+    description: SonarQube token that can analyse the main project.
+    default: ""
+  pr-token:
+    description: SonarQube token that can create and analyse pull request projects.
+    default: ""
+  arguments:
+    description: >-
+      Extra `/d:` arguments for begin, one per line and unquoted, such as
+      coverage report paths and exclusions. The project key, host URL, token
+      and quality-gate wait are the action's own.
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install SonarScanner for .NET
+      shell: bash
+      run: dotnet tool install dotnet-sonarscanner --version 12.0.0 --tool-path "$RUNNER_TEMP/dotnet-sonarscanner"
+
+    - name: SonarScanner begin
+      shell: bash
+      env:
+        SONAR_TOKEN: ${{ inputs.token }}
+        SONAR_PR_TOKEN: ${{ inputs.pr-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PROJECT_KEY: ${{ inputs.project-key }}
+        HOST_URL: ${{ inputs.host-url }}
+        ARGUMENTS: ${{ inputs.arguments }}
+      run: >-
+        python3 "$GITHUB_ACTION_PATH/../sonar-scanner/sonar_scanner.py" begin
+        --scanner "$RUNNER_TEMP/dotnet-sonarscanner/dotnet-sonarscanner"
+        --project-key "$PROJECT_KEY"
+        --host-url "$HOST_URL"
+        --arguments "$ARGUMENTS"

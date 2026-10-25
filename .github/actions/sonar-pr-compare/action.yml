@@ -1,0 +1,47 @@
+name: SonarQube PR compare
+description: >-
+  Lists the open SonarQube issues a pull request's project has that the main
+  project doesn't in the job summary, and fails when there are any or when the
+  pull request project's latest analysis isn't of the given revision.
+
+inputs:
+  server:
+    description: SonarQube URL the API is called on.
+    required: true
+  public-url:
+    description: SonarQube URL that issue links in the summary point at.
+    required: true
+  main-project:
+    description: Project key of the main branch's analysis.
+    required: true
+  pr-project:
+    description: Project key of the pull request's analysis.
+    required: true
+  revision:
+    description: Commit SHA the pull request project's latest analysis must be of.
+    required: true
+  token:
+    description: SonarQube token that can read both projects.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Compare new issues against main
+      # An explicit bash runs with pipefail, so tee keeps the script's exit code.
+      shell: bash
+      env:
+        SONAR_TOKEN: ${{ inputs.token }}
+        SERVER: ${{ inputs.server }}
+        PUBLIC_URL: ${{ inputs.public-url }}
+        MAIN_PROJECT: ${{ inputs.main-project }}
+        PR_PROJECT: ${{ inputs.pr-project }}
+        REVISION: ${{ inputs.revision }}
+      run: >-
+        python3 "$GITHUB_ACTION_PATH/sonar_pr_compare.py"
+        --server "$SERVER"
+        --public-url "$PUBLIC_URL"
+        --main "$MAIN_PROJECT"
+        --pr "$PR_PROJECT"
+        --revision "$REVISION"
+        | tee -a "$GITHUB_STEP_SUMMARY"

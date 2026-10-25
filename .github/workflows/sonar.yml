@@ -1,17 +1,21 @@
 name: SonarQube
 
-# Publishes an analysis of main to the homelab SonarQube from the repository's own contained
-# runner; see docs/adr/0006. A signal, not a gate: nothing waits for its quality gate.
+# Analyses main into `Aprbrown.Analyzers`, and each same-repository pull request into
+# `Aprbrown.Analyzers-pr-<n>`, on the repository's own contained runner (docs/adr/0006). A pull
+# request fails when its project has issues main doesn't, and its project is deleted when it closes
+# (docs/adr/0010). The actions under .github/actions are copies of Standards' Sonar actions.
 on:
   push:
     branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || 'main' }}
   cancel-in-progress: true
 
 env:
@@ -20,7 +24,12 @@ env:
 
 jobs:
   sonarqube:
-    name: Analyse main
+    name: Analyse
+    if: >-
+      github.event_name != 'pull_request'
+      || (github.event.action != 'closed'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.event.pull_request.user.login != 'dependabot[bot]')
     runs-on: [self-hosted, linux, homelab-public]
     timeout-minutes: 30
 
@@ -38,22 +47,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install SonarScanner for .NET
-        run: dotnet tool install dotnet-sonarscanner --version 12.0.0 --tool-path "$RUNNER_TEMP/sonar-scanner"
-
       - name: SonarScanner begin
         id: begin
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-        run: >-
-          "$RUNNER_TEMP/sonar-scanner/dotnet-sonarscanner" begin
-          /k:"Aprbrown.Analyzers"
-          /d:sonar.host.url="$SONAR_HOST_URL"
-          /d:sonar.token="$SONAR_TOKEN"
-          /d:sonar.cs.vscoveragexml.reportsPaths="$RUNNER_TEMP/test-results/coverage.xml"
-          /d:sonar.exclusions="tests/Fixture.Consumer/**,.claude/**,docs/**,.out-of-scope/**"
-          /d:sonar.coverage.exclusions="tests/**"
+        uses: ./.github/actions/sonar-begin
+        with:
+          project-key: Aprbrown.Analyzers
+          host-url: ${{ vars.SONAR_HOST_URL }}
+          token: ${{ secrets.SONAR_TOKEN }}
+          pr-token: ${{ secrets.SONAR_PR_TOKEN }}
+          arguments: |
+            /d:sonar.cs.vscoveragexml.reportsPaths=${{ runner.temp }}/test-results/coverage.xml
+            /d:sonar.exclusions=tests/Fixture.Consumer/**,.claude/**,docs/**,.out-of-scope/**
+            /d:sonar.coverage.exclusions=tests/**,.github/**
 
       - name: Build
         run: dotnet build Aprbrown.Analyzers.slnx -c Release
@@ -66,6 +71,44 @@ jobs:
 
       - name: SonarScanner end
         if: always() && steps.begin.outcome == 'success'
+        uses: ./.github/actions/sonar-end
+        with:
+          token: ${{ secrets.SONAR_TOKEN }}
+          pr-token: ${{ secrets.SONAR_PR_TOKEN }}
+
+      - name: Compare with main
+        if: github.event_name == 'pull_request'
+        uses: ./.github/actions/sonar-pr-compare
+        with:
+          server: ${{ vars.SONAR_HOST_URL }}
+          public-url: https://sonarqube.landalf.internal
+          main-project: Aprbrown.Analyzers
+          pr-project: Aprbrown.Analyzers-pr-${{ github.event.pull_request.number }}
+          revision: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.SONAR_PR_TOKEN }}
+
+  delete-pr-project:
+    name: Delete the pull request's project
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.action == 'closed'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: [self-hosted, linux, homelab-public]
+    timeout-minutes: 5
+
+    steps:
+      - name: Delete the pull request's SonarQube project
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: '"$RUNNER_TEMP/sonar-scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"'
+          SONAR_TOKEN: ${{ secrets.SONAR_PR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+          PR_PROJECT: Aprbrown.Analyzers-pr-${{ github.event.pull_request.number }}
+        run: |
+          response="$RUNNER_TEMP/delete-response.txt"
+          status=$(curl -s -o "$response" -w '%{http_code}' -u "$SONAR_TOKEN:" -X POST \
+            "$SONAR_HOST_URL/api/projects/delete" --data-urlencode "project=$PR_PROJECT")
+          case $status in
+            204) echo "Deleted $PR_PROJECT" ;;
+            404) echo "$PR_PROJECT doesn't exist; nothing to delete" ;;
+            *) echo "Deleting $PR_PROJECT failed with HTTP $status" >&2; cat "$response" >&2; exit 1 ;;
+          esac
