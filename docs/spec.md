@@ -766,8 +766,9 @@ ADR-0003 and ADR-0004 settle these; the deliverables are listed here so nothing 
 
 - `.github/workflows/ci.yml` — PR and `main` pushes. Build, test, pack a smoke version, and run
   `verify-package.sh` against it.
-- `.github/workflows/sonar.yml` — `main` pushes and dispatch only, on the repository's own homelab
-  runner (ADR-0006). Publishes a SonarQube analysis with coverage; a signal, never a gate.
+- `.github/workflows/sonar.yml` — `main` pushes, dispatch and same-repository pull requests, on the
+  repository's own homelab runner (ADR-0006). Publishes main's SonarQube analysis with coverage, a
+  signal; fails a pull request whose analysis has issues main's doesn't (ADR-0010).
 - `.github/workflows/release.yml` — `v*` tags only; the sole workflow holding `id-token: write`.
   Packs with `-p:Version=${GITHUB_REF_NAME#v}` — the tag is the only source of a version number. No
   `NUGET_API_KEY` exists; `NuGet/login@v1` exchanges an OIDC token for a one-hour single-use key.
