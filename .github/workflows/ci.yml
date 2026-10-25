@@ -135,6 +135,18 @@ jobs:
       - name: Sonar triage listing tests
         run: ./scripts/tests/sonar-untriaged-tests.sh
 
+      - name: SonarQube PR compare tests
+        run: >-
+          python3 -m unittest discover
+          -s .github/actions/sonar-pr-compare/tests
+          -t .github/actions/sonar-pr-compare
+
+      - name: SonarScanner begin and end tests
+        run: >-
+          python3 -m unittest discover
+          -s .github/actions/sonar-scanner/tests
+          -t .github/actions/sonar-scanner
+
       # The release-time gates are the one pair of checks that cannot run at PR time — neither has
       # anything to check until a version number exists — but the *scripts* implementing them can,
       # and by the same reasoning: a parser that first proves itself at release time has already
